@@ -92,6 +92,7 @@ type Authn interface {
 type Service interface {
 	Authn
 	Authz
+	Domains
 }
 
 var _ Service = (*service)(nil)
@@ -424,4 +425,24 @@ func SwitchToPermission(relation string) string {
 	default:
 		return relation
 	}
+}
+
+func (svc service) CreateDomain(ctx context.Context, token string, d Domain) (Domain, error) {
+	return Domain{}, nil
+}
+func (svc service) ViewDomain(ctx context.Context, token string, id string) (Domain, error) {
+	return Domain{}, nil
+}
+func (svc service) UpdateDomain(ctx context.Context, token string, id string, d Domain) (Domain, error) {
+	return Domain{}, nil
+}
+func (svc service) ListDomains(ctx context.Context, token string) (DomainsPage, error) {
+	return DomainsPage{}, nil
+}
+
+func (svc service) AssignUsers(ctx context.Context, token string, id string, userIds []string, relation string) error {
+	return nil
+}
+func (svc service) UnassignUsers(ctx context.Context, token string, id string, userIds []string, relation string) error {
+	return nil
 }
