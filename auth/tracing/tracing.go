@@ -221,3 +221,53 @@ func (tm *tracingMiddleware) CountSubjects(ctx context.Context, pr auth.PolicyRe
 
 	return tm.svc.CountSubjects(ctx, pr)
 }
+
+func (tm *tracingMiddleware) CreateDomain(ctx context.Context, token string, d auth.Domain) (auth.Domain, error) {
+	ctx, span := tm.tracer.Start(ctx, "create_domain", trace.WithAttributes(
+		attribute.String("name", d.Name),
+	))
+	defer span.End()
+	return tm.svc.CreateDomain(ctx, token, d)
+}
+
+func (tm *tracingMiddleware) ViewDomain(ctx context.Context, token string, id string) (auth.Domain, error) {
+	ctx, span := tm.tracer.Start(ctx, "view_domain", trace.WithAttributes(
+		attribute.String("id", id),
+	))
+	defer span.End()
+	return tm.svc.ViewDomain(ctx, token, id)
+}
+
+func (tm *tracingMiddleware) UpdateDomain(ctx context.Context, token string, id string, d auth.Domain) (auth.Domain, error) {
+	ctx, span := tm.tracer.Start(ctx, "update_domain", trace.WithAttributes(
+		attribute.String("id", id),
+	))
+	defer span.End()
+	return tm.svc.UpdateDomain(ctx, token, id, d)
+}
+
+func (tm *tracingMiddleware) ListDomains(ctx context.Context, token string) (auth.DomainsPage, error) {
+	ctx, span := tm.tracer.Start(ctx, "list_domains")
+	defer span.End()
+	return tm.svc.ListDomains(ctx, token)
+}
+
+func (tm *tracingMiddleware) AssignUsers(ctx context.Context, token string, id string, userIds []string, relation string) error {
+	ctx, span := tm.tracer.Start(ctx, "assign_users", trace.WithAttributes(
+		attribute.String("id", id),
+		attribute.StringSlice("user_ids", userIds),
+		attribute.String("relation", relation),
+	))
+	defer span.End()
+	return tm.svc.AssignUsers(ctx, token, id, userIds, relation)
+}
+
+func (tm *tracingMiddleware) UnassignUsers(ctx context.Context, token string, id string, userIds []string, relation string) error {
+	ctx, span := tm.tracer.Start(ctx, "unassign_users", trace.WithAttributes(
+		attribute.String("id", id),
+		attribute.StringSlice("user_ids", userIds),
+		attribute.String("relation", relation),
+	))
+	defer span.End()
+	return tm.svc.UnassignUsers(ctx, token, id, userIds, relation)
+}
