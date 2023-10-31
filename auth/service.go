@@ -8,7 +8,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/absmach/magistrala"
+	mainflux "github.com/absmach/magistrala"
+	"github.com/absmach/magistrala/internal/apiutil"
+	"github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
 )
 
@@ -97,7 +99,8 @@ var _ Service = (*service)(nil)
 
 type service struct {
 	keys            KeyRepository
-	idProvider      magistrala.IDProvider
+	domains         DomainsRepository
+	idProvider      mainflux.IDProvider
 	agent           PolicyAgent
 	tokenizer       Tokenizer
 	loginDuration   time.Duration
@@ -105,9 +108,10 @@ type service struct {
 }
 
 // New instantiates the auth service implementation.
-func New(keys KeyRepository, idp magistrala.IDProvider, tokenizer Tokenizer, policyAgent PolicyAgent, loginDuration, refreshDuration time.Duration) Service {
+func New(keys KeyRepository, domains DomainsRepository, idp mainflux.IDProvider, tokenizer Tokenizer, policyAgent PolicyAgent, loginDuration, refreshDuration time.Duration) Service {
 	return &service{
 		tokenizer:       tokenizer,
+		domains:         domains,
 		keys:            keys,
 		idProvider:      idp,
 		agent:           policyAgent,
@@ -422,22 +426,232 @@ func SwitchToPermission(relation string) string {
 	}
 }
 
-func (svc service) CreateDomain(ctx context.Context, token string, d Domain) (Domain, error) {
-	return Domain{}, nil
+func (svc service) CreateDomain(ctx context.Context, token string, d Domain) (do Domain, err error) {
+	userID, err := svc.Identify(ctx, token)
+	if err != nil {
+		return Domain{}, err
+	}
+	d.CreatedBy = userID
+
+	domainID, err := svc.idProvider.ID()
+	if err != nil {
+		return Domain{}, err
+	}
+	d.ID = domainID
+
+	if d.Status != clients.DisabledStatus && d.Status != clients.EnabledStatus {
+		return Domain{}, apiutil.ErrInvalidStatus
+	}
+
+	d.CreatedAt = time.Now()
+
+	if err := svc.addDomainPolicy(ctx, userID, domainID, AdminRelation); err != nil {
+		return Domain{}, err
+	}
+	defer func() {
+		if err != nil {
+			if errRollBack := svc.addDomainPolicyRollback(ctx, userID, domainID, AdminRelation); errRollBack != nil {
+				err = errors.Wrap(err, fmt.Errorf("failed to rollback policy %w", errRollBack))
+			}
+		}
+	}()
+
+	return svc.domains.Save(ctx, d)
 }
-func (svc service) ViewDomain(ctx context.Context, token string, id string) (Domain, error) {
-	return Domain{}, nil
+
+func (svc service) RetrieveDomain(ctx context.Context, token string, id string) (Domain, error) {
+	if err := svc.Authorize(ctx, PolicyReq{
+		Subject:     token,
+		SubjectType: UserType,
+		SubjectKind: TokenKind,
+		Object:      id,
+		ObjectType:  DomainType,
+		Permission:  ViewPermission,
+	}); err != nil {
+		return Domain{}, err
+	}
+
+	return svc.domains.RetrieveByID(ctx, id)
 }
-func (svc service) UpdateDomain(ctx context.Context, token string, id string, d Domain) (Domain, error) {
-	return Domain{}, nil
+func (svc service) UpdateDomain(ctx context.Context, token string, id string, d DomainReq) (Domain, error) {
+	if err := svc.Authorize(ctx, PolicyReq{
+		Subject:     token,
+		SubjectType: UserType,
+		SubjectKind: TokenKind,
+		Object:      id,
+		ObjectType:  DomainType,
+		Permission:  EditPermission,
+	}); err != nil {
+		return Domain{}, err
+	}
+
+	return svc.domains.Update(ctx, d)
 }
-func (svc service) ListDomains(ctx context.Context, token string) (DomainsPage, error) {
-	return DomainsPage{}, nil
+func (svc service) ListDomains(ctx context.Context, token string, p Page) (DomainsPage, error) {
+	userID, err := svc.Identify(ctx, token)
+	if err != nil {
+		return DomainsPage{}, err
+	}
+	pp, err := svc.ListAllObjects(ctx, PolicyReq{
+		Subject:     userID,
+		SubjectType: UserType,
+		SubjectKind: UsersKind,
+		ObjectType:  DomainType,
+		Permission:  p.Permission,
+	})
+	if err != nil {
+		return DomainsPage{}, err
+	}
+	p.IDs = pp.Policies
+	return svc.domains.RetrieveAllByIDs(ctx, p)
 }
 
 func (svc service) AssignUsers(ctx context.Context, token string, id string, userIds []string, relation string) error {
+	if err := svc.Authorize(ctx, PolicyReq{
+		Subject:     token,
+		SubjectType: userType,
+		SubjectKind: TokenKind,
+		Object:      id,
+		ObjectType:  DomainType,
+		Permission:  SharePermission,
+	}); err != nil {
+		return err
+	}
+
+	if err := svc.Authorize(ctx, PolicyReq{
+		Subject:     token,
+		SubjectType: userType,
+		SubjectKind: TokenKind,
+		Object:      id,
+		ObjectType:  DomainType,
+		Permission:  SwitchToPermission(relation),
+	}); err != nil {
+		return err
+	}
+
+	for _, userID := range userIds {
+		if err := svc.addDomainPolicy(ctx, userID, id, relation); err != nil {
+			return err
+		}
+	}
 	return nil
 }
 func (svc service) UnassignUsers(ctx context.Context, token string, id string, userIds []string, relation string) error {
+	if err := svc.Authorize(ctx, PolicyReq{
+		Subject:     token,
+		SubjectType: userType,
+		SubjectKind: TokenKind,
+		Object:      id,
+		ObjectType:  DomainType,
+		Permission:  SharePermission,
+	}); err != nil {
+		return err
+	}
+
+	if err := svc.Authorize(ctx, PolicyReq{
+		Subject:     token,
+		SubjectType: userType,
+		SubjectKind: TokenKind,
+		Object:      id,
+		ObjectType:  DomainType,
+		Permission:  SwitchToPermission(relation),
+	}); err != nil {
+		return err
+	}
+
+	for _, userID := range userIds {
+		if err := svc.removeDomainPolicy(ctx, userID, id, relation); err != nil {
+			return err
+		}
+	}
 	return nil
+}
+
+func (svc service) ListUserDomains(ctx context.Context, token string, userID string, p Page) (DomainsPage, error) {
+	return DomainsPage{}, nil
+}
+
+func (svc service) addDomainPolicy(ctx context.Context, userID, domainID, relation string) (err error) {
+	pr := PolicyReq{
+		Subject:     userID,
+		SubjectType: UserType,
+		SubjectKind: UsersKind,
+		Relation:    AdminRelation,
+		Object:      domainID,
+		ObjectType:  DomainType,
+	}
+	if err := svc.agent.AddPolicy(ctx, pr); err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if errDel := svc.agent.DeletePolicy(ctx, pr); errDel != nil {
+				err = errors.Wrap(err, fmt.Errorf("failed to rollback policy %w", errDel))
+			}
+		}
+	}()
+	return svc.domains.SavePolicyCopy(ctx, PolicyCopy{
+		SubjectType: UserType,
+		SubjectID:   userID,
+		Relation:    relation,
+		ObjectType:  DomainType,
+		ObjectID:    domainID,
+	})
+}
+
+func (svc service) addDomainPolicyRollback(ctx context.Context, userID, domainID, relation string) error {
+	var err error
+	pr := PolicyReq{
+		Subject:     userID,
+		SubjectType: UserType,
+		SubjectKind: UsersKind,
+		Relation:    AdminRelation,
+		Object:      domainID,
+		ObjectType:  DomainType,
+	}
+	if errPolicy := svc.agent.DeletePolicy(ctx, pr); errPolicy != nil {
+		err = fmt.Errorf("failed to remove from policy engine %w", errPolicy)
+	}
+	errPolicyCopy := svc.domains.SavePolicyCopy(ctx, PolicyCopy{
+		SubjectType: UserType,
+		SubjectID:   userID,
+		Relation:    relation,
+		ObjectType:  DomainType,
+		ObjectID:    domainID,
+	})
+	if errPolicyCopy != nil {
+		err = errors.Wrap(err, fmt.Errorf("failed to remove from local policy copy %w", errPolicyCopy))
+
+	}
+	return err
+}
+
+func (svc service) removeDomainPolicy(ctx context.Context, userID, domainID, relation string) (err error) {
+	pr := PolicyReq{
+		Subject:     userID,
+		SubjectType: UserType,
+		SubjectKind: UsersKind,
+		Relation:    AdminRelation,
+		Object:      domainID,
+		ObjectType:  DomainType,
+	}
+	if err := svc.agent.DeletePolicy(ctx, pr); err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if errAdd := svc.agent.AddPolicy(ctx, pr); errAdd != nil {
+				err = errors.Wrap(err, fmt.Errorf("failed to add back policy %w", errAdd))
+			}
+		}
+	}()
+
+	return svc.domains.DeletePolicyCopy(ctx, PolicyCopy{
+		SubjectType: UserType,
+		SubjectID:   userID,
+		Relation:    relation,
+		ObjectType:  DomainType,
+		ObjectID:    domainID,
+	})
+
 }

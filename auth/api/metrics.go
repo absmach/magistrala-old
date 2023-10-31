@@ -158,3 +158,59 @@ func (ms *metricsMiddleware) DeletePolicies(ctx context.Context, token, object s
 	}(time.Now())
 	return ms.svc.DeletePolicies(ctx, token, object, subjectIDs, relations)
 }
+
+func (ms *metricsMiddleware) CreateDomain(ctx context.Context, token string, d auth.Domain) (auth.Domain, error) {
+	defer func(begin time.Time) {
+		ms.counter.With("method", "create_domain").Add(1)
+		ms.latency.With("method", "create_domain").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+	return ms.svc.CreateDomain(ctx, token, d)
+}
+
+func (ms *metricsMiddleware) RetrieveDomain(ctx context.Context, token string, id string) (auth.Domain, error) {
+	defer func(begin time.Time) {
+		ms.counter.With("method", "retrieve_domain").Add(1)
+		ms.latency.With("method", "retrieve_domain").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+	return ms.svc.RetrieveDomain(ctx, token, id)
+}
+
+func (ms *metricsMiddleware) UpdateDomain(ctx context.Context, token string, id string, d auth.DomainReq) (auth.Domain, error) {
+	defer func(begin time.Time) {
+		ms.counter.With("method", "update_domain").Add(1)
+		ms.latency.With("method", "update_domain").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+	return ms.svc.UpdateDomain(ctx, token, id, d)
+}
+
+func (ms *metricsMiddleware) ListDomains(ctx context.Context, token string, page auth.Page) (auth.DomainsPage, error) {
+	defer func(begin time.Time) {
+		ms.counter.With("method", "list_domains").Add(1)
+		ms.latency.With("method", "list_domains").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+	return ms.svc.ListDomains(ctx, token, page)
+}
+
+func (ms *metricsMiddleware) AssignUsers(ctx context.Context, token string, id string, userIds []string, relation string) error {
+	defer func(begin time.Time) {
+		ms.counter.With("method", "assign_users").Add(1)
+		ms.latency.With("method", "assign_users").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+	return ms.svc.AssignUsers(ctx, token, id, userIds, relation)
+}
+
+func (ms *metricsMiddleware) UnassignUsers(ctx context.Context, token string, id string, userIds []string, relation string) error {
+	defer func(begin time.Time) {
+		ms.counter.With("method", "unassign_users").Add(1)
+		ms.latency.With("method", "unassign_users").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+	return ms.svc.UnassignUsers(ctx, token, id, userIds, relation)
+}
+
+func (ms *metricsMiddleware) ListUserDomains(ctx context.Context, token string, userID string, page auth.Page) (auth.DomainsPage, error) {
+	defer func(begin time.Time) {
+		ms.counter.With("method", "list_user_domains").Add(1)
+		ms.latency.With("method", "list_user_domains").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+	return ms.svc.ListUserDomains(ctx, token, userID, page)
+}

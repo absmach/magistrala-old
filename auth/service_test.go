@@ -42,11 +42,12 @@ const (
 func newService() (auth.Service, *mocks.Keys) {
 	krepo := new(mocks.Keys)
 	prepo := new(mocks.PolicyAgent)
+	drepo := new(mocks.DomainsRepo)
 	idProvider := uuid.NewMock()
 
 	t := jwt.New([]byte(secret))
 
-	return auth.New(krepo, idProvider, t, prepo, loginDuration, refreshDuration), krepo
+	return auth.New(krepo, drepo, idProvider, t, prepo, loginDuration, refreshDuration), krepo
 }
 
 func TestIssue(t *testing.T) {

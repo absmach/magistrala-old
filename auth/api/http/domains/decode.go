@@ -11,6 +11,7 @@ import (
 
 	"github.com/absmach/magistrala/internal/api"
 	"github.com/absmach/magistrala/internal/apiutil"
+	mfclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
 	"github.com/go-chi/chi/v5"
 )
@@ -29,7 +30,7 @@ func decodeCreateDomainRequest(_ context.Context, r *http.Request) (interface{},
 	return req, nil
 }
 
-func decodeViewDomainRequest(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeRetrieveDomainRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	req := assignUsersReq{
 		token:    apiutil.ExtractBearerToken(r),
 		domainID: chi.URLParam(r, "domainID"),
@@ -51,6 +52,36 @@ func decodeUpdateDomainRequest(_ context.Context, r *http.Request) (interface{},
 		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
 	}
 
+	return req, nil
+}
+
+func decodeListDomainRequest(ctx context.Context, r *http.Request) (interface{}, error) {
+	page, err := decodePageRequest(ctx, r)
+	if err != nil {
+		return nil, err
+	}
+	req := listDomainsReq{
+		token: apiutil.ExtractBearerToken(r),
+		page:  page,
+	}
+
+	return req, nil
+
+}
+
+func decodeEnableDomainRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	req := enableDomainReq{
+		token:    apiutil.ExtractBearerToken(r),
+		domainID: chi.URLParam(r, "domainID"),
+	}
+	return req, nil
+}
+
+func decodeDisableDomainRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	req := disableDomainReq{
+		token:    apiutil.ExtractBearerToken(r),
+		domainID: chi.URLParam(r, "domainID"),
+	}
 	return req, nil
 }
 
@@ -84,4 +115,72 @@ func decodeUnassignUsersRequest(_ context.Context, r *http.Request) (interface{}
 	}
 
 	return req, nil
+}
+
+func decodeListUserDomainsRequest(ctx context.Context, r *http.Request) (interface{}, error) {
+	page, err := decodePageRequest(ctx, r)
+	if err != nil {
+		return nil, err
+	}
+	req := listUserDomainsReq{
+		token:  apiutil.ExtractBearerToken(r),
+		userID: chi.URLParam(r, "userID"),
+		page:   page,
+	}
+	return req, nil
+}
+
+func decodePageRequest(_ context.Context, r *http.Request) (page, error) {
+	s, err := apiutil.ReadStringQuery(r, api.StatusKey, api.DefClientStatus)
+	if err != nil {
+		return page{}, errors.Wrap(apiutil.ErrValidation, err)
+	}
+	st, err := mfclients.ToStatus(s)
+	if err != nil {
+		return page{}, errors.Wrap(apiutil.ErrValidation, err)
+	}
+	o, err := apiutil.ReadNumQuery[uint64](r, api.OffsetKey, api.DefOffset)
+	if err != nil {
+		return page{}, errors.Wrap(apiutil.ErrValidation, err)
+	}
+	or, err := apiutil.ReadStringQuery(r, api.OrderKey, api.DefOrder)
+	if err != nil {
+		return page{}, errors.Wrap(apiutil.ErrValidation, err)
+	}
+	dir, err := apiutil.ReadStringQuery(r, api.DirKey, api.DefDir)
+	if err != nil {
+		return page{}, errors.Wrap(apiutil.ErrValidation, err)
+	}
+	l, err := apiutil.ReadNumQuery[uint64](r, api.LimitKey, api.DefLimit)
+	if err != nil {
+		return page{}, errors.Wrap(apiutil.ErrValidation, err)
+	}
+	m, err := apiutil.ReadMetadataQuery(r, api.MetadataKey, nil)
+	if err != nil {
+		return page{}, errors.Wrap(apiutil.ErrValidation, err)
+	}
+	n, err := apiutil.ReadStringQuery(r, api.NameKey, "")
+	if err != nil {
+		return page{}, errors.Wrap(apiutil.ErrValidation, err)
+	}
+	t, err := apiutil.ReadStringQuery(r, api.TagKey, "")
+	if err != nil {
+		return page{}, errors.Wrap(apiutil.ErrValidation, err)
+	}
+	p, err := apiutil.ReadStringQuery(r, api.PermissionKey, api.DefPermission)
+	if err != nil {
+		return page{}, errors.Wrap(apiutil.ErrValidation, err)
+	}
+
+	return page{
+		offset:     o,
+		order:      or,
+		dir:        dir,
+		limit:      l,
+		name:       n,
+		metadata:   m,
+		tag:        t,
+		permission: p,
+		status:     st,
+	}, nil
 }
