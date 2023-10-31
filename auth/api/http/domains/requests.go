@@ -5,15 +5,27 @@ package domains
 
 import (
 	"github.com/absmach/magistrala/internal/apiutil"
+	mfclients "github.com/absmach/magistrala/pkg/clients"
 )
 
+type page struct {
+	offset     uint64
+	limit      uint64
+	order      string
+	dir        string
+	name       string
+	metadata   map[string]interface{}
+	tag        string
+	permission string
+	status     mfclients.Status
+}
+
 type createDomainReq struct {
-	token       string
-	Name        string                 `json:"name"`
-	Description string                 `json:"description,omitempty"`
-	Metadata    map[string]interface{} `json:"metadata,omitempty"`
-	Tags        []string               `json:"tags,omitempty"`
-	Alias       string                 `json:"alias,omitempty"`
+	token    string
+	Name     string                 `json:"name"`
+	Metadata map[string]interface{} `json:"metadata,omitempty"`
+	Tags     []string               `json:"tags,omitempty"`
+	Alias    string                 `json:"alias,omitempty"`
 }
 
 func (req createDomainReq) validate() error {
@@ -27,12 +39,12 @@ func (req createDomainReq) validate() error {
 	return nil
 }
 
-type viewDomainRequest struct {
+type retrieveDomainRequest struct {
 	token    string
 	domainID string
 }
 
-func (req viewDomainRequest) validate() error {
+func (req retrieveDomainRequest) validate() error {
 	if req.token == "" {
 		return apiutil.ErrBearerToken
 	}
@@ -45,16 +57,63 @@ func (req viewDomainRequest) validate() error {
 }
 
 type updateDomainReq struct {
-	token       string
-	domainID    string
-	Name        string                 `json:"name,omitempty"`
-	Description string                 `json:"description,omitempty"`
-	Metadata    map[string]interface{} `json:"metadata,omitempty"`
-	Tags        []string               `json:"tags,omitempty"`
-	Alias       string                 `json:"alias,omitempty"`
+	token    string
+	domainID string
+	Name     *string                 `json:"name,omitempty"`
+	Email    *string                 `json:"email,omitempty"`
+	Metadata *map[string]interface{} `json:"metadata,omitempty"`
+	Tags     *[]string               `json:"tags,omitempty"`
+	Alias    *string                 `json:"alias,omitempty"`
 }
 
 func (req updateDomainReq) validate() error {
+	if req.token == "" {
+		return apiutil.ErrBearerToken
+	}
+
+	if req.domainID == "" {
+		return apiutil.ErrMissingID
+	}
+
+	return nil
+}
+
+type listDomainsReq struct {
+	token string
+	page
+}
+
+func (req listDomainsReq) validate() error {
+	if req.token == "" {
+		return apiutil.ErrBearerToken
+	}
+
+	return nil
+}
+
+type enableDomainReq struct {
+	token    string
+	domainID string
+}
+
+func (req enableDomainReq) validate() error {
+	if req.token == "" {
+		return apiutil.ErrBearerToken
+	}
+
+	if req.domainID == "" {
+		return apiutil.ErrMissingID
+	}
+
+	return nil
+}
+
+type disableDomainReq struct {
+	token    string
+	domainID string
+}
+
+func (req disableDomainReq) validate() error {
 	if req.token == "" {
 		return apiutil.ErrBearerToken
 	}
@@ -115,6 +174,24 @@ func (req unassignUsersReq) validate() error {
 
 	if req.Relation == "" {
 		return apiutil.ErrMalformedPolicy
+	}
+
+	return nil
+}
+
+type listUserDomainsReq struct {
+	token  string
+	userID string
+	page
+}
+
+func (req listUserDomainsReq) validate() error {
+	if req.token == "" {
+		return apiutil.ErrBearerToken
+	}
+
+	if req.userID == "" {
+		return apiutil.ErrMissingID
 	}
 
 	return nil
