@@ -14,11 +14,13 @@ const (
 	ChannelsKind = "channels"
 	ThingsKind   = "things"
 	UsersKind    = "users"
+	DomainsKind  = "domains"
 
 	GroupType   = "group"
 	ChannelType = "channel"
 	ThingType   = "thing"
 	UserType    = "user"
+	DomainType  = "Domain"
 
 	OwnerRelation       = "owner"
 	AdminRelation       = "admin"

@@ -28,8 +28,8 @@ func groupsHandler(svc auth.Service, r *chi.Mux, logger logger.Logger) http.Hand
 		), "create_domain").ServeHTTP)
 
 		r.Get("/{domainID}", otelhttp.NewHandler(kithttp.NewServer(
-			viewDomainEndpoint(svc),
-			decodeViewDomainRequest,
+			retrieveDomainEndpoint(svc),
+			decodeRetrieveDomainRequest,
 			api.EncodeResponse,
 			opts...,
 		), "view_domain").ServeHTTP)
@@ -79,11 +79,11 @@ func groupsHandler(svc auth.Service, r *chi.Mux, logger logger.Logger) http.Hand
 	})
 
 	r.Get("/users/{userID}/domains", otelhttp.NewHandler(kithttp.NewServer(
-		listUsersDomains(svc),
-		decodeUsersDomainRequest,
+		listUserDomainsEndpoint(svc),
+		decodeListUserDomainsRequest,
 		api.EncodeResponse,
 		opts...,
-	), "list_channel_by_user_id").ServeHTTP)
+	), "list_domains_by_user_id").ServeHTTP)
 
 	return r
 }

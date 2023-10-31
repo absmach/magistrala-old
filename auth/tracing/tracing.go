@@ -230,15 +230,15 @@ func (tm *tracingMiddleware) CreateDomain(ctx context.Context, token string, d a
 	return tm.svc.CreateDomain(ctx, token, d)
 }
 
-func (tm *tracingMiddleware) ViewDomain(ctx context.Context, token string, id string) (auth.Domain, error) {
+func (tm *tracingMiddleware) RetrieveDomain(ctx context.Context, token string, id string) (auth.Domain, error) {
 	ctx, span := tm.tracer.Start(ctx, "view_domain", trace.WithAttributes(
 		attribute.String("id", id),
 	))
 	defer span.End()
-	return tm.svc.ViewDomain(ctx, token, id)
+	return tm.svc.RetrieveDomain(ctx, token, id)
 }
 
-func (tm *tracingMiddleware) UpdateDomain(ctx context.Context, token string, id string, d auth.Domain) (auth.Domain, error) {
+func (tm *tracingMiddleware) UpdateDomain(ctx context.Context, token string, id string, d auth.DomainReq) (auth.Domain, error) {
 	ctx, span := tm.tracer.Start(ctx, "update_domain", trace.WithAttributes(
 		attribute.String("id", id),
 	))
@@ -246,10 +246,10 @@ func (tm *tracingMiddleware) UpdateDomain(ctx context.Context, token string, id 
 	return tm.svc.UpdateDomain(ctx, token, id, d)
 }
 
-func (tm *tracingMiddleware) ListDomains(ctx context.Context, token string) (auth.DomainsPage, error) {
+func (tm *tracingMiddleware) ListDomains(ctx context.Context, token string, p auth.Page) (auth.DomainsPage, error) {
 	ctx, span := tm.tracer.Start(ctx, "list_domains")
 	defer span.End()
-	return tm.svc.ListDomains(ctx, token)
+	return tm.svc.ListDomains(ctx, token, p)
 }
 
 func (tm *tracingMiddleware) AssignUsers(ctx context.Context, token string, id string, userIds []string, relation string) error {
@@ -270,4 +270,12 @@ func (tm *tracingMiddleware) UnassignUsers(ctx context.Context, token string, id
 	))
 	defer span.End()
 	return tm.svc.UnassignUsers(ctx, token, id, userIds, relation)
+}
+
+func (tm *tracingMiddleware) ListUserDomains(ctx context.Context, token string, userID string, p auth.Page) (auth.DomainsPage, error) {
+	ctx, span := tm.tracer.Start(ctx, "list_user_domains", trace.WithAttributes(
+		attribute.String("user_id", userID),
+	))
+	defer span.End()
+	return tm.svc.ListUserDomains(ctx, token, userID, p)
 }
