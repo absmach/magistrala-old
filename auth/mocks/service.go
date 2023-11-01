@@ -8,6 +8,7 @@ import (
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/pkg/errors"
+	"github.com/mainflux/mainflux"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc"
 )
@@ -22,16 +23,10 @@ type Service struct {
 
 func (m *Service) Issue(ctx context.Context, in *magistrala.IssueReq, opts ...grpc.CallOption) (*magistrala.Token, error) {
 	ret := m.Called(ctx, in)
-	if in.GetId() == InvalidValue || in.GetId() == "" {
+	if in.GetUserId() == InvalidValue || in.GetUserId() == "" {
 		return &magistrala.Token{}, errors.ErrAuthentication
 	}
-
-	return ret.Get(0).(*magistrala.Token), ret.Error(1)
-}
-
-func (m *Service) Login(ctx context.Context, in *magistrala.LoginReq, opts ...grpc.CallOption) (*magistrala.Token, error) {
-	ret := m.Called(ctx, in)
-	if in.GetId() == InvalidValue || in.GetId() == "" {
+	if in.GetDomainId() == InvalidValue || in.GetDomainId() == "" {
 		return &magistrala.Token{}, errors.ErrAuthentication
 	}
 
@@ -40,7 +35,10 @@ func (m *Service) Login(ctx context.Context, in *magistrala.LoginReq, opts ...gr
 
 func (m *Service) Refresh(ctx context.Context, in *magistrala.RefreshReq, opts ...grpc.CallOption) (*magistrala.Token, error) {
 	ret := m.Called(ctx, in)
-	if in.GetValue() == InvalidValue || in.GetValue() == "" {
+	if in.GetRefreshToken() == InvalidValue || in.GetRefreshToken() == "" {
+		return &magistrala.Token{}, errors.ErrAuthentication
+	}
+	if in.GetDomainId() == InvalidValue || in.GetDomainId() == "" {
 		return &magistrala.Token{}, errors.ErrAuthentication
 	}
 

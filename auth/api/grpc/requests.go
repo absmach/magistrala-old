@@ -21,8 +21,9 @@ func (req identityReq) validate() error {
 }
 
 type issueReq struct {
-	id      string
-	keyType auth.KeyType
+	userID   string
+	domainID string // optional
+	keyType  auth.KeyType
 }
 
 func (req issueReq) validate() error {
@@ -36,11 +37,12 @@ func (req issueReq) validate() error {
 }
 
 type refreshReq struct {
-	value string
+	refreshToken string
+	domainID     string // optional
 }
 
 func (req refreshReq) validate() error {
-	if req.value == "" {
+	if req.refreshToken == "" {
 		return apiutil.ErrMissingSecret
 	}
 

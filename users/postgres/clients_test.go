@@ -176,7 +176,7 @@ func TestClientsSave(t *testing.T) {
 	}
 }
 
-func TestIsOwner(t *testing.T) {
+func TestIsPlatformAdmin(t *testing.T) {
 	t.Cleanup(func() {
 		_, err := db.Exec("DELETE FROM clients")
 		require.Nil(t, err, fmt.Sprintf("clean clients unexpected error: %s", err))
@@ -238,7 +238,7 @@ func TestIsOwner(t *testing.T) {
 	for _, tc := range cases {
 		_, err := repo.Save(context.Background(), tc.client)
 		require.Nil(t, err, fmt.Sprintf("%s: save client unexpected error: %s", tc.desc, err))
-		err = repo.IsOwner(context.Background(), tc.client.ID, tc.ownerID)
+		err = repo.IsSuperAdmin(context.Background(), tc.client.ID, tc.ownerID)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 	}
 }

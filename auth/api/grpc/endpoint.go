@@ -5,7 +5,6 @@ package grpc
 
 import (
 	"context"
-	"time"
 
 	"github.com/absmach/magistrala/auth"
 	"github.com/go-kit/kit/endpoint"
@@ -19,33 +18,9 @@ func issueEndpoint(svc auth.Service) endpoint.Endpoint {
 		}
 
 		key := auth.Key{
-			Type:    req.keyType,
-			Subject: req.id,
-		}
-		tkn, err := svc.Issue(ctx, "", key)
-		if err != nil {
-			return issueRes{}, err
-		}
-		ret := issueRes{
-			accessToken:  tkn.AccessToken,
-			refreshToken: tkn.RefreshToken,
-			accessType:   tkn.AccessType,
-		}
-		return ret, nil
-	}
-}
-
-func loginEndpoint(svc auth.Service) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(issueReq)
-		if err := req.validate(); err != nil {
-			return issueRes{}, err
-		}
-
-		key := auth.Key{
-			Type:     req.keyType,
-			Subject:  req.id,
-			IssuedAt: time.Now().UTC(),
+			Type:   req.keyType,
+			User:   req.userID,
+			Domain: req.domainID,
 		}
 		tkn, err := svc.Issue(ctx, "", key)
 		if err != nil {
@@ -67,8 +42,8 @@ func refreshEndpoint(svc auth.Service) endpoint.Endpoint {
 			return issueRes{}, err
 		}
 
-		key := auth.Key{Type: auth.RefreshKey}
-		tkn, err := svc.Issue(ctx, req.value, key)
+		key := auth.Key{Domain: req.domainID, Type: auth.RefreshKey}
+		tkn, err := svc.Issue(ctx, req.refreshToken, key)
 		if err != nil {
 			return issueRes{}, err
 		}
@@ -88,12 +63,12 @@ func identifyEndpoint(svc auth.Service) endpoint.Endpoint {
 			return identityRes{}, err
 		}
 
-		id, err := svc.Identify(ctx, req.token)
+		key, err := svc.Identify(ctx, req.token)
 		if err != nil {
 			return identityRes{}, err
 		}
 
-		return identityRes{id: id}, nil
+		return identityRes{id: key.Subject, userID: key.User, domainID: key.Domain}, nil
 	}
 }
 

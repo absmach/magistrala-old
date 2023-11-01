@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/absmach/magistrala"
+	"github.com/absmach/magistrala/auth"
 	"github.com/absmach/magistrala/internal/apiutil"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
@@ -16,35 +17,6 @@ import (
 )
 
 var errParentUnAuthz = errors.New("failed to authorize parent group")
-
-const (
-	ownerRelation       = "owner"
-	channelRelation     = "channel"
-	groupRelation       = "group"
-	parentGroupRelation = "parent_group"
-
-	usersKind    = "users"
-	groupsKind   = "groups"
-	thingsKind   = "things"
-	channelsKind = "channels"
-
-	userType    = "user"
-	groupType   = "group"
-	thingType   = "thing"
-	channelType = "channel"
-
-	adminPermission      = "admin"
-	ownerPermission      = "delete"
-	deletePermission     = "delete"
-	sharePermission      = "share"
-	editPermission       = "edit"
-	disconnectPermission = "disconnect"
-	connectPermission    = "connect"
-	viewPermission       = "view"
-	memberPermission     = "member"
-
-	tokenKind = "token"
-)
 
 type service struct {
 	groups     groups.Repository
@@ -81,7 +53,7 @@ func (svc service) CreateGroup(ctx context.Context, token string, g groups.Group
 	g.CreatedAt = time.Now()
 
 	if g.Parent != "" {
-		_, err := svc.authorize(ctx, userType, token, editPermission, groupType, g.Parent)
+		_, err := svc.authorize(ctx, auth.UserType, token, auth.EditPermission, auth.GroupType, g.Parent)
 		if err != nil {
 			return groups.Group{}, errors.Wrap(errParentUnAuthz, err)
 		}
@@ -93,10 +65,10 @@ func (svc service) CreateGroup(ctx context.Context, token string, g groups.Group
 	}
 
 	policy := magistrala.AddPolicyReq{
-		SubjectType: userType,
+		SubjectType: auth.UserType,
 		Subject:     ownerID,
-		Relation:    ownerRelation,
-		ObjectType:  groupType,
+		Relation:    auth.OwnerRelation,
+		ObjectType:  auth.GroupType,
 		Object:      g.ID,
 	}
 	if _, err := svc.auth.AddPolicy(ctx, &policy); err != nil {
@@ -105,10 +77,10 @@ func (svc service) CreateGroup(ctx context.Context, token string, g groups.Group
 
 	if g.Parent != "" {
 		policy = magistrala.AddPolicyReq{
-			SubjectType: groupType,
+			SubjectType: auth.GroupType,
 			Subject:     g.Parent,
-			Relation:    parentGroupRelation,
-			ObjectType:  groupType,
+			Relation:    auth.ParentGroupRelation,
+			ObjectType:  auth.GroupType,
 			Object:      g.ID,
 		}
 		if _, err := svc.auth.AddPolicy(ctx, &policy); err != nil {
@@ -120,7 +92,7 @@ func (svc service) CreateGroup(ctx context.Context, token string, g groups.Group
 }
 
 func (svc service) ViewGroup(ctx context.Context, token string, id string) (groups.Group, error) {
-	_, err := svc.authorize(ctx, userType, token, viewPermission, groupType, id)
+	_, err := svc.authorize(ctx, auth.UserType, token, auth.ViewPermission, auth.GroupType, id)
 	if err != nil {
 		return groups.Group{}, err
 	}
@@ -135,14 +107,14 @@ func (svc service) ListGroups(ctx context.Context, token string, memberKind, mem
 		return groups.Page{}, err
 	}
 	switch memberKind {
-	case thingsKind:
-		if _, err := svc.authorizeKind(ctx, userType, usersKind, userID, viewPermission, thingType, memberID); err != nil {
+	case auth.ThingsKind:
+		if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, userID, auth.ViewPermission, auth.ThingType, memberID); err != nil {
 			return groups.Page{}, err
 		}
 		cids, err := svc.auth.ListAllSubjects(ctx, &magistrala.ListSubjectsReq{
-			SubjectType: groupType,
-			Permission:  groupRelation,
-			ObjectType:  thingType,
+			SubjectType: auth.GroupType,
+			Permission:  auth.GroupRelation,
+			ObjectType:  auth.ThingType,
 			Object:      memberID,
 		})
 		if err != nil {
@@ -152,16 +124,16 @@ func (svc service) ListGroups(ctx context.Context, token string, memberKind, mem
 		if err != nil {
 			return groups.Page{}, err
 		}
-	case groupsKind:
-		if _, err := svc.authorizeKind(ctx, userType, usersKind, userID, gm.Permission, groupType, memberID); err != nil {
+	case auth.GroupsKind:
+		if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, userID, gm.Permission, auth.GroupType, memberID); err != nil {
 			return groups.Page{}, err
 		}
 
 		gids, err := svc.auth.ListAllObjects(ctx, &magistrala.ListObjectsReq{
-			SubjectType: groupType,
+			SubjectType: auth.GroupType,
 			Subject:     memberID,
-			Permission:  parentGroupRelation,
-			ObjectType:  groupType,
+			Permission:  auth.ParentGroupRelation,
+			ObjectType:  auth.GroupType,
 		})
 		if err != nil {
 			return groups.Page{}, err
@@ -170,14 +142,14 @@ func (svc service) ListGroups(ctx context.Context, token string, memberKind, mem
 		if err != nil {
 			return groups.Page{}, err
 		}
-	case channelsKind:
-		if _, err := svc.authorizeKind(ctx, userType, usersKind, userID, viewPermission, groupType, memberID); err != nil {
+	case auth.ChannelsKind:
+		if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, userID, auth.ViewPermission, auth.GroupType, memberID); err != nil {
 			return groups.Page{}, err
 		}
 		gids, err := svc.auth.ListAllSubjects(ctx, &magistrala.ListSubjectsReq{
-			SubjectType: groupType,
-			Permission:  parentGroupRelation,
-			ObjectType:  groupType,
+			SubjectType: auth.GroupType,
+			Permission:  auth.ParentGroupRelation,
+			ObjectType:  auth.GroupType,
 			Object:      memberID,
 		})
 		if err != nil {
@@ -188,16 +160,17 @@ func (svc service) ListGroups(ctx context.Context, token string, memberKind, mem
 		if err != nil {
 			return groups.Page{}, err
 		}
-	case usersKind:
+	case auth.UsersKind:
 		if memberID != "" && userID != memberID {
-			if _, err := svc.authorizeKind(ctx, userType, usersKind, userID, ownerRelation, userType, memberID); err != nil {
+			// ToDo:  Check user is admin of domain
+			if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, userID, auth.OwnerRelation, auth.UserType, memberID); err != nil {
 				return groups.Page{}, err
 			}
 			gids, err := svc.auth.ListAllObjects(ctx, &magistrala.ListObjectsReq{
-				SubjectType: userType,
+				SubjectType: auth.UserType,
 				Subject:     memberID,
 				Permission:  gm.Permission,
-				ObjectType:  groupType,
+				ObjectType:  auth.GroupType,
 			})
 			if err != nil {
 				return groups.Page{}, err
@@ -225,17 +198,17 @@ func (svc service) ListGroups(ctx context.Context, token string, memberKind, mem
 }
 
 func (svc service) ListMembers(ctx context.Context, token, groupID, permission, memberKind string) (groups.MembersPage, error) {
-	_, err := svc.authorize(ctx, userType, token, viewPermission, groupType, groupID)
+	_, err := svc.authorize(ctx, auth.UserType, token, auth.ViewPermission, auth.GroupType, groupID)
 	if err != nil {
 		return groups.MembersPage{}, err
 	}
 	switch memberKind {
-	case thingsKind:
+	case auth.ThingsKind:
 		tids, err := svc.auth.ListAllObjects(ctx, &magistrala.ListObjectsReq{
-			SubjectType: groupType,
+			SubjectType: auth.GroupType,
 			Subject:     groupID,
-			Relation:    groupRelation,
-			ObjectType:  thingType,
+			Relation:    auth.GroupRelation,
+			ObjectType:  auth.ThingType,
 		})
 		if err != nil {
 			return groups.MembersPage{}, err
@@ -246,7 +219,7 @@ func (svc service) ListMembers(ctx context.Context, token, groupID, permission, 
 		for _, id := range tids.Policies {
 			members = append(members, groups.Member{
 				ID:   id,
-				Type: thingType,
+				Type: auth.ThingType,
 			})
 		}
 		return groups.MembersPage{
@@ -255,12 +228,12 @@ func (svc service) ListMembers(ctx context.Context, token, groupID, permission, 
 			Limit:   uint64(len(members)),
 			Members: members,
 		}, nil
-	case usersKind:
+	case auth.UsersKind:
 		uids, err := svc.auth.ListAllSubjects(ctx, &magistrala.ListSubjectsReq{
-			SubjectType: userType,
+			SubjectType: auth.UserType,
 			Permission:  permission,
 			Object:      groupID,
-			ObjectType:  groupType,
+			ObjectType:  auth.GroupType,
 		})
 		if err != nil {
 			return groups.MembersPage{}, err
@@ -271,7 +244,7 @@ func (svc service) ListMembers(ctx context.Context, token, groupID, permission, 
 		for _, id := range uids.Policies {
 			members = append(members, groups.Member{
 				ID:   id,
-				Type: userType,
+				Type: auth.UserType,
 			})
 		}
 		return groups.MembersPage{
@@ -286,7 +259,7 @@ func (svc service) ListMembers(ctx context.Context, token, groupID, permission, 
 }
 
 func (svc service) UpdateGroup(ctx context.Context, token string, g groups.Group) (groups.Group, error) {
-	id, err := svc.authorize(ctx, userType, token, editPermission, groupType, g.ID)
+	id, err := svc.authorize(ctx, auth.UserType, token, auth.EditPermission, auth.GroupType, g.ID)
 	if err != nil {
 		return groups.Group{}, err
 	}
@@ -324,40 +297,40 @@ func (svc service) DisableGroup(ctx context.Context, token, id string) (groups.G
 }
 
 func (svc service) Assign(ctx context.Context, token, groupID, relation, memberKind string, memberIDs ...string) error {
-	_, err := svc.authorize(ctx, userType, token, editPermission, groupType, groupID)
+	_, err := svc.authorize(ctx, auth.UserType, token, auth.EditPermission, auth.GroupType, groupID)
 	if err != nil {
 		return err
 	}
 
 	prs := []*magistrala.AddPolicyReq{}
 	switch memberKind {
-	case thingsKind:
+	case auth.ThingsKind:
 		for _, memberID := range memberIDs {
 			prs = append(prs, &magistrala.AddPolicyReq{
-				SubjectType: groupType,
+				SubjectType: auth.GroupType,
 				Subject:     groupID,
 				Relation:    relation,
-				ObjectType:  thingType,
+				ObjectType:  auth.ThingType,
 				Object:      memberID,
 			})
 		}
-	case groupsKind:
+	case auth.GroupsKind:
 		for _, memberID := range memberIDs {
 			prs = append(prs, &magistrala.AddPolicyReq{
-				SubjectType: groupType,
+				SubjectType: auth.GroupType,
 				Subject:     memberID,
 				Relation:    relation,
-				ObjectType:  groupType,
+				ObjectType:  auth.GroupType,
 				Object:      groupID,
 			})
 		}
-	case usersKind:
+	case auth.UsersKind:
 		for _, memberID := range memberIDs {
 			prs = append(prs, &magistrala.AddPolicyReq{
-				SubjectType: userType,
+				SubjectType: auth.UserType,
 				Subject:     memberID,
 				Relation:    relation,
-				ObjectType:  groupType,
+				ObjectType:  auth.GroupType,
 				Object:      groupID,
 			})
 		}
@@ -374,7 +347,7 @@ func (svc service) Assign(ctx context.Context, token, groupID, relation, memberK
 }
 
 func (svc service) Unassign(ctx context.Context, token, groupID, relation, memberKind string, memberIDs ...string) error {
-	_, err := svc.authorize(ctx, userType, token, editPermission, groupType, groupID)
+	_, err := svc.authorize(ctx, auth.UserType, token, auth.EditPermission, auth.GroupType, groupID)
 	if err != nil {
 		return err
 	}
@@ -382,33 +355,33 @@ func (svc service) Unassign(ctx context.Context, token, groupID, relation, membe
 	prs := []*magistrala.DeletePolicyReq{}
 
 	switch memberKind {
-	case thingsKind:
+	case auth.ThingsKind:
 		for _, memberID := range memberIDs {
 			prs = append(prs, &magistrala.DeletePolicyReq{
-				SubjectType: groupType,
+				SubjectType: auth.GroupType,
 				Subject:     groupID,
 				Relation:    relation,
-				ObjectType:  thingType,
+				ObjectType:  auth.ThingType,
 				Object:      memberID,
 			})
 		}
-	case groupsKind:
+	case auth.GroupsKind:
 		for _, memberID := range memberIDs {
 			prs = append(prs, &magistrala.DeletePolicyReq{
-				SubjectType: groupType,
+				SubjectType: auth.GroupType,
 				Subject:     memberID,
 				Relation:    relation,
-				ObjectType:  groupType,
+				ObjectType:  auth.GroupType,
 				Object:      groupID,
 			})
 		}
-	case usersKind:
+	case auth.UsersKind:
 		for _, memberID := range memberIDs {
 			prs = append(prs, &magistrala.DeletePolicyReq{
-				SubjectType: userType,
+				SubjectType: auth.UserType,
 				Subject:     memberID,
 				Relation:    relation,
-				ObjectType:  groupType,
+				ObjectType:  auth.GroupType,
 				Object:      groupID,
 			})
 		}
@@ -444,10 +417,10 @@ func (svc service) filterAllowedGroupIDsOfUserID(ctx context.Context, userID str
 
 func (svc service) listAllGroupsOfUserID(ctx context.Context, userID string, permission string) ([]string, error) {
 	allowedIDs, err := svc.auth.ListAllObjects(ctx, &magistrala.ListObjectsReq{
-		SubjectType: userType,
+		SubjectType: auth.UserType,
 		Subject:     userID,
 		Permission:  permission,
-		ObjectType:  groupType,
+		ObjectType:  auth.GroupType,
 	})
 	if err != nil {
 		return []string{}, err
@@ -456,7 +429,7 @@ func (svc service) listAllGroupsOfUserID(ctx context.Context, userID string, per
 }
 
 func (svc service) changeGroupStatus(ctx context.Context, token string, group groups.Group) (groups.Group, error) {
-	id, err := svc.authorize(ctx, userType, token, editPermission, groupType, group.ID)
+	id, err := svc.authorize(ctx, auth.UserType, token, auth.EditPermission, auth.GroupType, group.ID)
 	if err != nil {
 		return groups.Group{}, err
 	}
@@ -483,7 +456,7 @@ func (svc service) identify(ctx context.Context, token string) (string, error) {
 func (svc service) authorize(ctx context.Context, subjectType, subject, permission, objectType, object string) (string, error) {
 	req := &magistrala.AuthorizeReq{
 		SubjectType: subjectType,
-		SubjectKind: tokenKind,
+		SubjectKind: auth.TokenKind,
 		Subject:     subject,
 		Permission:  permission,
 		Object:      object,

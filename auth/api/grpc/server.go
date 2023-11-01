@@ -20,7 +20,6 @@ var _ magistrala.AuthServiceServer = (*grpcServer)(nil)
 type grpcServer struct {
 	magistrala.UnimplementedAuthServiceServer
 	issue           kitgrpc.Handler
-	login           kitgrpc.Handler
 	refresh         kitgrpc.Handler
 	identify        kitgrpc.Handler
 	authorize       kitgrpc.Handler
@@ -40,11 +39,6 @@ func NewServer(svc auth.Service) magistrala.AuthServiceServer {
 		issue: kitgrpc.NewServer(
 			(issueEndpoint(svc)),
 			decodeIssueRequest,
-			encodeIssueResponse,
-		),
-		login: kitgrpc.NewServer(
-			(loginEndpoint(svc)),
-			decodeLoginRequest,
 			encodeIssueResponse,
 		),
 		refresh: kitgrpc.NewServer(
@@ -107,14 +101,6 @@ func NewServer(svc auth.Service) magistrala.AuthServiceServer {
 
 func (s *grpcServer) Issue(ctx context.Context, req *magistrala.IssueReq) (*magistrala.Token, error) {
 	_, res, err := s.issue.ServeGRPC(ctx, req)
-	if err != nil {
-		return nil, encodeError(err)
-	}
-	return res.(*magistrala.Token), nil
-}
-
-func (s *grpcServer) Login(ctx context.Context, req *magistrala.LoginReq) (*magistrala.Token, error) {
-	_, res, err := s.login.ServeGRPC(ctx, req)
 	if err != nil {
 		return nil, encodeError(err)
 	}
@@ -211,17 +197,12 @@ func (s *grpcServer) CountSubjects(ctx context.Context, req *magistrala.CountSub
 
 func decodeIssueRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*magistrala.IssueReq)
-	return issueReq{id: req.GetId(), keyType: auth.KeyType(req.GetType())}, nil
-}
-
-func decodeLoginRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(*magistrala.LoginReq)
-	return issueReq{id: req.GetId(), keyType: auth.AccessKey}, nil
+	return issueReq{userID: req.GetUserId(), domainID: req.GetDomainId(), keyType: auth.KeyType(req.GetType())}, nil
 }
 
 func decodeRefreshRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*magistrala.RefreshReq)
-	return refreshReq{value: req.GetValue()}, nil
+	return refreshReq{refreshToken: req.GetRefreshToken(), domainID: req.GetDomainId()}, nil
 }
 
 func encodeIssueResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
@@ -241,7 +222,7 @@ func decodeIdentifyRequest(_ context.Context, grpcReq interface{}) (interface{},
 
 func encodeIdentifyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(identityRes)
-	return &magistrala.IdentityRes{Id: res.id}, nil
+	return &magistrala.IdentityRes{Id: res.id, UserId: res.userID, DomainId: res.domainID}, nil
 }
 
 func decodeAuthorizeRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
