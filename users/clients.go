@@ -65,10 +65,10 @@ type Service interface {
 	Identify(ctx context.Context, tkn string) (string, error)
 
 	// IssueToken issues a new access and refresh token.
-	IssueToken(ctx context.Context, identity, secret string) (*magistrala.Token, error)
+	IssueToken(ctx context.Context, identity, secret, domainID string) (*magistrala.Token, error)
 
 	// RefreshToken refreshes expired access tokens.
 	// After an access token expires, the refresh token is used to get
 	// a new pair of access and refresh tokens.
-	RefreshToken(ctx context.Context, accessToken string) (*magistrala.Token, error)
+	RefreshToken(ctx context.Context, accessToken, domainID string) (*magistrala.Token, error)
 }

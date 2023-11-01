@@ -4,7 +4,9 @@
 package grpc
 
 type identityRes struct {
-	id string
+	id       string
+	userID   string
+	domainID string
 }
 
 type issueRes struct {

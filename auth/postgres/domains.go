@@ -206,6 +206,19 @@ func (repo domainRepo) Update(ctx context.Context, dr auth.DomainReq) (auth.Doma
 
 // Delete
 func (repo domainRepo) Delete(ctx context.Context, id string) error {
+	q := fmt.Sprintf(`
+		DELETE FROM
+			domains
+		WHERE
+			id = '%s'
+		;`, id)
+
+	row, err := repo.db.NamedQueryContext(ctx, q, nil)
+	if err != nil {
+		return postgres.HandleError(err, errors.ErrRemoveEntity)
+	}
+	defer row.Close()
+
 	return nil
 }
 

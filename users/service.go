@@ -16,19 +16,6 @@ import (
 	"github.com/absmach/magistrala/users/postgres"
 )
 
-const (
-	ownerRelation = "owner"
-
-	userKind   = "users"
-	tokenKind  = "token"
-	thingsKind = "things"
-	groupsKind = "groups"
-
-	userType  = "user"
-	groupType = "group"
-	thingType = "thing"
-)
-
 var (
 	// ErrRecoveryToken indicates error in generating password recovery token.
 	ErrRecoveryToken = errors.New("failed to generate password recovery token")
@@ -38,12 +25,13 @@ var (
 )
 
 type service struct {
-	clients    postgres.Repository
-	idProvider magistrala.IDProvider
-	auth       magistrala.AuthServiceClient
-	hasher     Hasher
-	email      Emailer
-	passRegex  *regexp.Regexp
+	clients      postgres.Repository
+	idProvider   magistrala.IDProvider
+	auth         magistrala.AuthServiceClient
+	hasher       Hasher
+	email        Emailer
+	passRegex    *regexp.Regexp
+	selfRegister bool
 }
 
 // NewService returns a new Users service implementation.
@@ -59,16 +47,19 @@ func NewService(crepo postgres.Repository, auth magistrala.AuthServiceClient, em
 }
 
 func (svc service) RegisterClient(ctx context.Context, token string, cli mgclients.Client) (mgclients.Client, error) {
-	// We don't check the error currently since we can register client with empty token
-	ownerID, _ := svc.Identify(ctx, token)
+	// We don't check the error or user id currently since we can register client with empty token
+	if svc.selfRegister {
+		userID, err := svc.Identify(ctx, token)
+		if err != nil {
+			return mfclients.Client{}, err
+		}
+	}
 
 	clientID, err := svc.idProvider.ID()
 	if err != nil {
 		return mgclients.Client{}, err
 	}
-	if cli.Owner == "" && ownerID != "" {
-		cli.Owner = ownerID
-	}
+
 	if cli.Credentials.Secret == "" {
 		return mgclients.Client{}, apiutil.ErrMissingSecret
 	}
@@ -86,19 +77,10 @@ func (svc service) RegisterClient(ctx context.Context, token string, cli mgclien
 	cli.ID = clientID
 	cli.CreatedAt = time.Now()
 
-	client, err := svc.clients.Save(ctx, cli)
-	if err != nil {
-		return mgclients.Client{}, err
-	}
-
-	if err := svc.addOwnerPolicy(ctx, ownerID, client.ID); err != nil {
-		return mgclients.Client{}, err
-	}
-
-	return client, nil
+	return svc.clients.Save(ctx, cli)
 }
 
-func (svc service) IssueToken(ctx context.Context, identity, secret string) (*magistrala.Token, error) {
+func (svc service) IssueToken(ctx context.Context, identity, secret, domainID string) (*magistrala.Token, error) {
 	dbUser, err := svc.clients.RetrieveByIdentity(ctx, identity)
 	if err != nil {
 		return &magistrala.Token{}, err
@@ -107,11 +89,19 @@ func (svc service) IssueToken(ctx context.Context, identity, secret string) (*ma
 		return &magistrala.Token{}, errors.Wrap(errors.ErrLogin, err)
 	}
 
-	return svc.auth.Issue(ctx, &magistrala.IssueReq{Id: dbUser.ID, Type: 0})
+	var d string
+	if domainID != "" {
+		d = domainID
+	}
+	return svc.auth.Issue(ctx, &magistrala.IssueReq{UserId: dbUser.ID, DomainId: &d, Type: 0})
 }
 
-func (svc service) RefreshToken(ctx context.Context, refreshToken string) (*magistrala.Token, error) {
-	return svc.auth.Refresh(ctx, &magistrala.RefreshReq{Value: refreshToken})
+func (svc service) RefreshToken(ctx context.Context, refreshToken, domainID string) (*magistrala.Token, error) {
+	var d string
+	if domainID != "" {
+		d = domainID
+	}
+	return svc.auth.Refresh(ctx, &magistrala.RefreshReq{RefreshToken: refreshToken, DomainId: &d})
 }
 
 func (svc service) ViewClient(ctx context.Context, token string, id string) (mgclients.Client, error) {
@@ -121,7 +111,7 @@ func (svc service) ViewClient(ctx context.Context, token string, id string) (mgc
 	}
 
 	if tokenUserID != id {
-		if err := svc.isOwner(ctx, id, tokenUserID); err != nil {
+		if err := svc.isSuperAdmin(ctx, tokenUserID); err != nil {
 			return mgclients.Client{}, err
 		}
 	}
@@ -169,7 +159,7 @@ func (svc service) UpdateClient(ctx context.Context, token string, cli mgclients
 	}
 
 	if tokenUserID != cli.ID {
-		if err := svc.isOwner(ctx, cli.ID, tokenUserID); err != nil {
+		if err := svc.isSuperAdmin(ctx, tokenUserID); err != nil {
 			return mgclients.Client{}, err
 		}
 	}
@@ -192,7 +182,7 @@ func (svc service) UpdateClientTags(ctx context.Context, token string, cli mgcli
 	}
 
 	if tokenUserID != cli.ID {
-		if err := svc.isOwner(ctx, cli.ID, tokenUserID); err != nil {
+		if err := svc.isSuperAdmin(ctx, tokenUserID); err != nil {
 			return mgclients.Client{}, err
 		}
 	}
@@ -214,7 +204,7 @@ func (svc service) UpdateClientIdentity(ctx context.Context, token, clientID, id
 	}
 
 	if tokenUserID != clientID {
-		if err := svc.isOwner(ctx, clientID, tokenUserID); err != nil {
+		if err := svc.isSuperAdmin(ctx, tokenUserID); err != nil {
 			return mgclients.Client{}, err
 		}
 	}
@@ -236,8 +226,8 @@ func (svc service) GenerateResetToken(ctx context.Context, email, host string) e
 		return errors.ErrNotFound
 	}
 	issueReq := &magistrala.IssueReq{
-		Id:   client.ID,
-		Type: uint32(auth.RecoveryKey),
+		UserId: client.ID,
+		Type:   uint32(auth.RecoveryKey),
 	}
 	token, err := svc.auth.Issue(ctx, issueReq)
 	if err != nil {
@@ -292,7 +282,7 @@ func (svc service) UpdateClientSecret(ctx context.Context, token, oldSecret, new
 	if err != nil {
 		return mgclients.Client{}, err
 	}
-	if _, err := svc.IssueToken(ctx, dbClient.Credentials.Identity, oldSecret); err != nil {
+	if _, err := svc.IssueToken(ctx, dbClient.Credentials.Identity, "", oldSecret); err != nil {
 		return mgclients.Client{}, err
 	}
 	newSecret, err = svc.hasher.Hash(newSecret)
@@ -318,7 +308,7 @@ func (svc service) UpdateClientOwner(ctx context.Context, token string, cli mgcl
 	}
 
 	if tokenUserID != cli.ID {
-		if err := svc.isOwner(ctx, cli.ID, tokenUserID); err != nil {
+		if err := svc.isSuperAdmin(ctx, tokenUserID); err != nil {
 			return mgclients.Client{}, err
 		}
 	}
@@ -369,7 +359,7 @@ func (svc service) changeClientStatus(ctx context.Context, token string, client 
 		return mgclients.Client{}, err
 	}
 	if tokenUserID != client.ID {
-		if err := svc.isOwner(ctx, client.ID, tokenUserID); err != nil {
+		if err := svc.isSuperAdmin(ctx, tokenUserID); err != nil {
 			return mgclients.Client{}, err
 		}
 	}
@@ -388,21 +378,21 @@ func (svc service) ListMembers(ctx context.Context, token, objectKind string, ob
 	var objectType string
 	var authzPerm string
 	switch objectKind {
-	case thingsKind:
-		objectType = thingType
+	case auth.ThingsKind:
+		objectType = auth.ThingType
 		authzPerm = pm.Permission
-	case groupsKind:
+	case auth.GroupsKind:
 		fallthrough
 	default:
-		objectType = groupType
+		objectType = auth.GroupType
 		authzPerm = auth.SwitchToPermission(pm.Permission)
 	}
 
-	if _, err := svc.authorize(ctx, userType, tokenKind, token, authzPerm, objectType, objectID); err != nil {
+	if _, err := svc.authorize(ctx, auth.UserType, auth.TokenKind, token, authzPerm, objectType, objectID); err != nil {
 		return mgclients.MembersPage{}, err
 	}
 	uids, err := svc.auth.ListAllSubjects(ctx, &magistrala.ListSubjectsReq{
-		SubjectType: userType,
+		SubjectType: auth.UserType,
 		Permission:  pm.Permission,
 		Object:      objectID,
 		ObjectType:  objectType,
@@ -429,9 +419,8 @@ func (svc service) ListMembers(ctx context.Context, token, objectKind string, ob
 	}, nil
 }
 
-func (svc *service) isOwner(ctx context.Context, clientID, ownerID string) error {
-	_, err := svc.authorize(ctx, userType, userKind, ownerID, ownerRelation, userType, clientID)
-	return err
+func (svc *service) isSuperAdmin(ctx context.Context, adminID string) error {
+	return svc.clients.IsSuperAdmin(ctx, adminID)
 }
 
 func (svc *service) authorize(ctx context.Context, subjType, subjKind, subj, perm, objType, obj string) (string, error) {
@@ -459,16 +448,17 @@ func (svc service) Identify(ctx context.Context, token string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	return user.GetId(), nil
+	return user.GetUserId(), nil
 }
 
+// ToDo: change the role of clients clients.Role == admin / user
 func (svc service) updateOwnerPolicy(ctx context.Context, previousOwnerID, ownerID, userID string) error {
 	if previousOwnerID != "" {
 		if _, err := svc.auth.DeletePolicy(ctx, &magistrala.DeletePolicyReq{
-			SubjectType: userType,
+			SubjectType: auth.UserType,
 			Subject:     previousOwnerID,
-			Relation:    ownerRelation,
-			ObjectType:  userType,
+			Relation:    auth.OwnerRelation,
+			ObjectType:  auth.UserType,
 			Object:      userID,
 		}); err != nil {
 			return err
@@ -477,13 +467,14 @@ func (svc service) updateOwnerPolicy(ctx context.Context, previousOwnerID, owner
 	return svc.addOwnerPolicy(ctx, ownerID, userID)
 }
 
+// ToDo: change the role of clients clients.Role == admin
 func (svc service) addOwnerPolicy(ctx context.Context, ownerID, userID string) error {
 	if ownerID != "" {
 		if _, err := svc.auth.AddPolicy(ctx, &magistrala.AddPolicyReq{
-			SubjectType: userType,
+			SubjectType: auth.UserType,
 			Subject:     ownerID,
-			Relation:    ownerRelation,
-			ObjectType:  userType,
+			Relation:    auth.OwnerRelation,
+			ObjectType:  auth.UserType,
 			Object:      userID,
 		}); err != nil {
 			return err

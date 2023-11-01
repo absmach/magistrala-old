@@ -20,7 +20,6 @@ var _ magistrala.AuthServiceClient = (*grpcClient)(nil)
 
 type grpcClient struct {
 	issue           endpoint.Endpoint
-	login           endpoint.Endpoint
 	refresh         endpoint.Endpoint
 	identify        endpoint.Endpoint
 	authorize       endpoint.Endpoint
@@ -44,14 +43,6 @@ func NewClient(conn *grpc.ClientConn, timeout time.Duration) magistrala.AuthServ
 			"Issue",
 			encodeIssueRequest,
 			decodeIssueResponse,
-			magistrala.Token{},
-		).Endpoint(),
-		login: kitgrpc.NewClient(
-			conn,
-			svcName,
-			"Login",
-			encodeLoginRequest,
-			decodeLoginResponse,
 			magistrala.Token{},
 		).Endpoint(),
 		refresh: kitgrpc.NewClient(
@@ -151,7 +142,7 @@ func (client grpcClient) Issue(ctx context.Context, req *magistrala.IssueReq, _ 
 	ctx, close := context.WithTimeout(ctx, client.timeout)
 	defer close()
 
-	res, err := client.issue(ctx, issueReq{id: req.GetId(), keyType: auth.KeyType(req.Type)})
+	res, err := client.issue(ctx, issueReq{userID: req.GetUserId(), domainID: req.GetDomainId(), keyType: auth.KeyType(req.Type)})
 	if err != nil {
 		return nil, err
 	}
@@ -160,30 +151,10 @@ func (client grpcClient) Issue(ctx context.Context, req *magistrala.IssueReq, _ 
 
 func encodeIssueRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(issueReq)
-	return &magistrala.IssueReq{Id: req.id, Type: uint32(req.keyType)}, nil
+	return &magistrala.IssueReq{UserId: req.userID, DomainId: &req.domainID, Type: uint32(req.keyType)}, nil
 }
 
 func decodeIssueResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
-	return grpcRes, nil
-}
-
-func (client grpcClient) Login(ctx context.Context, req *magistrala.LoginReq, _ ...grpc.CallOption) (*magistrala.Token, error) {
-	ctx, close := context.WithTimeout(ctx, client.timeout)
-	defer close()
-
-	res, err := client.login(ctx, issueReq{id: req.GetId(), keyType: auth.APIKey})
-	if err != nil {
-		return nil, err
-	}
-	return res.(*magistrala.Token), nil
-}
-
-func encodeLoginRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(issueReq)
-	return &magistrala.LoginReq{Id: req.id}, nil
-}
-
-func decodeLoginResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	return grpcRes, nil
 }
 
@@ -191,7 +162,7 @@ func (client grpcClient) Refresh(ctx context.Context, req *magistrala.RefreshReq
 	ctx, close := context.WithTimeout(ctx, client.timeout)
 	defer close()
 
-	res, err := client.refresh(ctx, refreshReq{value: req.GetValue()})
+	res, err := client.refresh(ctx, refreshReq{refreshToken: req.GetRefreshToken(), domainID: req.GetDomainId()})
 	if err != nil {
 		return nil, err
 	}
@@ -200,7 +171,7 @@ func (client grpcClient) Refresh(ctx context.Context, req *magistrala.RefreshReq
 
 func encodeRefreshRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(refreshReq)
-	return &magistrala.RefreshReq{Value: req.value}, nil
+	return &magistrala.RefreshReq{RefreshToken: req.refreshToken, DomainId: &req.domainID}, nil
 }
 
 func decodeRefreshResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
@@ -227,7 +198,7 @@ func encodeIdentifyRequest(_ context.Context, grpcReq interface{}) (interface{},
 
 func decodeIdentifyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(*magistrala.IdentityRes)
-	return identityRes{id: res.GetId()}, nil
+	return identityRes{id: res.GetId(), userID: res.GetUserId(), domainID: res.GetDomainId()}, nil
 }
 
 func (client grpcClient) Authorize(ctx context.Context, req *magistrala.AuthorizeReq, _ ...grpc.CallOption) (r *magistrala.AuthorizeRes, err error) {
