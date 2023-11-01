@@ -109,7 +109,7 @@ func (ms *metricsMiddleware) RetrieveKey(ctx context.Context, token, id string) 
 	return ms.svc.RetrieveKey(ctx, token, id)
 }
 
-func (ms *metricsMiddleware) Identify(ctx context.Context, token string) (string, error) {
+func (ms *metricsMiddleware) Identify(ctx context.Context, token string) (auth.Key, error) {
 	defer func(begin time.Time) {
 		ms.counter.With("method", "identify").Add(1)
 		ms.latency.With("method", "identify").Observe(time.Since(begin).Seconds())

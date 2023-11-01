@@ -52,7 +52,7 @@ func (tm *tracingMiddleware) RetrieveKey(ctx context.Context, token, id string) 
 	return tm.svc.RetrieveKey(ctx, token, id)
 }
 
-func (tm *tracingMiddleware) Identify(ctx context.Context, token string) (string, error) {
+func (tm *tracingMiddleware) Identify(ctx context.Context, token string) (auth.Key, error) {
 	ctx, span := tm.tracer.Start(ctx, "identify")
 	defer span.End()
 
