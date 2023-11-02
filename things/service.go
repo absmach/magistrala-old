@@ -37,7 +37,7 @@ func NewService(uauth magistrala.AuthServiceClient, c postgres.Repository, grepo
 func (svc service) Authorize(ctx context.Context, req *magistrala.AuthorizeReq) (string, error) {
 	thingID, err := svc.Identify(ctx, req.GetSubject())
 	if err != nil {
-		return "", errors.ErrAuthentication
+		return "", svcerror.ErrAuthentication
 	}
 
 	r := &magistrala.AuthorizeReq{
@@ -52,7 +52,7 @@ func (svc service) Authorize(ctx context.Context, req *magistrala.AuthorizeReq) 
 		return "", err
 	}
 	if !resp.GetAuthorized() {
-		return "", errors.ErrAuthorization
+		return "", svcerror.ErrAuthorization
 	}
 
 	return thingID, nil
@@ -441,10 +441,10 @@ func (svc *service) authorize(ctx context.Context, subjType, subjKind, subj, per
 	}
 	res, err := svc.auth.Authorize(ctx, req)
 	if err != nil {
-		return "", errors.Wrap(errors.ErrAuthorization, err)
+		return "", errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	if !res.GetAuthorized() {
-		return "", errors.ErrAuthorization
+		return "", svcerror.ErrAuthorization
 	}
 
 	return res.GetId(), nil

@@ -40,7 +40,7 @@ func (repo singleUserRepo) Issue(ctx context.Context, in *magistrala.IssueReq, o
 
 func (repo singleUserRepo) Identify(ctx context.Context, in *magistrala.IdentityReq, opts ...grpc.CallOption) (*magistrala.IdentityRes, error) {
 	if repo.token != in.GetToken() {
-		return nil, errors.ErrAuthentication
+		return nil, svcerror.ErrAuthentication
 	}
 
 	return &magistrala.IdentityRes{Id: repo.id}, nil

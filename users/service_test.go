@@ -16,6 +16,7 @@ import (
 	"github.com/absmach/magistrala/internal/testsutil"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/absmach/magistrala/users"
 	"github.com/absmach/magistrala/users/hasher"
@@ -68,7 +69,7 @@ func TestRegisterClient(t *testing.T) {
 			desc:   "register existing client",
 			client: client,
 			token:  validToken,
-			err:    errors.ErrConflict,
+			err:    svcerror.ErrConflict,
 		},
 		{
 			desc: "register a new enabled client with name",
@@ -194,7 +195,7 @@ func TestRegisterClient(t *testing.T) {
 					Secret: secret,
 				},
 			},
-			err:   errors.ErrMalformedEntity,
+			err:   svcerror.ErrMalformedEntity,
 			token: validToken,
 		},
 		{
@@ -206,7 +207,7 @@ func TestRegisterClient(t *testing.T) {
 					Secret:   secret,
 				},
 			},
-			err:   errors.ErrMalformedEntity,
+			err:   svcerror.ErrMalformedEntity,
 			token: validToken,
 		},
 		{
@@ -286,21 +287,21 @@ func TestViewClient(t *testing.T) {
 			response: mgclients.Client{},
 			token:    inValidToken,
 			clientID: client.ID,
-			err:      errors.ErrAuthentication,
+			err:      svcerror.ErrAuthentication,
 		},
 		{
 			desc:     "view client with valid token and invalid client id",
 			response: mgclients.Client{},
 			token:    validToken,
 			clientID: mocks.WrongID,
-			err:      errors.ErrNotFound,
+			err:      svcerror.ErrNotFound,
 		},
 		{
 			desc:     "view client with an invalid token and invalid client id",
 			response: mgclients.Client{},
 			token:    inValidToken,
 			clientID: mocks.WrongID,
-			err:      errors.ErrAuthentication,
+			err:      svcerror.ErrAuthentication,
 		},
 	}
 
@@ -395,7 +396,7 @@ func TestListClients(t *testing.T) {
 					Limit:  0,
 				},
 			},
-			err: errors.ErrAuthentication,
+			err: svcerror.ErrAuthentication,
 		},
 		{
 			desc:  "list clients that are shared with me",
@@ -640,7 +641,7 @@ func TestUpdateClient(t *testing.T) {
 			client:   client1,
 			response: mgclients.Client{},
 			token:    inValidToken,
-			err:      errors.ErrAuthentication,
+			err:      svcerror.ErrAuthentication,
 		},
 		{
 			desc: "update client name with invalid ID",
@@ -650,7 +651,7 @@ func TestUpdateClient(t *testing.T) {
 			},
 			response: mgclients.Client{},
 			token:    inValidToken,
-			err:      errors.ErrAuthentication,
+			err:      svcerror.ErrAuthentication,
 		},
 		{
 			desc:     "update client metadata with valid token",
@@ -726,7 +727,7 @@ func TestUpdateClientTags(t *testing.T) {
 			},
 			response: mgclients.Client{},
 			token:    inValidToken,
-			err:      errors.ErrAuthentication,
+			err:      svcerror.ErrAuthentication,
 		},
 	}
 
@@ -852,7 +853,7 @@ func TestUpdateClientOwner(t *testing.T) {
 			},
 			response: mgclients.Client{},
 			token:    inValidToken,
-			err:      errors.ErrAuthentication,
+			err:      svcerror.ErrAuthentication,
 		},
 	}
 
@@ -1282,7 +1283,7 @@ func TestListMembers(t *testing.T) {
 					Limit:  0,
 				},
 			},
-			err: errors.ErrAuthentication,
+			err: svcerror.ErrAuthentication,
 		},
 		{
 			desc:    "list clients with an invalid id",
@@ -1296,7 +1297,7 @@ func TestListMembers(t *testing.T) {
 					Limit:  0,
 				},
 			},
-			err: errors.ErrNotFound,
+			err: svcerror.ErrNotFound,
 		},
 		{
 			desc:    "list clients for an owner",
@@ -1370,7 +1371,7 @@ func TestIssueToken(t *testing.T) {
 			desc:    "issue token for a client with wrong secret",
 			client:  rClient2,
 			rClient: rClient3,
-			err:     errors.ErrAuthentication,
+			err:     svcerror.ErrAuthentication,
 		},
 	}
 
@@ -1421,7 +1422,7 @@ func TestRefreshToken(t *testing.T) {
 			desc:   "refresh token with access token for an existing client",
 			token:  validToken,
 			client: client,
-			err:    errors.ErrAuthentication,
+			err:    svcerror.ErrAuthentication,
 		},
 		{
 			desc:   "refresh token with access token for a non-existing client",
@@ -1433,7 +1434,7 @@ func TestRefreshToken(t *testing.T) {
 			desc:   "refresh token with invalid token for an existing client",
 			token:  inValidToken,
 			client: client,
-			err:    errors.ErrAuthentication,
+			err:    svcerror.ErrAuthentication,
 		},
 	}
 
