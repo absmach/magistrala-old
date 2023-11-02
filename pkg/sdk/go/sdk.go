@@ -1096,15 +1096,6 @@ func (pm PageMetadata) query() (string, error) {
 		}
 		q.Add("metadata", string(md))
 	}
-	if pm.Action != "" {
-		q.Add("action", pm.Action)
-	}
-	if pm.Subject != "" {
-		q.Add("subject", pm.Subject)
-	}
-	if pm.Object != "" {
-		q.Add("object", pm.Object)
-	}
 	if pm.Tag != "" {
 		q.Add("tag", pm.Tag)
 	}
@@ -1122,6 +1113,9 @@ func (pm PageMetadata) query() (string, error) {
 	}
 	if pm.State != "" {
 		q.Add("state", pm.State)
+	}
+	if pm.Permission != "" {
+		q.Add("permission", pm.Permission)
 	}
 
 	return q.Encode(), nil
