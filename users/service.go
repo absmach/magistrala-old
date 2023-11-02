@@ -13,6 +13,7 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/users/postgres"
 )
 
@@ -233,7 +234,7 @@ func (svc service) UpdateClientIdentity(ctx context.Context, token, clientID, id
 func (svc service) GenerateResetToken(ctx context.Context, email, host string) error {
 	client, err := svc.clients.RetrieveByIdentity(ctx, email)
 	if err != nil || client.Credentials.Identity == "" {
-		return errors.ErrNotFound
+		return svcerror.ErrNotFound
 	}
 	issueReq := &magistrala.IssueReq{
 		Id:   client.ID,
@@ -250,14 +251,14 @@ func (svc service) GenerateResetToken(ctx context.Context, email, host string) e
 func (svc service) ResetSecret(ctx context.Context, resetToken, secret string) error {
 	id, err := svc.Identify(ctx, resetToken)
 	if err != nil {
-		return errors.Wrap(errors.ErrAuthentication, err)
+		return errors.Wrap(svcerror.ErrAuthentication, err)
 	}
 	c, err := svc.clients.RetrieveByID(ctx, id)
 	if err != nil {
 		return err
 	}
 	if c.Credentials.Identity == "" {
-		return errors.ErrNotFound
+		return svcerror.ErrNotFound
 	}
 	if !svc.passRegex.MatchString(secret) {
 		return ErrPasswordFormat
@@ -445,11 +446,11 @@ func (svc *service) authorize(ctx context.Context, subjType, subjKind, subj, per
 	}
 	res, err := svc.auth.Authorize(ctx, req)
 	if err != nil {
-		return "", errors.Wrap(errors.ErrAuthorization, err)
+		return "", errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 
 	if !res.GetAuthorized() {
-		return "", errors.ErrAuthorization
+		return "", svcerror.ErrAuthorization
 	}
 	return res.GetId(), nil
 }

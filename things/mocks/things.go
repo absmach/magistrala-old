@@ -7,7 +7,7 @@ import (
 	"context"
 	"sync"
 
-	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/things"
 )
 
@@ -37,7 +37,7 @@ func (tcm *clientCacheMock) ID(_ context.Context, key string) (string, error) {
 
 	id, ok := tcm.things[key]
 	if !ok {
-		return "", errors.ErrNotFound
+		return "", svcerror.ErrNotFound
 	}
 
 	return id, nil
