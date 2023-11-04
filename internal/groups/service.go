@@ -13,6 +13,7 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/pkg/groups"
 )
 
@@ -588,10 +589,10 @@ func (svc service) authorize(ctx context.Context, subjectType, subject, permissi
 	}
 	res, err := svc.auth.Authorize(ctx, req)
 	if err != nil {
-		return "", errors.Wrap(errors.ErrAuthorization, err)
+		return "", errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	if !res.GetAuthorized() {
-		return "", errors.ErrAuthorization
+		return "", svcerror.ErrAuthorization
 	}
 	return res.GetId(), nil
 }
@@ -607,10 +608,10 @@ func (svc service) authorizeKind(ctx context.Context, subjectType, subjectKind, 
 	}
 	res, err := svc.auth.Authorize(ctx, req)
 	if err != nil {
-		return "", errors.Wrap(errors.ErrAuthorization, err)
+		return "", errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	if !res.GetAuthorized() {
-		return "", errors.ErrAuthorization
+		return "", svcerror.ErrAuthorization
 	}
 	return res.GetId(), nil
 }

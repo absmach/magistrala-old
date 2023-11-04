@@ -14,6 +14,7 @@ import (
 	gapi "github.com/absmach/magistrala/internal/groups/api"
 	"github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/absmach/magistrala/pkg/groups"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-kit/kit/endpoint"
@@ -137,7 +138,7 @@ func decodeAssignUsersRequest(_ context.Context, r *http.Request) (interface{}, 
 		groupID: chi.URLParam(r, "groupID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 	return req, nil
 }
@@ -148,7 +149,7 @@ func decodeUnassignUsersRequest(_ context.Context, r *http.Request) (interface{}
 		groupID: chi.URLParam(r, "groupID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 	return req, nil
 }

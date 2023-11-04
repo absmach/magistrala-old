@@ -89,7 +89,7 @@ func TestCreateGroup(t *testing.T) {
 				ParentID: gmocks.WrongID,
 				Status:   clients.EnabledStatus.String(),
 			},
-			err: errors.NewSDKErrorWithStatus(errors.ErrCreateEntity, http.StatusInternalServerError),
+			err: errors.NewSDKErrorWithStatus(repoerror.ErrCreateEntity, http.StatusInternalServerError),
 		},
 		{
 			desc: "create group with invalid owner",
@@ -548,14 +548,14 @@ func TestViewGroup(t *testing.T) {
 			token:    "wrongtoken",
 			groupID:  group.ID,
 			response: sdk.Group{Children: []*sdk.Group{}},
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(errors.ErrAuthentication, sdk.ErrInvalidJWT), http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(svcerror.ErrAuthentication, sdk.ErrInvalidJWT), http.StatusUnauthorized),
 		},
 		{
 			desc:     "view group for wrong id",
 			token:    validToken,
 			groupID:  gmocks.WrongID,
 			response: sdk.Group{Children: []*sdk.Group{}},
-			err:      errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(repoerror.ErrNotFound, http.StatusNotFound),
 		},
 	}
 
@@ -654,7 +654,7 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			response: sdk.Group{},
 			token:    validToken,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(repoerror.ErrNotFound, http.StatusNotFound),
 		},
 		{
 			desc: "update group description with invalid group id",
@@ -664,7 +664,7 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			response: sdk.Group{},
 			token:    validToken,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(repoerror.ErrNotFound, http.StatusNotFound),
 		},
 		{
 			desc: "update group metadata with invalid group id",
@@ -676,7 +676,7 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			response: sdk.Group{},
 			token:    validToken,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(repoerror.ErrNotFound, http.StatusNotFound),
 		},
 		{
 			desc: "update group name with invalid token",
@@ -686,7 +686,7 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			response: sdk.Group{},
 			token:    invalidToken,
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(errors.ErrAuthentication, sdk.ErrInvalidJWT), http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(svcerror.ErrAuthentication, sdk.ErrInvalidJWT), http.StatusUnauthorized),
 		},
 		{
 			desc: "update group description with invalid token",
@@ -696,7 +696,7 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			response: sdk.Group{},
 			token:    invalidToken,
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(errors.ErrAuthentication, sdk.ErrInvalidJWT), http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(svcerror.ErrAuthentication, sdk.ErrInvalidJWT), http.StatusUnauthorized),
 		},
 		{
 			desc: "update group metadata with invalid token",
@@ -708,7 +708,7 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			response: sdk.Group{},
 			token:    invalidToken,
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(errors.ErrAuthentication, sdk.ErrInvalidJWT), http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(svcerror.ErrAuthentication, sdk.ErrInvalidJWT), http.StatusUnauthorized),
 		},
 		{
 			desc: "update a group that can't be marshalled",

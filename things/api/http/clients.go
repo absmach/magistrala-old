@@ -14,6 +14,7 @@ import (
 	mglog "github.com/absmach/magistrala/logger"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/absmach/magistrala/things"
 	"github.com/go-chi/chi/v5"
 	kithttp "github.com/go-kit/kit/transport/http"
@@ -200,7 +201,7 @@ func decodeUpdateClient(_ context.Context, r *http.Request) (interface{}, error)
 		id:    chi.URLParam(r, "thingID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(errors.ErrMalformedEntity, err))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(repoerror.ErrMalformedEntity, err))
 	}
 
 	return req, nil
@@ -216,7 +217,7 @@ func decodeUpdateClientTags(_ context.Context, r *http.Request) (interface{}, er
 		id:    chi.URLParam(r, "thingID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(errors.ErrMalformedEntity, err))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(repoerror.ErrMalformedEntity, err))
 	}
 
 	return req, nil
@@ -232,7 +233,7 @@ func decodeUpdateClientCredentials(_ context.Context, r *http.Request) (interfac
 		id:    chi.URLParam(r, "thingID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(errors.ErrMalformedEntity, err))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(repoerror.ErrMalformedEntity, err))
 	}
 
 	return req, nil
@@ -248,7 +249,7 @@ func decodeUpdateClientOwner(_ context.Context, r *http.Request) (interface{}, e
 		id:    chi.URLParam(r, "thingID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(errors.ErrMalformedEntity, err))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(repoerror.ErrMalformedEntity, err))
 	}
 
 	return req, nil
@@ -261,7 +262,7 @@ func decodeCreateClientReq(_ context.Context, r *http.Request) (interface{}, err
 
 	var c mgclients.Client
 	if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(errors.ErrMalformedEntity, err))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(repoerror.ErrMalformedEntity, err))
 	}
 	req := createClientReq{
 		client: c,
@@ -278,7 +279,7 @@ func decodeCreateClientsReq(_ context.Context, r *http.Request) (interface{}, er
 
 	c := createClientsReq{token: apiutil.ExtractBearerToken(r)}
 	if err := json.NewDecoder(r.Body).Decode(&c.Clients); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(errors.ErrMalformedEntity, err))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(repoerror.ErrMalformedEntity, err))
 	}
 
 	return c, nil
@@ -342,7 +343,7 @@ func decodeThingShareRequest(_ context.Context, r *http.Request) (interface{}, e
 		thingID: chi.URLParam(r, "thingID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(errors.ErrMalformedEntity, err))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(repoerror.ErrMalformedEntity, err))
 	}
 
 	return req, nil
@@ -358,7 +359,7 @@ func decodeThingUnshareRequest(_ context.Context, r *http.Request) (interface{},
 		thingID: chi.URLParam(r, "thingID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(errors.ErrMalformedEntity, err))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(repoerror.ErrMalformedEntity, err))
 	}
 
 	return req, nil

@@ -12,6 +12,8 @@ import (
 	"github.com/absmach/magistrala/internal/testsutil"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	cpostgres "github.com/absmach/magistrala/users/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -83,7 +85,7 @@ func TestClientsSave(t *testing.T) {
 				Metadata: mgclients.Metadata{},
 				Status:   mgclients.EnabledStatus,
 			},
-			err: errors.ErrConflict,
+			err: repoerror.ErrConflict,
 		},
 		{
 			desc: "add client with invalid client id",
@@ -97,7 +99,7 @@ func TestClientsSave(t *testing.T) {
 				Metadata: mgclients.Metadata{},
 				Status:   mgclients.EnabledStatus,
 			},
-			err: errors.ErrMalformedEntity,
+			err: repoerror.ErrMalformedEntity,
 		},
 		{
 			desc: "add client with invalid client name",
@@ -111,7 +113,7 @@ func TestClientsSave(t *testing.T) {
 				Metadata: mgclients.Metadata{},
 				Status:   mgclients.EnabledStatus,
 			},
-			err: errors.ErrMalformedEntity,
+			err: repoerror.ErrMalformedEntity,
 		},
 		{
 			desc: "add client with invalid client owner",
@@ -125,7 +127,7 @@ func TestClientsSave(t *testing.T) {
 				Metadata: mgclients.Metadata{},
 				Status:   mgclients.EnabledStatus,
 			},
-			err: errors.ErrMalformedEntity,
+			err: repoerror.ErrMalformedEntity,
 		},
 		{
 			desc: "add client with invalid client identity",
@@ -139,7 +141,7 @@ func TestClientsSave(t *testing.T) {
 				Metadata: mgclients.Metadata{},
 				Status:   mgclients.EnabledStatus,
 			},
-			err: errors.ErrMalformedEntity,
+			err: repoerror.ErrMalformedEntity,
 		},
 		{
 			desc: "add client with a missing client identity",
@@ -216,7 +218,7 @@ func TestIsPlatformAdmin(t *testing.T) {
 				Status:   mgclients.EnabledStatus,
 				Role:     mgclients.UserRole,
 			},
-			err: errors.ErrAuthorization,
+			err: svcerror.ErrAuthorization,
 		},
 	}
 

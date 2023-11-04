@@ -11,6 +11,8 @@ import (
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	pgclients "github.com/absmach/magistrala/pkg/clients/postgres"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 )
 
 var _ mgclients.Repository = (*clientRepo)(nil)
@@ -71,16 +73,16 @@ func (repo clientRepo) CheckSuperAdmin(ctx context.Context, adminID string) erro
 	rows, err := repo.ClientRepository.DB.QueryContext(ctx, q, adminID, mgclients.AdminRole)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return errors.ErrAuthorization
+			return svcerror.ErrAuthorization
 		}
-		return errors.Wrap(errors.ErrAuthorization, err)
+		return errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	defer rows.Close()
 	if !rows.Next() {
-		return errors.ErrAuthorization
+		return svcerror.ErrAuthorization
 	}
 	if err := rows.Err(); err != nil {
-		return errors.Wrap(errors.ErrAuthorization, err)
+		return errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	return nil
 }

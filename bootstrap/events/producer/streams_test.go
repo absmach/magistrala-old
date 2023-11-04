@@ -154,7 +154,7 @@ func TestAdd(t *testing.T) {
 			desc:   "create invalid config",
 			config: invalidConfig,
 			token:  validToken,
-			err:    errors.ErrMalformedEntity,
+			err:    repoerror.ErrMalformedEntity,
 			event:  nil,
 		},
 	}
@@ -255,7 +255,7 @@ func TestUpdate(t *testing.T) {
 			desc:   "update non-existing config",
 			config: nonExisting,
 			token:  validToken,
-			err:    errors.ErrNotFound,
+			err:    repoerror.ErrNotFound,
 			event:  nil,
 		},
 	}
@@ -324,7 +324,7 @@ func TestUpdateConnections(t *testing.T) {
 			id:          saved.ThingID,
 			token:       validToken,
 			connections: []string{"256"},
-			err:         errors.ErrMalformedEntity,
+			err:         repoerror.ErrMalformedEntity,
 			event:       nil,
 		},
 	}
@@ -398,7 +398,7 @@ func TestUpdateCert(t *testing.T) {
 			clientCert: "clientCert",
 			clientKey:  "clientKey",
 			caCert:     "caCert",
-			err:        errors.ErrAuthentication,
+			err:        svcerror.ErrAuthentication,
 			event:      nil,
 		},
 		{
@@ -408,7 +408,7 @@ func TestUpdateCert(t *testing.T) {
 			clientCert: "clientCert",
 			clientKey:  "clientKey",
 			caCert:     "caCert",
-			err:        errors.ErrNotFound,
+			err:        repoerror.ErrNotFound,
 			event:      nil,
 		},
 		{
@@ -448,7 +448,7 @@ func TestUpdateCert(t *testing.T) {
 			clientCert: "clientCert",
 			clientKey:  "clientKey",
 			caCert:     "caCert",
-			err:        errors.ErrAuthentication,
+			err:        svcerror.ErrAuthentication,
 			event:      nil,
 		},
 		{
@@ -458,7 +458,7 @@ func TestUpdateCert(t *testing.T) {
 			clientCert: "clientCert",
 			clientKey:  "clientKey",
 			caCert:     "caCert",
-			err:        errors.ErrNotFound,
+			err:        repoerror.ErrNotFound,
 			event:      nil,
 		},
 		{
@@ -559,7 +559,7 @@ func TestRemove(t *testing.T) {
 			desc:  "remove config with invalid credentials",
 			id:    saved.ThingID,
 			token: "",
-			err:   errors.ErrAuthentication,
+			err:   svcerror.ErrAuthentication,
 			event: nil,
 		},
 	}
@@ -698,7 +698,7 @@ func TestChangeState(t *testing.T) {
 			id:    saved.ThingID,
 			token: "",
 			state: bootstrap.Inactive,
-			err:   errors.ErrAuthentication,
+			err:   svcerror.ErrAuthentication,
 			event: nil,
 		},
 	}

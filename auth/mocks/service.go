@@ -7,7 +7,7 @@ import (
 	context "context"
 
 	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc"
 )
@@ -47,7 +47,7 @@ func (m *Service) Refresh(ctx context.Context, in *magistrala.RefreshReq, opts .
 func (m *Service) Identify(ctx context.Context, in *magistrala.IdentityReq, opts ...grpc.CallOption) (*magistrala.IdentityRes, error) {
 	ret := m.Called(ctx, in)
 	if in.GetToken() == InvalidValue || in.GetToken() == "" {
-		return &magistrala.IdentityRes{}, errors.ErrAuthentication
+		return &magistrala.IdentityRes{}, svcerror.ErrAuthentication
 	}
 
 	return ret.Get(0).(*magistrala.IdentityRes), ret.Error(1)
@@ -56,10 +56,10 @@ func (m *Service) Identify(ctx context.Context, in *magistrala.IdentityReq, opts
 func (m *Service) Authorize(ctx context.Context, in *magistrala.AuthorizeReq, opts ...grpc.CallOption) (*magistrala.AuthorizeRes, error) {
 	ret := m.Called(ctx, in)
 	if in.GetSubject() == InvalidValue || in.GetSubject() == "" {
-		return &magistrala.AuthorizeRes{Authorized: false}, errors.ErrAuthorization
+		return &magistrala.AuthorizeRes{Authorized: false}, svcerror.ErrAuthorization
 	}
 	if in.GetObject() == InvalidValue || in.GetObject() == "" {
-		return &magistrala.AuthorizeRes{Authorized: false}, errors.ErrAuthorization
+		return &magistrala.AuthorizeRes{Authorized: false}, svcerror.ErrAuthorization
 	}
 
 	return ret.Get(0).(*magistrala.AuthorizeRes), ret.Error(1)

@@ -365,7 +365,7 @@ func toDBGroup(g mggroups.Group) (dbGroup, error) {
 	if len(g.Metadata) > 0 {
 		b, err := json.Marshal(g.Metadata)
 		if err != nil {
-			return dbGroup{}, errors.Wrap(errors.ErrMalformedEntity, err)
+			return dbGroup{}, errors.Wrap(repoerror.ErrMalformedEntity, err)
 		}
 		data = b
 	}
@@ -441,7 +441,7 @@ func toDBGroupPage(pm mggroups.Page) (dbGroupPage, error) {
 	if len(pm.Metadata) > 0 {
 		b, err := json.Marshal(pm.Metadata)
 		if err != nil {
-			return dbGroupPage{}, errors.Wrap(errors.ErrMalformedEntity, err)
+			return dbGroupPage{}, errors.Wrap(repoerror.ErrMalformedEntity, err)
 		}
 		data = b
 	}

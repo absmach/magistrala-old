@@ -11,6 +11,8 @@ import (
 	"github.com/absmach/magistrala/auth"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/authzed-go/v1"
 )
@@ -57,7 +59,7 @@ func (pa *policyAgent) CheckPolicy(ctx context.Context, pr auth.PolicyReq) error
 	if reason, ok := v1.CheckPermissionResponse_Permissionship_name[int32(resp.Permissionship)]; ok {
 		return errors.Wrap(errors.ErrAuthorization, errors.New(reason))
 	}
-	return errors.ErrAuthorization
+	return svcerror.ErrAuthorization
 }
 
 func (pa *policyAgent) AddPolicies(ctx context.Context, prs []auth.PolicyReq) error {

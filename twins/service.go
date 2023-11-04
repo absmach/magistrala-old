@@ -12,7 +12,8 @@ import (
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/logger"
-	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/mainflux/senml"
 )
@@ -147,7 +148,7 @@ func (ts *twinsService) UpdateTwin(ctx context.Context, token string, twin Twin,
 
 	_, err = ts.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return errors.ErrAuthentication
+		return svcerror.ErrAuthentication
 	}
 
 	tw, err := ts.twins.RetrieveByID(ctx, twin.ID)
@@ -175,7 +176,7 @@ func (ts *twinsService) UpdateTwin(ctx context.Context, token string, twin Twin,
 	}
 
 	if !revision {
-		return errors.ErrMalformedEntity
+		return repoerror.ErrMalformedEntity
 	}
 
 	tw.Updated = time.Now()
@@ -216,7 +217,7 @@ func (ts *twinsService) RemoveTwin(ctx context.Context, token, twinID string) (e
 
 	_, err = ts.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return errors.ErrAuthentication
+		return svcerror.ErrAuthentication
 	}
 
 	if err := ts.twins.Remove(ctx, twinID); err != nil {
@@ -229,7 +230,7 @@ func (ts *twinsService) RemoveTwin(ctx context.Context, token, twinID string) (e
 func (ts *twinsService) ListTwins(ctx context.Context, token string, offset uint64, limit uint64, name string, metadata Metadata) (Page, error) {
 	res, err := ts.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return Page{}, errors.ErrAuthentication
+		return Page{}, svcerror.ErrAuthentication
 	}
 
 	return ts.twins.RetrieveAll(ctx, res.GetId(), offset, limit, name, metadata)
@@ -238,7 +239,7 @@ func (ts *twinsService) ListTwins(ctx context.Context, token string, offset uint
 func (ts *twinsService) ListStates(ctx context.Context, token string, offset uint64, limit uint64, twinID string) (StatesPage, error) {
 	_, err := ts.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return StatesPage{}, errors.ErrAuthentication
+		return StatesPage{}, svcerror.ErrAuthentication
 	}
 
 	return ts.states.RetrieveAll(ctx, offset, limit, twinID)

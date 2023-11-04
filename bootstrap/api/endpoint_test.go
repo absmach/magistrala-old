@@ -90,7 +90,7 @@ var (
 
 	missingIDRes  = toJSON(apiutil.ErrorRes{Err: apiutil.ErrMissingID.Error(), Msg: apiutil.ErrValidation.Error()})
 	missingKeyRes = toJSON(apiutil.ErrorRes{Err: apiutil.ErrBearerKey.Error(), Msg: apiutil.ErrValidation.Error()})
-	bsErrorRes    = toJSON(apiutil.ErrorRes{Err: errors.ErrNotFound.Error(), Msg: bootstrap.ErrBootstrap.Error()})
+	bsErrorRes    = toJSON(apiutil.ErrorRes{Err: repoerror.ErrNotFound.Error(), Msg: bootstrap.ErrBootstrap.Error()})
 	extKeyRes     = toJSON(apiutil.ErrorRes{Msg: bootstrap.ErrExternalKey.Error()})
 	extSecKeyRes  = toJSON(apiutil.ErrorRes{Err: "encoding/hex: invalid byte: U+0078 'x'", Msg: bootstrap.ErrExternalKeySecure.Error()})
 )
@@ -159,7 +159,7 @@ func dec(in []byte) ([]byte, error) {
 		return nil, err
 	}
 	if len(in) < aes.BlockSize {
-		return nil, errors.ErrMalformedEntity
+		return nil, repoerror.ErrMalformedEntity
 	}
 	iv := in[:aes.BlockSize]
 	in = in[aes.BlockSize:]

@@ -131,19 +131,19 @@ func TestAdd(t *testing.T) {
 			desc:   "add a config with an invalid ID",
 			config: neID,
 			token:  validToken,
-			err:    errors.ErrNotFound,
+			err:    repoerror.ErrNotFound,
 		},
 		{
 			desc:   "add a config with wrong credentials",
 			config: config,
 			token:  invalidToken,
-			err:    errors.ErrAuthentication,
+			err:    svcerror.ErrAuthentication,
 		},
 		{
 			desc:   "add a config with invalid list of channels",
 			config: wrongChannels,
 			token:  validToken,
-			err:    errors.ErrMalformedEntity,
+			err:    repoerror.ErrMalformedEntity,
 		},
 	}
 
@@ -181,13 +181,13 @@ func TestView(t *testing.T) {
 			desc:  "view a non-existing config",
 			id:    unknown,
 			token: validToken,
-			err:   errors.ErrNotFound,
+			err:   repoerror.ErrNotFound,
 		},
 		{
 			desc:  "view a config with wrong credentials",
 			id:    config.ThingID,
 			token: invalidToken,
-			err:   errors.ErrAuthentication,
+			err:   svcerror.ErrAuthentication,
 		},
 	}
 
@@ -232,13 +232,13 @@ func TestUpdate(t *testing.T) {
 			desc:   "update a non-existing config",
 			config: nonExisting,
 			token:  validToken,
-			err:    errors.ErrNotFound,
+			err:    repoerror.ErrNotFound,
 		},
 		{
 			desc:   "update a config with wrong credentials",
 			config: saved,
 			token:  invalidToken,
-			err:    errors.ErrAuthentication,
+			err:    svcerror.ErrAuthentication,
 		},
 	}
 
@@ -301,7 +301,7 @@ func TestUpdateCert(t *testing.T) {
 			caCert:         "newCert",
 			token:          validToken,
 			expectedConfig: bootstrap.Config{},
-			err:            errors.ErrNotFound,
+			err:            repoerror.ErrNotFound,
 		},
 		{
 			desc:           "update config cert with wrong credentials",
@@ -311,7 +311,7 @@ func TestUpdateCert(t *testing.T) {
 			caCert:         "newCert",
 			token:          invalidToken,
 			expectedConfig: bootstrap.Config{},
-			err:            errors.ErrAuthentication,
+			err:            svcerror.ErrAuthentication,
 		},
 	}
 
@@ -377,21 +377,21 @@ func TestUpdateConnections(t *testing.T) {
 			token:       validToken,
 			id:          "",
 			connections: []string{"3"},
-			err:         errors.ErrNotFound,
+			err:         repoerror.ErrNotFound,
 		},
 		{
 			desc:        "update connections with invalid channels",
 			token:       validToken,
 			id:          created.ThingID,
 			connections: []string{"wrong"},
-			err:         errors.ErrMalformedEntity,
+			err:         repoerror.ErrMalformedEntity,
 		},
 		{
 			desc:        "update connections a config with wrong credentials",
 			token:       invalidToken,
 			id:          created.ThingKey,
 			connections: []string{"2", "3"},
-			err:         errors.ErrAuthentication,
+			err:         svcerror.ErrAuthentication,
 		},
 	}
 
@@ -467,7 +467,7 @@ func TestList(t *testing.T) {
 			token:  invalidToken,
 			offset: 0,
 			limit:  10,
-			err:    errors.ErrAuthentication,
+			err:    svcerror.ErrAuthentication,
 		},
 		{
 			desc: "list last page",
@@ -524,7 +524,7 @@ func TestRemove(t *testing.T) {
 			desc:  "view a config with wrong credentials",
 			id:    saved.ThingID,
 			token: invalidToken,
-			err:   errors.ErrAuthentication,
+			err:   svcerror.ErrAuthentication,
 		},
 		{
 			desc:  "remove an existing config",
@@ -575,7 +575,7 @@ func TestBootstrap(t *testing.T) {
 			config:      bootstrap.Config{},
 			externalID:  "invalid",
 			externalKey: saved.ExternalKey,
-			err:         errors.ErrNotFound,
+			err:         repoerror.ErrNotFound,
 			encrypted:   false,
 		},
 		{
@@ -630,14 +630,14 @@ func TestChangeState(t *testing.T) {
 			state: bootstrap.Active,
 			id:    saved.ThingID,
 			token: invalidToken,
-			err:   errors.ErrAuthentication,
+			err:   svcerror.ErrAuthentication,
 		},
 		{
 			desc:  "change state of non-existing config",
 			state: bootstrap.Active,
 			id:    unknown,
 			token: validToken,
-			err:   errors.ErrNotFound,
+			err:   repoerror.ErrNotFound,
 		},
 		{
 			desc:  "change state to Active",

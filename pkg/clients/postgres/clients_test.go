@@ -49,7 +49,7 @@ func TestClientsRetrieveByID(t *testing.T) {
 		err error
 	}{
 		"retrieve existing client":     {client.ID, nil},
-		"retrieve non-existing client": {wrongID, errors.ErrNotFound},
+		"retrieve non-existing client": {wrongID, repoerror.ErrNotFound},
 	}
 
 	for desc, tc := range cases {
@@ -86,7 +86,7 @@ func TestClientsRetrieveByIdentity(t *testing.T) {
 		err      error
 	}{
 		"retrieve existing client":     {clientIdentity, nil},
-		"retrieve non-existing client": {wrongID, errors.ErrNotFound},
+		"retrieve non-existing client": {wrongID, repoerror.ErrNotFound},
 	}
 
 	for desc, tc := range cases {
@@ -446,7 +446,7 @@ func TestClientsUpdateMetadata(t *testing.T) {
 					"update": "metadata",
 				},
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 		{
 			desc:   "update name for enabled client",
@@ -464,7 +464,7 @@ func TestClientsUpdateMetadata(t *testing.T) {
 				ID:   client2.ID,
 				Name: "updated name",
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 		{
 			desc:   "update name and metadata for enabled client",
@@ -488,7 +488,7 @@ func TestClientsUpdateMetadata(t *testing.T) {
 					"update": "name and metadata",
 				},
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 		{
 			desc:   "update metadata for invalid client",
@@ -499,7 +499,7 @@ func TestClientsUpdateMetadata(t *testing.T) {
 					"update": "metadata",
 				},
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 		{
 			desc:   "update name for invalid client",
@@ -508,7 +508,7 @@ func TestClientsUpdateMetadata(t *testing.T) {
 				ID:   wrongID,
 				Name: "updated name",
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 		{
 			desc:   "update name and metadata for invalid client",
@@ -520,7 +520,7 @@ func TestClientsUpdateMetadata(t *testing.T) {
 					"update": "name and metadata",
 				},
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 	}
 	for _, tc := range ucases {
@@ -593,7 +593,7 @@ func TestClientsUpdateTags(t *testing.T) {
 				ID:   client2.ID,
 				Tags: []string{"updated"},
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 		{
 			desc: "update tags for invalid client",
@@ -601,7 +601,7 @@ func TestClientsUpdateTags(t *testing.T) {
 				ID:   wrongID,
 				Tags: []string{"updated"},
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 	}
 	for _, tc := range ucases {
@@ -672,7 +672,7 @@ func TestClientsUpdateSecret(t *testing.T) {
 					Secret:   "newpassword",
 				},
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 		{
 			desc: "update secret for invalid client",
@@ -683,7 +683,7 @@ func TestClientsUpdateSecret(t *testing.T) {
 					Secret:   "newpassword",
 				},
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 	}
 	for _, tc := range ucases {
@@ -754,7 +754,7 @@ func TestClientsUpdateIdentity(t *testing.T) {
 					Identity: "client2-updated@example.com",
 				},
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 		{
 			desc: "update identity for invalid client",
@@ -764,7 +764,7 @@ func TestClientsUpdateIdentity(t *testing.T) {
 					Identity: "client3-updated@example.com",
 				},
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 	}
 	for _, tc := range ucases {
@@ -832,7 +832,7 @@ func TestClientsUpdateOwner(t *testing.T) {
 				ID:    client2.ID,
 				Owner: testsutil.GenerateUUID(t),
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 		{
 			desc: "update owner for invalid client",
@@ -840,7 +840,7 @@ func TestClientsUpdateOwner(t *testing.T) {
 				ID:    wrongID,
 				Owner: testsutil.GenerateUUID(t),
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 	}
 	for _, tc := range ucases {
@@ -897,7 +897,7 @@ func TestClientsChangeStatus(t *testing.T) {
 				ID:     "invalid",
 				Status: 2,
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 	}
 

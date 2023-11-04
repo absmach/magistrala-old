@@ -13,6 +13,7 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 )
 
 const (
@@ -185,7 +186,7 @@ func (svc service) Authorize(ctx context.Context, pr PolicyReq) error {
 		pr.Subject = key.Subject
 	}
 	if err := svc.agent.CheckPolicy(ctx, pr); err != nil {
-		return errors.Wrap(errors.ErrAuthorization, err)
+		return errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	return nil
 }
@@ -423,7 +424,7 @@ func (svc service) authenticate(token string) (string, string, error) {
 	}
 	// Only login key token is valid for login.
 	if key.Type != AccessKey || key.Issuer == "" {
-		return "", "", errors.ErrAuthentication
+		return "", "", svcerror.ErrAuthentication
 	}
 
 	return key.Issuer, key.Subject, nil

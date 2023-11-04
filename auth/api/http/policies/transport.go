@@ -1,7 +1,7 @@
 // Copyright (c) Magistrala
 // SPDX-License-Identifier: Apache-2.0
 
-package keys
+package policies
 
 import (
 	"context"
@@ -27,23 +27,17 @@ func MakeHandler(svc auth.Service, mux *bone.Mux, logger logger.Logger) *bone.Mu
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(apiutil.LoggingErrorEncoder(logger, encodeError)),
 	}
-	mux.Post("/keys", kithttp.NewServer(
-		issueEndpoint(svc),
-		decodeIssue,
+
+	mux.Post("/policies", kithttp.NewServer(
+		(createPolicyEndpoint(svc)),
+		decodePoliciesRequest,
 		encodeResponse,
 		opts...,
 	))
 
-	mux.Get("/keys/:id", kithttp.NewServer(
-		(retrieveEndpoint(svc)),
-		decodeKeyReq,
-		encodeResponse,
-		opts...,
-	))
-
-	mux.Delete("/keys/:id", kithttp.NewServer(
-		(revokeEndpoint(svc)),
-		decodeKeyReq,
+	mux.Post("/policies/delete", kithttp.NewServer(
+		(deletePoliciesEndpoint(svc)),
+		decodePoliciesRequest,
 		encodeResponse,
 		opts...,
 	))
@@ -51,24 +45,16 @@ func MakeHandler(svc auth.Service, mux *bone.Mux, logger logger.Logger) *bone.Mu
 	return mux
 }
 
-func decodeIssue(_ context.Context, r *http.Request) (interface{}, error) {
+func decodePoliciesRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	if !strings.Contains(r.Header.Get("Content-Type"), contentType) {
 		return nil, repoerror.ErrUnsupportedContentType
 	}
 
-	req := issueKeyReq{token: apiutil.ExtractBearerToken(r)}
+	req := policiesReq{token: apiutil.ExtractBearerToken(r)}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(repoerror.ErrMalformedEntity, err)
 	}
 
-	return req, nil
-}
-
-func decodeKeyReq(_ context.Context, r *http.Request) (interface{}, error) {
-	req := keyReq{
-		token: apiutil.ExtractBearerToken(r),
-		id:    bone.GetValue(r, "id"),
-	}
 	return req, nil
 }
 
@@ -93,8 +79,10 @@ func encodeResponse(_ context.Context, w http.ResponseWriter, response interface
 func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	switch {
 	case errors.Contains(err, repoerror.ErrMalformedEntity),
-		err == apiutil.ErrMissingID,
-		err == apiutil.ErrInvalidAPIKey:
+		err == apiutil.ErrEmptyList,
+		err == apiutil.ErrMissingPolicyObj,
+		err == apiutil.ErrMissingPolicySub,
+		err == apiutil.ErrMalformedPolicy:
 		w.WriteHeader(http.StatusBadRequest)
 	case errors.Contains(err, svcerror.ErrAuthentication),
 		err == apiutil.ErrBearerToken:
@@ -103,6 +91,8 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 		w.WriteHeader(http.StatusNotFound)
 	case errors.Contains(err, repoerror.ErrConflict):
 		w.WriteHeader(http.StatusConflict)
+	case errors.Contains(err, svcerror.ErrAuthorization):
+		w.WriteHeader(http.StatusForbidden)
 	case errors.Contains(err, repoerror.ErrUnsupportedContentType):
 		w.WriteHeader(http.StatusUnsupportedMediaType)
 	default:
