@@ -116,7 +116,7 @@ func (svc service) RegisterClient(ctx context.Context, token string, cli mgclien
 func (svc service) IssueToken(ctx context.Context, identity, secret, domainID string) (*magistrala.Token, error) {
 	dbUser, err := svc.clients.RetrieveByIdentity(ctx, identity)
 	if err != nil {
-		return &magistrala.Token{}, err
+		return &magistrala.Token{}, errors.Wrap(repoerror.ErrNotFound, err)
 	}
 	if err := svc.hasher.Compare(secret, dbUser.Credentials.Secret); err != nil {
 		return &magistrala.Token{}, errors.Wrap(repoerror.ErrLogin, err)
