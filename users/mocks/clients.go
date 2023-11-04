@@ -150,7 +150,7 @@ func (m *Repository) IsOwner(ctx context.Context, clientID string, ownerID strin
 	ret := m.Called(ctx, clientID, ownerID)
 
 	if clientID == WrongID {
-		return svcerror.ErrNotFound
+		return repoerror.ErrNotFound
 	}
 
 	return ret.Error(0)

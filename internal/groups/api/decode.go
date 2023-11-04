@@ -144,7 +144,7 @@ func DecodeGroupCreate(_ context.Context, r *http.Request) (interface{}, error) 
 	}
 	var g mggroups.Group
 	if err := json.NewDecoder(r.Body).Decode(&g); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 	req := createGroupReq{
 		Group: g,
@@ -163,7 +163,7 @@ func DecodeGroupUpdate(_ context.Context, r *http.Request) (interface{}, error) 
 		token: apiutil.ExtractBearerToken(r),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 	return req, nil
 }
@@ -190,7 +190,7 @@ func DecodeAssignMembersRequest(_ context.Context, r *http.Request) (interface{}
 		groupID: chi.URLParam(r, "groupID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 	return req, nil
 }
@@ -201,7 +201,7 @@ func DecodeUnassignMembersRequest(_ context.Context, r *http.Request) (interface
 		groupID: chi.URLParam(r, "groupID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 	return req, nil
 }

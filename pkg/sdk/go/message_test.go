@@ -17,6 +17,7 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	sdk "github.com/absmach/magistrala/pkg/sdk/go"
 	mproxy "github.com/mainflux/mproxy/pkg/http"
 	"github.com/mainflux/mproxy/pkg/session"
@@ -82,13 +83,13 @@ func TestSendMessage(t *testing.T) {
 			chanID: chanID,
 			msg:    msg,
 			auth:   "",
-			err:    errors.NewSDKErrorWithStatus(errors.ErrAuthorization, http.StatusBadRequest),
+			err:    errors.NewSDKErrorWithStatus(svcerror.ErrAuthorization, http.StatusBadRequest),
 		},
 		"publish message with invalid authorization token": {
 			chanID: chanID,
 			msg:    msg,
 			auth:   invalidToken,
-			err:    errors.NewSDKErrorWithStatus(errors.ErrAuthentication, http.StatusBadRequest),
+			err:    errors.NewSDKErrorWithStatus(svcerror.ErrAuthentication, http.StatusBadRequest),
 		},
 		"publish message with wrong content type": {
 			chanID: chanID,
@@ -106,7 +107,7 @@ func TestSendMessage(t *testing.T) {
 			chanID: chanID,
 			msg:    msg,
 			auth:   "invalid-token",
-			err:    errors.NewSDKErrorWithStatus(errors.ErrAuthorization, http.StatusBadRequest),
+			err:    errors.NewSDKErrorWithStatus(svcerror.ErrAuthorization, http.StatusBadRequest),
 		},
 	}
 	for desc, tc := range cases {

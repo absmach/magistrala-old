@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	"golang.org/x/net/idna"
 )
 
@@ -102,7 +102,7 @@ type Repository interface {
 // Validate returns an error if client representation is invalid.
 func (u Client) Validate() error {
 	if !isEmail(u.Credentials.Identity) {
-		return errors.ErrMalformedEntity
+		return repoerror.ErrMalformedEntity
 	}
 	return nil
 }

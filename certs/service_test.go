@@ -112,7 +112,7 @@ func TestIssueCert(t *testing.T) {
 			token:   wrongValue,
 			thingID: thingID,
 			ttl:     ttl,
-			err:     errors.ErrAuthentication,
+			err:     svcerror.ErrAuthentication,
 		},
 	}
 
@@ -149,7 +149,7 @@ func TestRevokeCert(t *testing.T) {
 			desc:    "revoke cert for invalid token",
 			token:   wrongValue,
 			thingID: thingID,
-			err:     errors.ErrAuthentication,
+			err:     svcerror.ErrAuthentication,
 		},
 		{
 			desc:    "revoke cert for invalid thing id",
@@ -199,7 +199,7 @@ func TestListCerts(t *testing.T) {
 			offset:  0,
 			limit:   certNum,
 			size:    0,
-			err:     errors.ErrAuthentication,
+			err:     svcerror.ErrAuthentication,
 		},
 		{
 			desc:    "list half certs with valid token",
@@ -272,7 +272,7 @@ func TestListSerials(t *testing.T) {
 			offset:  0,
 			limit:   certNum,
 			certs:   nil,
-			err:     errors.ErrAuthentication,
+			err:     svcerror.ErrAuthentication,
 		},
 		{
 			desc:    "list half certs with valid token",
@@ -334,14 +334,14 @@ func TestViewCert(t *testing.T) {
 			token:    wrongValue,
 			serialID: cert.Serial,
 			cert:     certs.Cert{},
-			err:      errors.ErrAuthentication,
+			err:      svcerror.ErrAuthentication,
 		},
 		{
 			desc:     "list cert with invalid serial",
 			token:    token,
 			serialID: wrongValue,
 			cert:     certs.Cert{},
-			err:      errors.ErrNotFound,
+			err:      repoerror.ErrNotFound,
 		},
 	}
 

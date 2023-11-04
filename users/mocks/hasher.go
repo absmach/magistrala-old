@@ -4,6 +4,7 @@
 package mocks
 
 import (
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/users"
 )
@@ -20,7 +21,7 @@ func NewHasher() users.Hasher {
 
 func (hm *hasherMock) Hash(pwd string) (string, error) {
 	if pwd == "" {
-		return "", svcerror.ErrMalformedEntity
+		return "", repoerror.ErrMalformedEntity
 	}
 	return pwd, nil
 }

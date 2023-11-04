@@ -232,7 +232,7 @@ func (bs bootstrapService) UpdateConnections(ctx context.Context, token, id stri
 
 	for _, c := range disconnect {
 		if err := bs.sdk.DisconnectThing(id, c, token); err != nil {
-			if errors.Contains(err, errors.ErrNotFound) {
+			if errors.Contains(err, repoerror.ErrNotFound) {
 				continue
 			}
 			return ErrThings
@@ -320,7 +320,7 @@ func (bs bootstrapService) ChangeState(ctx context.Context, token, id string, st
 	case Inactive:
 		for _, c := range cfg.Channels {
 			if err := bs.sdk.DisconnectThing(cfg.ThingID, c.ID, token); err != nil {
-				if errors.Contains(err, errors.ErrNotFound) {
+				if errors.Contains(err, repoerror.ErrNotFound) {
 					continue
 				}
 				return ErrThings
@@ -367,7 +367,7 @@ func (bs bootstrapService) identify(ctx context.Context, token string) (string, 
 
 	res, err := bs.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return "", errors.ErrAuthentication
+		return "", svcerror.ErrAuthentication
 	}
 
 	return res.GetId(), nil
@@ -417,7 +417,7 @@ func (bs bootstrapService) connectionChannels(channels, existing []string, token
 	for id := range add {
 		ch, err := bs.sdk.Channel(id, token)
 		if err != nil {
-			return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+			return nil, errors.Wrap(repoerror.ErrMalformedEntity, err)
 		}
 
 		ret = append(ret, Channel{
