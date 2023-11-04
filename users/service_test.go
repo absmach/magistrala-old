@@ -16,6 +16,7 @@ import (
 	"github.com/absmach/magistrala/internal/testsutil"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/absmach/magistrala/users"
@@ -69,7 +70,7 @@ func TestRegisterClient(t *testing.T) {
 			desc:   "register existing client",
 			client: client,
 			token:  validToken,
-			err:    svcerror.ErrConflict,
+			err:    repoerror.ErrConflict,
 		},
 		{
 			desc: "register a new enabled client with name",
@@ -195,7 +196,7 @@ func TestRegisterClient(t *testing.T) {
 					Secret: secret,
 				},
 			},
-			err:   svcerror.ErrMalformedEntity,
+			err:   repoerror.ErrMalformedEntity,
 			token: validToken,
 		},
 		{
@@ -207,7 +208,7 @@ func TestRegisterClient(t *testing.T) {
 					Secret:   secret,
 				},
 			},
-			err:   svcerror.ErrMalformedEntity,
+			err:   repoerror.ErrMalformedEntity,
 			token: validToken,
 		},
 		{
@@ -294,7 +295,7 @@ func TestViewClient(t *testing.T) {
 			response: mgclients.Client{},
 			token:    validToken,
 			clientID: mocks.WrongID,
-			err:      svcerror.ErrNotFound,
+			err:      repoerror.ErrNotFound,
 		},
 		{
 			desc:     "view client with an invalid token and invalid client id",
@@ -665,7 +666,7 @@ func TestUpdateClient(t *testing.T) {
 			client:   client2,
 			response: mgclients.Client{},
 			token:    inValidToken,
-			err:      errors.ErrAuthentication,
+			err:      svcerror.ErrAuthentication,
 		},
 	}
 
@@ -1297,7 +1298,7 @@ func TestListMembers(t *testing.T) {
 					Limit:  0,
 				},
 			},
-			err: svcerror.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 		{
 			desc:    "list clients for an owner",

@@ -11,6 +11,8 @@ import (
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -75,16 +77,16 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	}
 
 	switch {
-	case errors.Contains(err, errors.ErrAuthentication),
+	case errors.Contains(err, svcerror.ErrAuthentication),
 		errors.Contains(err, apiutil.ErrBearerKey),
 		errors.Contains(err, apiutil.ErrBearerToken):
 		w.WriteHeader(http.StatusUnauthorized)
-	case errors.Contains(err, errors.ErrAuthorization):
+	case errors.Contains(err, svcerror.ErrAuthorization):
 		w.WriteHeader(http.StatusForbidden)
 	case errors.Contains(err, apiutil.ErrUnsupportedContentType):
 		w.WriteHeader(http.StatusUnsupportedMediaType)
 	case errors.Contains(err, errMalformedSubtopic),
-		errors.Contains(err, errors.ErrMalformedEntity):
+		errors.Contains(err, repoerror.ErrMalformedEntity):
 		w.WriteHeader(http.StatusBadRequest)
 
 	default:
@@ -98,7 +100,7 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 			case codes.Internal:
 				w.WriteHeader(http.StatusInternalServerError)
 			case codes.NotFound:
-				err = errors.ErrNotFound
+				err = repoerror.ErrNotFound
 				w.WriteHeader(http.StatusNotFound)
 			default:
 				w.WriteHeader(http.StatusInternalServerError)

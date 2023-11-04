@@ -17,6 +17,7 @@ import (
 	"github.com/absmach/magistrala/mqtt"
 	"github.com/absmach/magistrala/mqtt/mocks"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/mainflux/mproxy/pkg/session"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -197,7 +198,7 @@ func TestAuthSubscribe(t *testing.T) {
 		{
 			desc:    "subscribe with invalid channel ID",
 			session: &sessionClient,
-			err:     errors.ErrAuthorization,
+			err:     svcerror.ErrAuthorization,
 			topic:   &invalidChanIDTopics,
 		},
 		{

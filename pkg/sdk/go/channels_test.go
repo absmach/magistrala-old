@@ -102,7 +102,7 @@ func TestCreateChannel(t *testing.T) {
 				ParentID: gmocks.WrongID,
 				Status:   mgclients.EnabledStatus.String(),
 			},
-			err: errors.NewSDKErrorWithStatus(errors.ErrCreateEntity, http.StatusInternalServerError),
+			err: errors.NewSDKErrorWithStatus(repoerror.ErrCreateEntity, http.StatusInternalServerError),
 		},
 		{
 			desc: "create channel with invalid owner",
@@ -375,14 +375,14 @@ func TestViewChannel(t *testing.T) {
 			token:     "wrongtoken",
 			channelID: channel.ID,
 			response:  sdk.Channel{Children: []*sdk.Channel{}},
-			err:       errors.NewSDKErrorWithStatus(errors.Wrap(errors.ErrAuthorization, errors.ErrAuthentication), http.StatusUnauthorized),
+			err:       errors.NewSDKErrorWithStatus(errors.Wrap(svcerror.ErrAuthorization, svcerror.ErrAuthentication), http.StatusUnauthorized),
 		},
 		{
 			desc:      "view channel for wrong id",
 			token:     adminToken,
 			channelID: gmocks.WrongID,
 			response:  sdk.Channel{Children: []*sdk.Channel{}},
-			err:       errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:       errors.NewSDKErrorWithStatus(repoerror.ErrNotFound, http.StatusNotFound),
 		},
 	}
 
@@ -481,7 +481,7 @@ func TestUpdateChannel(t *testing.T) {
 			},
 			response: sdk.Channel{},
 			token:    adminToken,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(repoerror.ErrNotFound, http.StatusNotFound),
 		},
 		{
 			desc: "update channel description with invalid channel id",
@@ -491,7 +491,7 @@ func TestUpdateChannel(t *testing.T) {
 			},
 			response: sdk.Channel{},
 			token:    adminToken,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(repoerror.ErrNotFound, http.StatusNotFound),
 		},
 		{
 			desc: "update channel metadata with invalid channel id",
@@ -503,7 +503,7 @@ func TestUpdateChannel(t *testing.T) {
 			},
 			response: sdk.Channel{},
 			token:    adminToken,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(repoerror.ErrNotFound, http.StatusNotFound),
 		},
 		{
 			desc: "update channel name with invalid token",
@@ -513,7 +513,7 @@ func TestUpdateChannel(t *testing.T) {
 			},
 			response: sdk.Channel{},
 			token:    invalidToken,
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(errors.ErrAuthorization, errors.ErrAuthentication), http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(svcerror.ErrAuthorization, svcerror.ErrAuthentication), http.StatusUnauthorized),
 		},
 		{
 			desc: "update channel description with invalid token",
@@ -523,7 +523,7 @@ func TestUpdateChannel(t *testing.T) {
 			},
 			response: sdk.Channel{},
 			token:    invalidToken,
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(errors.ErrAuthorization, errors.ErrAuthentication), http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(svcerror.ErrAuthorization, svcerror.ErrAuthentication), http.StatusUnauthorized),
 		},
 		{
 			desc: "update channel metadata with invalid token",
@@ -535,7 +535,7 @@ func TestUpdateChannel(t *testing.T) {
 			},
 			response: sdk.Channel{},
 			token:    invalidToken,
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(errors.ErrAuthorization, errors.ErrAuthentication), http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(svcerror.ErrAuthorization, svcerror.ErrAuthentication), http.StatusUnauthorized),
 		},
 		{
 			desc: "update channel that can't be marshalled",
@@ -662,7 +662,7 @@ func TestListChannelsByThing(t *testing.T) {
 			clientID: testsutil.GenerateUUID(t),
 			page:     sdk.PageMetadata{},
 			response: []sdk.Channel(nil),
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(errors.ErrAuthorization, errors.ErrAuthentication), http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(svcerror.ErrAuthorization, svcerror.ErrAuthentication), http.StatusUnauthorized),
 		},
 		{
 			desc:     "list channel with an invalid id",
@@ -670,7 +670,7 @@ func TestListChannelsByThing(t *testing.T) {
 			clientID: gmocks.WrongID,
 			page:     sdk.PageMetadata{},
 			response: []sdk.Channel(nil),
-			err:      errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(repoerror.ErrNotFound, http.StatusNotFound),
 		},
 	}
 

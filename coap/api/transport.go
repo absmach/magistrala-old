@@ -17,6 +17,8 @@ import (
 	"github.com/absmach/magistrala/coap"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/go-zoo/bone"
 	"github.com/plgd-dev/go-coap/v2/message"
@@ -98,16 +100,16 @@ func handler(w mux.ResponseWriter, m *mux.Message) {
 		resp.Code = codes.Created
 		err = service.Publish(m.Context, key, msg)
 	default:
-		err = errors.ErrNotFound
+		err = repoerror.ErrNotFound
 	}
 	if err != nil {
 		switch {
 		case err == errBadOptions:
 			resp.Code = codes.BadOption
-		case err == errors.ErrNotFound:
+		case err == repoerror.ErrNotFound:
 			resp.Code = codes.NotFound
-		case errors.Contains(err, errors.ErrAuthorization),
-			errors.Contains(err, errors.ErrAuthentication):
+		case errors.Contains(err, svcerror.ErrAuthorization),
+			errors.Contains(err, svcerror.ErrAuthentication):
 			resp.Code = codes.Unauthorized
 		default:
 			resp.Code = codes.InternalServerError
@@ -174,7 +176,7 @@ func parseKey(msg *mux.Message) (string, error) {
 	}
 	vars := strings.Split(authKey, "=")
 	if len(vars) != 2 || vars[0] != authQuery {
-		return "", errors.ErrAuthorization
+		return "", svcerror.ErrAuthorization
 	}
 	return vars[1], nil
 }

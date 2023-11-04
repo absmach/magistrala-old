@@ -13,6 +13,8 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -144,22 +146,22 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	}
 
 	switch {
-	case errors.Contains(err, errors.ErrAuthentication),
+	case errors.Contains(err, svcerror.ErrAuthentication),
 		errors.Contains(err, apiutil.ErrBearerToken):
 		w.WriteHeader(http.StatusUnauthorized)
 	case errors.Contains(err, apiutil.ErrUnsupportedContentType):
 		w.WriteHeader(http.StatusUnsupportedMediaType)
-	case errors.Contains(err, errors.ErrMalformedEntity),
+	case errors.Contains(err, repoerror.ErrMalformedEntity),
 		errors.Contains(err, apiutil.ErrMissingID),
 		errors.Contains(err, apiutil.ErrMissingCertData),
 		errors.Contains(err, apiutil.ErrInvalidCertData),
 		errors.Contains(err, apiutil.ErrLimitSize):
 		w.WriteHeader(http.StatusBadRequest)
-	case errors.Contains(err, errors.ErrConflict):
+	case errors.Contains(err, repoerror.ErrConflict):
 		w.WriteHeader(http.StatusConflict)
-	case errors.Contains(err, errors.ErrCreateEntity),
-		errors.Contains(err, errors.ErrViewEntity),
-		errors.Contains(err, errors.ErrRemoveEntity):
+	case errors.Contains(err, repoerror.ErrCreateEntity),
+		errors.Contains(err, repoerror.ErrViewEntity),
+		errors.Contains(err, repoerror.ErrRemoveEntity):
 		w.WriteHeader(http.StatusInternalServerError)
 
 	default:

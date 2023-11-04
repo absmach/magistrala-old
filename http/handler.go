@@ -15,6 +15,7 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/mainflux/mproxy/pkg/session"
 )
@@ -156,7 +157,7 @@ func (h *handler) Publish(ctx context.Context, topic *string, payload *[]byte) e
 		return err
 	}
 	if !res.GetAuthorized() {
-		return errors.ErrAuthorization
+		return svcerror.ErrAuthorization
 	}
 	msg.Publisher = res.GetId()
 

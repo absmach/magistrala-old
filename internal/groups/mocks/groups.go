@@ -90,7 +90,7 @@ func (m *Repository) Unassign(ctx context.Context, groupID, memberKind string, m
 	ret := m.Called(ctx, groupID, memberKind, memberIDs)
 
 	if groupID == WrongID {
-		return errors.ErrNotFound
+		return repoerror.ErrNotFound
 	}
 
 	return ret.Error(0)
@@ -100,7 +100,7 @@ func (m *Repository) Assign(ctx context.Context, groupID, groupType string, memb
 	ret := m.Called(ctx, groupID, groupType, memberIDs)
 
 	if groupID == WrongID {
-		return errors.ErrNotFound
+		return repoerror.ErrNotFound
 	}
 
 	return ret.Error(0)

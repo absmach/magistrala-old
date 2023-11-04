@@ -13,6 +13,7 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/users/postgres"
 )
@@ -105,7 +106,7 @@ func (svc service) IssueToken(ctx context.Context, identity, secret string) (*ma
 		return &magistrala.Token{}, err
 	}
 	if err := svc.hasher.Compare(secret, dbUser.Credentials.Secret); err != nil {
-		return &magistrala.Token{}, errors.Wrap(errors.ErrLogin, err)
+		return &magistrala.Token{}, errors.Wrap(repoerror.ErrLogin, err)
 	}
 
 	return svc.auth.Issue(ctx, &magistrala.IssueReq{Id: dbUser.ID, Type: 0})
@@ -234,7 +235,7 @@ func (svc service) UpdateClientIdentity(ctx context.Context, token, clientID, id
 func (svc service) GenerateResetToken(ctx context.Context, email, host string) error {
 	client, err := svc.clients.RetrieveByIdentity(ctx, email)
 	if err != nil || client.Credentials.Identity == "" {
-		return svcerror.ErrNotFound
+		return repoerror.ErrNotFound
 	}
 	issueReq := &magistrala.IssueReq{
 		Id:   client.ID,
@@ -258,7 +259,7 @@ func (svc service) ResetSecret(ctx context.Context, resetToken, secret string) e
 		return err
 	}
 	if c.Credentials.Identity == "" {
-		return svcerror.ErrNotFound
+		return repoerror.ErrNotFound
 	}
 	if !svc.passRegex.MatchString(secret) {
 		return ErrPasswordFormat
