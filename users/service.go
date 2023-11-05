@@ -69,7 +69,7 @@ func (svc service) RegisterClient(ctx context.Context, token string, cli mgclien
 	}
 	hash, err := svc.hasher.Hash(cli.Credentials.Secret)
 	if err != nil {
-		return mgclients.Client{}, errors.Wrap(errors.ErrMalformedEntity, err)
+		return mgclients.Client{}, errors.Wrap(repoerror.ErrMalformedEntity, err)
 	}
 	cli.Credentials.Secret = hash
 	if cli.Status != mgclients.DisabledStatus && cli.Status != mgclients.EnabledStatus {

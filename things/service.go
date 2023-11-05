@@ -11,6 +11,7 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	mggroups "github.com/absmach/magistrala/pkg/groups"
 	"github.com/absmach/magistrala/things/postgres"
 )
@@ -61,7 +62,7 @@ func (svc service) Authorize(ctx context.Context, req *magistrala.AuthorizeReq) 
 func (svc service) CreateThings(ctx context.Context, token string, cls ...mgclients.Client) ([]mgclients.Client, error) {
 	user, err := svc.identify(ctx, token)
 	if err != nil {
-		return []mgclients.Client{}, errors.Wrap(errors.ErrAuthorization, err)
+		return []mgclients.Client{}, errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	var clients []mgclients.Client
 	for _, c := range cls {

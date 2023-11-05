@@ -42,7 +42,7 @@ func NewRepository(db postgres.Database) Repository {
 func (repo clientRepo) Save(ctx context.Context, cs ...mgclients.Client) ([]mgclients.Client, error) {
 	tx, err := repo.ClientRepository.DB.BeginTxx(ctx, nil)
 	if err != nil {
-		return []mgclients.Client{}, errors.Wrap(errors.ErrCreateEntity, err)
+		return []mgclients.Client{}, errors.Wrap(repoerror.ErrCreateEntity, err)
 	}
 	var clients []mgclients.Client
 
@@ -53,15 +53,15 @@ func (repo clientRepo) Save(ctx context.Context, cs ...mgclients.Client) ([]mgcl
 
 		dbcli, err := pgclients.ToDBClient(cli)
 		if err != nil {
-			return []mgclients.Client{}, errors.Wrap(errors.ErrCreateEntity, err)
+			return []mgclients.Client{}, errors.Wrap(repoerror.ErrCreateEntity, err)
 		}
 
 		row, err := repo.ClientRepository.DB.NamedQueryContext(ctx, q, dbcli)
 		if err != nil {
 			if err := tx.Rollback(); err != nil {
-				return []mgclients.Client{}, postgres.HandleError(err, errors.ErrCreateEntity)
+				return []mgclients.Client{}, postgres.HandleError(err, repoerror.ErrCreateEntity)
 			}
-			return []mgclients.Client{}, errors.Wrap(errors.ErrCreateEntity, err)
+			return []mgclients.Client{}, errors.Wrap(repoerror.ErrCreateEntity, err)
 		}
 
 		defer row.Close()
@@ -78,7 +78,7 @@ func (repo clientRepo) Save(ctx context.Context, cs ...mgclients.Client) ([]mgcl
 		clients = append(clients, client)
 	}
 	if err = tx.Commit(); err != nil {
-		return []mgclients.Client{}, errors.Wrap(errors.ErrCreateEntity, err)
+		return []mgclients.Client{}, errors.Wrap(repoerror.ErrCreateEntity, err)
 	}
 
 	return clients, nil
@@ -95,9 +95,9 @@ func (repo clientRepo) RetrieveBySecret(ctx context.Context, key string) (mgclie
 
 	if err := repo.DB.QueryRowxContext(ctx, q, key).StructScan(&dbc); err != nil {
 		if err == sql.ErrNoRows {
-			return mgclients.Client{}, errors.Wrap(errors.ErrNotFound, err)
+			return mgclients.Client{}, errors.Wrap(repoerror.ErrNotFound, err)
 		}
-		return mgclients.Client{}, errors.Wrap(errors.ErrViewEntity, err)
+		return mgclients.Client{}, errors.Wrap(repoerror.ErrViewEntity, err)
 	}
 
 	return pgclients.ToClient(dbc)
