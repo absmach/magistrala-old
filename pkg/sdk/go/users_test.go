@@ -362,7 +362,7 @@ func TestListClients(t *testing.T) {
 			Tag:      tc.tag,
 		}
 
-		repoCall1 := auth.On("CheckAdmin", mock.Anything, mock.Anything).Return(errors.ErrAuthorization)
+		repoCall1 := auth.On("CheckAdmin", mock.Anything, mock.Anything).Return(svcerror.ErrAuthorization)
 		repoCall2 := cRepo.On("RetrieveAll", mock.Anything, mock.Anything).Return(mgclients.ClientsPage{Page: convertClientPage(pm), Clients: convertClients(tc.response)}, tc.err)
 		page, err := mgsdk.Users(pm, validToken)
 		assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected error %s, got %s", tc.desc, tc.err, err))

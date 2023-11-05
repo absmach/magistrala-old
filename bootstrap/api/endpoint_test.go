@@ -27,7 +27,7 @@ import (
 	"github.com/absmach/magistrala/internal/groups"
 	chmocks "github.com/absmach/magistrala/internal/groups/mocks"
 	mglog "github.com/absmach/magistrala/logger"
-	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	mggroups "github.com/absmach/magistrala/pkg/groups"
 	mgsdk "github.com/absmach/magistrala/pkg/sdk/go"
 	"github.com/absmach/magistrala/pkg/uuid"

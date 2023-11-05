@@ -12,6 +12,7 @@ import (
 	"github.com/absmach/magistrala/internal/testsutil"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	mggroups "github.com/absmach/magistrala/pkg/groups"
 	cpostgres "github.com/absmach/magistrala/users/postgres"
 	"github.com/stretchr/testify/assert"

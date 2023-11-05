@@ -45,12 +45,12 @@ func (repo clientRepo) Save(ctx context.Context, c mgclients.Client) (mgclients.
         RETURNING id, name, tags, identity, metadata, COALESCE(owner_id, '') AS owner_id, status, created_at`
 	dbc, err := pgclients.ToDBClient(c)
 	if err != nil {
-		return mgclients.Client{}, errors.Wrap(errors.ErrCreateEntity, err)
+		return mgclients.Client{}, errors.Wrap(repoerror.ErrCreateEntity, err)
 	}
 
 	row, err := repo.ClientRepository.DB.NamedQueryContext(ctx, q, dbc)
 	if err != nil {
-		return mgclients.Client{}, postgres.HandleError(err, errors.ErrCreateEntity)
+		return mgclients.Client{}, postgres.HandleError(err, repoerror.ErrCreateEntity)
 	}
 
 	defer row.Close()
