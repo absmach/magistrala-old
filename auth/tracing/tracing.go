@@ -89,15 +89,11 @@ func (tm *tracingMiddleware) AddPolicy(ctx context.Context, pr auth.PolicyReq) e
 	return tm.svc.AddPolicy(ctx, pr)
 }
 
-func (tm *tracingMiddleware) AddPolicies(ctx context.Context, token, object string, subjectIDs, relations []string) error {
-	ctx, span := tm.tracer.Start(ctx, "add_policies", trace.WithAttributes(
-		attribute.String("object", object),
-		attribute.StringSlice("subject_ids", subjectIDs),
-		attribute.StringSlice("relations", relations),
-	))
+func (tm *tracingMiddleware) AddPolicies(ctx context.Context, prs []auth.PolicyReq) error {
+	ctx, span := tm.tracer.Start(ctx, "add_policies", trace.WithAttributes())
 	defer span.End()
 
-	return tm.svc.AddPolicies(ctx, token, object, subjectIDs, relations)
+	return tm.svc.AddPolicies(ctx, prs)
 }
 
 func (tm *tracingMiddleware) DeletePolicy(ctx context.Context, pr auth.PolicyReq) error {
@@ -115,15 +111,11 @@ func (tm *tracingMiddleware) DeletePolicy(ctx context.Context, pr auth.PolicyReq
 	return tm.svc.DeletePolicy(ctx, pr)
 }
 
-func (tm *tracingMiddleware) DeletePolicies(ctx context.Context, token, object string, subjectIDs, relations []string) error {
-	ctx, span := tm.tracer.Start(ctx, "delete_policies", trace.WithAttributes(
-		attribute.String("object", object),
-		attribute.StringSlice("subject_ids", subjectIDs),
-		attribute.StringSlice("relations", relations),
-	))
+func (tm *tracingMiddleware) DeletePolicies(ctx context.Context, prs []auth.PolicyReq) error {
+	ctx, span := tm.tracer.Start(ctx, "delete_policies", trace.WithAttributes())
 	defer span.End()
 
-	return tm.svc.DeletePolicies(ctx, token, object, subjectIDs, relations)
+	return tm.svc.DeletePolicies(ctx, prs)
 }
 
 func (tm *tracingMiddleware) ListObjects(ctx context.Context, pr auth.PolicyReq, nextPageToken string, limit int32) (auth.PolicyPage, error) {

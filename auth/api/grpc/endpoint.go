@@ -120,6 +120,34 @@ func addPolicyEndpoint(svc auth.Service) endpoint.Endpoint {
 	}
 }
 
+func addPoliciesEndpoint(svc auth.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		reqs := request.(policiesReq)
+		if err := reqs.validate(); err != nil {
+			return addPolicyRes{}, err
+		}
+
+		prs := []auth.PolicyReq{}
+
+		for _, req := range reqs {
+			prs = append(prs, auth.PolicyReq{
+				Domain:      req.Domain,
+				SubjectType: req.SubjectType,
+				Subject:     req.Subject,
+				Relation:    req.Relation,
+				Permission:  req.Permission,
+				ObjectType:  req.ObjectType,
+				Object:      req.Object,
+			})
+		}
+
+		if err := svc.AddPolicies(ctx, prs); err != nil {
+			return addPoliciesRes{}, err
+		}
+		return addPoliciesRes{authorized: true}, nil
+	}
+}
+
 func deletePolicyEndpoint(svc auth.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(policyReq)
@@ -140,6 +168,34 @@ func deletePolicyEndpoint(svc auth.Service) endpoint.Endpoint {
 			return deletePolicyRes{}, err
 		}
 		return deletePolicyRes{deleted: true}, nil
+	}
+}
+
+func deletePoliciesEndpoint(svc auth.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		reqs := request.(policiesReq)
+		if err := reqs.validate(); err != nil {
+			return deletePolicyRes{}, err
+		}
+
+		prs := []auth.PolicyReq{}
+
+		for _, req := range reqs {
+			prs = append(prs, auth.PolicyReq{
+				Domain:      req.Domain,
+				SubjectType: req.SubjectType,
+				Subject:     req.Subject,
+				Relation:    req.Relation,
+				Permission:  req.Permission,
+				ObjectType:  req.ObjectType,
+				Object:      req.Object,
+			})
+		}
+
+		if err := svc.DeletePolicies(ctx, prs); err != nil {
+			return deletePoliciesRes{}, err
+		}
+		return deletePoliciesRes{deleted: true}, nil
 	}
 }
 

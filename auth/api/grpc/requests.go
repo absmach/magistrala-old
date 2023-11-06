@@ -111,6 +111,17 @@ func (req policyReq) validate() error {
 	return nil
 }
 
+type policiesReq []policyReq
+
+func (prs policiesReq) validate() error {
+	for _, pr := range prs {
+		if err := pr.validate(); err != nil {
+			return nil
+		}
+	}
+	return nil
+}
+
 type listObjectsReq struct {
 	Domain        string
 	SubjectType   string
