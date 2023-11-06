@@ -52,8 +52,8 @@ type Service interface {
 	// SendPasswordReset sends reset password link to email.
 	SendPasswordReset(ctx context.Context, host, email, user, token string) error
 
-	// UpdateClientOwner updates the client's owner.
-	UpdateClientOwner(ctx context.Context, token string, client clients.Client) (clients.Client, error)
+	// UpdateClientRole updates the client's Role.
+	UpdateClientRole(ctx context.Context, token string, client clients.Client) (clients.Client, error)
 
 	// EnableClient logically enableds the client identified with the provided ID.
 	EnableClient(ctx context.Context, token, id string) (clients.Client, error)

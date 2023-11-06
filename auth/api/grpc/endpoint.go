@@ -81,7 +81,7 @@ func authorizeEndpoint(svc auth.Service) endpoint.Endpoint {
 		}
 
 		err := svc.Authorize(ctx, auth.PolicyReq{
-			Namespace:   req.Namespace,
+			Domain:      req.Domain,
 			SubjectType: req.SubjectType,
 			SubjectKind: req.SubjectKind,
 			Subject:     req.Subject,
@@ -105,7 +105,7 @@ func addPolicyEndpoint(svc auth.Service) endpoint.Endpoint {
 		}
 
 		err := svc.AddPolicy(ctx, auth.PolicyReq{
-			Namespace:   req.Namespace,
+			Domain:      req.Domain,
 			SubjectType: req.SubjectType,
 			Subject:     req.Subject,
 			Relation:    req.Relation,
@@ -128,7 +128,7 @@ func deletePolicyEndpoint(svc auth.Service) endpoint.Endpoint {
 		}
 
 		err := svc.DeletePolicy(ctx, auth.PolicyReq{
-			Namespace:   req.Namespace,
+			Domain:      req.Domain,
 			SubjectType: req.SubjectType,
 			Subject:     req.Subject,
 			Relation:    req.Relation,
@@ -148,7 +148,7 @@ func listObjectsEndpoint(svc auth.Service) endpoint.Endpoint {
 		req := request.(listObjectsReq)
 
 		page, err := svc.ListObjects(ctx, auth.PolicyReq{
-			Namespace:   req.Namespace,
+			Domain:      req.Domain,
 			SubjectType: req.SubjectType,
 			Subject:     req.Subject,
 			Relation:    req.Relation,
@@ -168,7 +168,7 @@ func listAllObjectsEndpoint(svc auth.Service) endpoint.Endpoint {
 		req := request.(listObjectsReq)
 
 		page, err := svc.ListAllObjects(ctx, auth.PolicyReq{
-			Namespace:   req.Namespace,
+			Domain:      req.Domain,
 			SubjectType: req.SubjectType,
 			Subject:     req.Subject,
 			Relation:    req.Relation,
@@ -188,7 +188,7 @@ func countObjectsEndpoint(svc auth.Service) endpoint.Endpoint {
 		req := request.(countObjectsReq)
 
 		count, err := svc.CountObjects(ctx, auth.PolicyReq{
-			Namespace:   req.Namespace,
+			Domain:      req.Domain,
 			SubjectType: req.SubjectType,
 			Subject:     req.Subject,
 			Relation:    req.Relation,
@@ -208,7 +208,7 @@ func listSubjectsEndpoint(svc auth.Service) endpoint.Endpoint {
 		req := request.(listSubjectsReq)
 
 		page, err := svc.ListSubjects(ctx, auth.PolicyReq{
-			Namespace:   req.Namespace,
+			Domain:      req.Domain,
 			SubjectType: req.SubjectType,
 			Subject:     req.Subject,
 			Relation:    req.Relation,
@@ -228,7 +228,7 @@ func listAllSubjectsEndpoint(svc auth.Service) endpoint.Endpoint {
 		req := request.(listSubjectsReq)
 
 		page, err := svc.ListAllSubjects(ctx, auth.PolicyReq{
-			Namespace:   req.Namespace,
+			Domain:      req.Domain,
 			SubjectType: req.SubjectType,
 			Subject:     req.Subject,
 			Relation:    req.Relation,
@@ -248,7 +248,7 @@ func countSubjectsEndpoint(svc auth.Service) endpoint.Endpoint {
 		req := request.(countSubjectsReq)
 
 		count, err := svc.CountSubjects(ctx, auth.PolicyReq{
-			Namespace:   req.Namespace,
+			Domain:      req.Domain,
 			SubjectType: req.SubjectType,
 			Subject:     req.Subject,
 			Relation:    req.Relation,

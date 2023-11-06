@@ -188,7 +188,7 @@ func (client grpcClient) Identify(ctx context.Context, token *magistrala.Identit
 	}
 
 	ir := res.(identityRes)
-	return &magistrala.IdentityRes{Id: ir.id}, nil
+	return &magistrala.IdentityRes{Id: ir.id, UserId: ir.userID, DomainId: ir.domainID}, nil
 }
 
 func encodeIdentifyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -206,7 +206,7 @@ func (client grpcClient) Authorize(ctx context.Context, req *magistrala.Authoriz
 	defer close()
 
 	res, err := client.authorize(ctx, authReq{
-		Namespace:   req.GetNamespace(),
+		Domain:      req.GetDomain(),
 		SubjectType: req.GetSubjectType(),
 		Subject:     req.GetSubject(),
 		SubjectKind: req.GetSubjectKind(),
@@ -231,7 +231,7 @@ func decodeAuthorizeResponse(_ context.Context, grpcRes interface{}) (interface{
 func encodeAuthorizeRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(authReq)
 	return &magistrala.AuthorizeReq{
-		Namespace:   req.Namespace,
+		Domain:      req.Domain,
 		SubjectType: req.SubjectType,
 		Subject:     req.Subject,
 		SubjectKind: req.SubjectKind,
@@ -247,7 +247,7 @@ func (client grpcClient) AddPolicy(ctx context.Context, in *magistrala.AddPolicy
 	defer close()
 
 	res, err := client.addPolicy(ctx, policyReq{
-		Namespace:   in.GetNamespace(),
+		Domain:      in.GetDomain(),
 		SubjectType: in.GetSubjectType(),
 		Subject:     in.GetSubject(),
 		Relation:    in.GetRelation(),
@@ -271,7 +271,7 @@ func decodeAddPolicyResponse(_ context.Context, grpcRes interface{}) (interface{
 func encodeAddPolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(policyReq)
 	return &magistrala.AddPolicyReq{
-		Namespace:   req.Namespace,
+		Domain:      req.Domain,
 		SubjectType: req.SubjectType,
 		Subject:     req.Subject,
 		Relation:    req.Relation,
@@ -286,7 +286,7 @@ func (client grpcClient) DeletePolicy(ctx context.Context, in *magistrala.Delete
 	defer close()
 
 	res, err := client.deletePolicy(ctx, policyReq{
-		Namespace:   in.GetNamespace(),
+		Domain:      in.GetDomain(),
 		SubjectType: in.GetSubjectType(),
 		Subject:     in.GetSubject(),
 		Relation:    in.GetRelation(),
@@ -310,7 +310,7 @@ func decodeDeletePolicyResponse(_ context.Context, grpcRes interface{}) (interfa
 func encodeDeletePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(policyReq)
 	return &magistrala.DeletePolicyReq{
-		Namespace:   req.Namespace,
+		Domain:      req.Domain,
 		SubjectType: req.SubjectType,
 		Subject:     req.Subject,
 		Relation:    req.Relation,
@@ -325,7 +325,7 @@ func (client grpcClient) ListObjects(ctx context.Context, in *magistrala.ListObj
 	defer close()
 
 	res, err := client.listObjects(ctx, listObjectsReq{
-		Namespace:   in.GetNamespace(),
+		Domain:      in.GetDomain(),
 		SubjectType: in.GetSubjectType(),
 		Subject:     in.GetSubject(),
 		Relation:    in.GetRelation(),
@@ -349,7 +349,7 @@ func decodeListObjectsResponse(_ context.Context, grpcRes interface{}) (interfac
 func encodeListObjectsRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(listObjectsReq)
 	return &magistrala.ListObjectsReq{
-		Namespace:   req.Namespace,
+		Domain:      req.Domain,
 		SubjectType: req.SubjectType,
 		Subject:     req.Subject,
 		Relation:    req.Relation,
@@ -364,7 +364,7 @@ func (client grpcClient) ListAllObjects(ctx context.Context, in *magistrala.List
 	defer close()
 
 	res, err := client.listAllObjects(ctx, listObjectsReq{
-		Namespace:   in.GetNamespace(),
+		Domain:      in.GetDomain(),
 		SubjectType: in.GetSubjectType(),
 		Subject:     in.GetSubject(),
 		Relation:    in.GetRelation(),
@@ -385,7 +385,7 @@ func (client grpcClient) CountObjects(ctx context.Context, in *magistrala.CountO
 	defer close()
 
 	res, err := client.countObjects(ctx, listObjectsReq{
-		Namespace:   in.GetNamespace(),
+		Domain:      in.GetDomain(),
 		SubjectType: in.GetSubjectType(),
 		Subject:     in.GetSubject(),
 		Relation:    in.GetRelation(),
@@ -409,7 +409,7 @@ func decodeCountObjectsResponse(_ context.Context, grpcRes interface{}) (interfa
 func encodeCountObjectsRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(countObjectsReq)
 	return &magistrala.CountObjectsReq{
-		Namespace:   req.Namespace,
+		Domain:      req.Domain,
 		SubjectType: req.SubjectType,
 		Subject:     req.Subject,
 		Relation:    req.Relation,
@@ -424,7 +424,7 @@ func (client grpcClient) ListSubjects(ctx context.Context, in *magistrala.ListSu
 	defer close()
 
 	res, err := client.listSubjects(ctx, listSubjectsReq{
-		Namespace:     in.GetNamespace(),
+		Domain:        in.GetDomain(),
 		SubjectType:   in.GetSubjectType(),
 		Subject:       in.GetSubject(),
 		Relation:      in.GetRelation(),
@@ -449,7 +449,7 @@ func decodeListSubjectsResponse(_ context.Context, grpcRes interface{}) (interfa
 func encodeListSubjectsRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(listSubjectsReq)
 	return &magistrala.ListSubjectsReq{
-		Namespace:   req.Namespace,
+		Domain:      req.Domain,
 		SubjectType: req.SubjectType,
 		Subject:     req.Subject,
 		Relation:    req.Relation,
@@ -464,7 +464,7 @@ func (client grpcClient) ListAllSubjects(ctx context.Context, in *magistrala.Lis
 	defer close()
 
 	res, err := client.listAllSubjects(ctx, listSubjectsReq{
-		Namespace:   in.GetNamespace(),
+		Domain:      in.GetDomain(),
 		SubjectType: in.GetSubjectType(),
 		Subject:     in.GetSubject(),
 		Relation:    in.GetRelation(),
@@ -485,7 +485,7 @@ func (client grpcClient) CountSubjects(ctx context.Context, in *magistrala.Count
 	defer close()
 
 	res, err := client.countSubjects(ctx, countSubjectsReq{
-		Namespace:   in.GetNamespace(),
+		Domain:      in.GetDomain(),
 		SubjectType: in.GetSubjectType(),
 		Subject:     in.GetSubject(),
 		Relation:    in.GetRelation(),
@@ -509,7 +509,7 @@ func decodeCountSubjectsResponse(_ context.Context, grpcRes interface{}) (interf
 func encodeCountSubjectsRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(countSubjectsReq)
 	return &magistrala.CountSubjectsReq{
-		Namespace:   req.Namespace,
+		Domain:      req.Domain,
 		SubjectType: req.SubjectType,
 		Subject:     req.Subject,
 		Relation:    req.Relation,

@@ -139,13 +139,14 @@ func (req updateClientTagsReq) validate() error {
 	return nil
 }
 
-type updateClientOwnerReq struct {
+type updateClientRoleReq struct {
 	id    string
 	token string
-	Owner string `json:"owner,omitempty"`
+	role  mgclients.Role
+	Role  string `json:"role,omitempty"`
 }
 
-func (req updateClientOwnerReq) validate() error {
+func (req updateClientRoleReq) validate() error {
 	if req.token == "" {
 		return apiutil.ErrBearerToken
 	}
@@ -206,6 +207,7 @@ func (req changeClientStatusReq) validate() error {
 type loginClientReq struct {
 	Identity string `json:"identity,omitempty"`
 	Secret   string `json:"secret,omitempty"`
+	DomainID string `json:"domain_id,omitempty"`
 }
 
 func (req loginClientReq) validate() error {
@@ -221,6 +223,7 @@ func (req loginClientReq) validate() error {
 
 type tokenReq struct {
 	RefreshToken string `json:"refresh_token,omitempty"`
+	DomainID     string `json:"domain_id,omitempty"`
 }
 
 func (req tokenReq) validate() error {

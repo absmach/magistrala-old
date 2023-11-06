@@ -34,7 +34,7 @@ func NewService(g groups.Repository, idp magistrala.IDProvider, auth magistrala.
 }
 
 func (svc service) CreateGroup(ctx context.Context, token string, g groups.Group) (groups.Group, error) {
-	ownerID, err := svc.identify(ctx, token)
+	res, err := svc.identify(ctx, token)
 	if err != nil {
 		return groups.Group{}, err
 	}
@@ -44,9 +44,6 @@ func (svc service) CreateGroup(ctx context.Context, token string, g groups.Group
 	}
 	if g.Status != mgclients.EnabledStatus && g.Status != mgclients.DisabledStatus {
 		return groups.Group{}, apiutil.ErrInvalidStatus
-	}
-	if g.Owner == "" {
-		g.Owner = ownerID
 	}
 
 	g.ID = groupID
@@ -66,8 +63,8 @@ func (svc service) CreateGroup(ctx context.Context, token string, g groups.Group
 
 	policy := magistrala.AddPolicyReq{
 		SubjectType: auth.UserType,
-		Subject:     ownerID,
-		Relation:    auth.OwnerRelation,
+		Subject:     res.GetId(),
+		Relation:    auth.AdministratorRelation,
 		ObjectType:  auth.GroupType,
 		Object:      g.ID,
 	}
@@ -75,6 +72,16 @@ func (svc service) CreateGroup(ctx context.Context, token string, g groups.Group
 		return groups.Group{}, err
 	}
 
+	policy = magistrala.AddPolicyReq{
+		SubjectType: auth.UserType,
+		Subject:     res.GetId(),
+		Relation:    auth.AdministratorRelation,
+		ObjectType:  auth.GroupType,
+		Object:      g.ID,
+	}
+	if _, err := svc.auth.AddPolicy(ctx, &policy); err != nil {
+		return groups.Group{}, err
+	}
 	if g.Parent != "" {
 		policy = magistrala.AddPolicyReq{
 			SubjectType: auth.GroupType,
@@ -102,13 +109,13 @@ func (svc service) ViewGroup(ctx context.Context, token string, id string) (grou
 
 func (svc service) ListGroups(ctx context.Context, token string, memberKind, memberID string, gm groups.Page) (groups.Page, error) {
 	var ids []string
-	userID, err := svc.identify(ctx, token)
+	res, err := svc.identify(ctx, token)
 	if err != nil {
 		return groups.Page{}, err
 	}
 	switch memberKind {
 	case auth.ThingsKind:
-		if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, userID, auth.ViewPermission, auth.ThingType, memberID); err != nil {
+		if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, res.GetId(), auth.ViewPermission, auth.ThingType, memberID); err != nil {
 			return groups.Page{}, err
 		}
 		cids, err := svc.auth.ListAllSubjects(ctx, &magistrala.ListSubjectsReq{
@@ -120,12 +127,12 @@ func (svc service) ListGroups(ctx context.Context, token string, memberKind, mem
 		if err != nil {
 			return groups.Page{}, err
 		}
-		ids, err = svc.filterAllowedGroupIDsOfUserID(ctx, userID, gm.Permission, cids.Policies)
+		ids, err = svc.filterAllowedGroupIDsOfUserID(ctx, res.GetId(), gm.Permission, cids.Policies)
 		if err != nil {
 			return groups.Page{}, err
 		}
 	case auth.GroupsKind:
-		if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, userID, gm.Permission, auth.GroupType, memberID); err != nil {
+		if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, res.GetId(), gm.Permission, auth.GroupType, memberID); err != nil {
 			return groups.Page{}, err
 		}
 
@@ -138,12 +145,12 @@ func (svc service) ListGroups(ctx context.Context, token string, memberKind, mem
 		if err != nil {
 			return groups.Page{}, err
 		}
-		ids, err = svc.filterAllowedGroupIDsOfUserID(ctx, userID, gm.Permission, gids.Policies)
+		ids, err = svc.filterAllowedGroupIDsOfUserID(ctx, res.GetId(), gm.Permission, gids.Policies)
 		if err != nil {
 			return groups.Page{}, err
 		}
 	case auth.ChannelsKind:
-		if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, userID, auth.ViewPermission, auth.GroupType, memberID); err != nil {
+		if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, res.GetId(), auth.ViewPermission, auth.GroupType, memberID); err != nil {
 			return groups.Page{}, err
 		}
 		gids, err := svc.auth.ListAllSubjects(ctx, &magistrala.ListSubjectsReq{
@@ -156,31 +163,31 @@ func (svc service) ListGroups(ctx context.Context, token string, memberKind, mem
 			return groups.Page{}, err
 		}
 
-		ids, err = svc.filterAllowedGroupIDsOfUserID(ctx, userID, gm.Permission, gids.Policies)
+		ids, err = svc.filterAllowedGroupIDsOfUserID(ctx, res.GetId(), gm.Permission, gids.Policies)
 		if err != nil {
 			return groups.Page{}, err
 		}
 	case auth.UsersKind:
-		if memberID != "" && userID != memberID {
+		if memberID != "" && res.GetUserId() != memberID {
 			// ToDo:  Check user is admin of domain
-			if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, userID, auth.OwnerRelation, auth.UserType, memberID); err != nil {
+			if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, res.GetId(), auth.AdminPermission, auth.DomainType, res.GetDomainId()); err != nil {
 				return groups.Page{}, err
 			}
 			gids, err := svc.auth.ListAllObjects(ctx, &magistrala.ListObjectsReq{
 				SubjectType: auth.UserType,
-				Subject:     memberID,
+				Subject:     auth.EncodeDomainUserID(res.GetDomainId(), memberID),
 				Permission:  gm.Permission,
 				ObjectType:  auth.GroupType,
 			})
 			if err != nil {
 				return groups.Page{}, err
 			}
-			ids, err = svc.filterAllowedGroupIDsOfUserID(ctx, userID, gm.Permission, gids.Policies)
+			ids, err = svc.filterAllowedGroupIDsOfUserID(ctx, res.GetId(), gm.Permission, gids.Policies)
 			if err != nil {
 				return groups.Page{}, err
 			}
 		} else {
-			ids, err = svc.listAllGroupsOfUserID(ctx, userID, gm.Permission)
+			ids, err = svc.listAllGroupsOfUserID(ctx, res.GetId(), gm.Permission)
 			if err != nil {
 				return groups.Page{}, err
 			}
@@ -445,12 +452,12 @@ func (svc service) changeGroupStatus(ctx context.Context, token string, group gr
 	return svc.groups.ChangeStatus(ctx, group)
 }
 
-func (svc service) identify(ctx context.Context, token string) (string, error) {
-	user, err := svc.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
+func (svc service) identify(ctx context.Context, token string) (*magistrala.IdentityRes, error) {
+	res, err := svc.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
-	return user.GetId(), nil
+	return res, nil
 }
 
 func (svc service) authorize(ctx context.Context, subjectType, subject, permission, objectType, object string) (string, error) {

@@ -228,7 +228,7 @@ func encodeIdentifyResponse(_ context.Context, grpcRes interface{}) (interface{}
 func decodeAuthorizeRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*magistrala.AuthorizeReq)
 	return authReq{
-		Namespace:   req.GetNamespace(),
+		Domain:      req.GetDomain(),
 		SubjectType: req.GetSubjectType(),
 		SubjectKind: req.GetSubjectKind(),
 		Subject:     req.GetSubject(),
@@ -247,7 +247,7 @@ func encodeAuthorizeResponse(_ context.Context, grpcRes interface{}) (interface{
 func decodeAddPolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*magistrala.AddPolicyReq)
 	return policyReq{
-		Namespace:   req.GetNamespace(),
+		Domain:      req.GetDomain(),
 		SubjectType: req.GetSubjectType(),
 		Subject:     req.GetSubject(),
 		Relation:    req.GetRelation(),
@@ -265,7 +265,7 @@ func encodeAddPolicyResponse(_ context.Context, grpcRes interface{}) (interface{
 func decodeDeletePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*magistrala.DeletePolicyReq)
 	return policyReq{
-		Namespace:   req.GetNamespace(),
+		Domain:      req.GetDomain(),
 		SubjectType: req.GetSubjectType(),
 		Subject:     req.GetSubject(),
 		Relation:    req.GetRelation(),
@@ -283,7 +283,7 @@ func encodeDeletePolicyResponse(_ context.Context, grpcRes interface{}) (interfa
 func decodeListObjectsRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*magistrala.ListObjectsReq)
 	return listObjectsReq{
-		Namespace:     req.GetNamespace(),
+		Domain:        req.GetDomain(),
 		SubjectType:   req.GetSubjectType(),
 		Subject:       req.GetSubject(),
 		Relation:      req.GetRelation(),
@@ -303,7 +303,7 @@ func encodeListObjectsResponse(_ context.Context, grpcRes interface{}) (interfac
 func decodeCountObjectsRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*magistrala.CountObjectsReq)
 	return countObjectsReq{
-		Namespace:   req.GetNamespace(),
+		Domain:      req.GetDomain(),
 		SubjectType: req.GetSubjectType(),
 		Subject:     req.GetSubject(),
 		Relation:    req.GetRelation(),
@@ -321,7 +321,7 @@ func encodeCountObjectsResponse(_ context.Context, grpcRes interface{}) (interfa
 func decodeListSubjectsRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*magistrala.ListSubjectsReq)
 	return listSubjectsReq{
-		Namespace:   req.GetNamespace(),
+		Domain:      req.GetDomain(),
 		SubjectType: req.GetSubjectType(),
 		Subject:     req.GetSubject(),
 		Relation:    req.GetRelation(),
@@ -339,7 +339,7 @@ func encodeListSubjectsResponse(_ context.Context, grpcRes interface{}) (interfa
 func decodeCountSubjectsRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(*magistrala.CountSubjectsReq)
 	return countSubjectsReq{
-		Namespace:   req.GetNamespace(),
+		Domain:      req.GetDomain(),
 		SubjectType: req.GetSubjectType(),
 		Subject:     req.GetSubject(),
 		Relation:    req.GetRelation(),

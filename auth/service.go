@@ -6,6 +6,7 @@ package auth
 import (
 	"context"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/absmach/magistrala/internal/apiutil"
@@ -17,13 +18,7 @@ import (
 const (
 	recoveryDuration = 5 * time.Minute
 
-	magistralaObject = "magistrala"
-	refreshToken     = "refresh_token"
-)
-
-const (
-	tokenKind = "token"
-	idKind    = "id"
+	refreshToken = "refresh_token"
 )
 
 var (
@@ -47,6 +42,7 @@ var (
 	errRevoke    = errors.New("failed to remove key")
 	errRetrieve  = errors.New("failed to retrieve key data")
 	errIdentify  = errors.New("failed to validate token")
+	errPlatform  = errors.New("invalid platform id")
 )
 
 // Authn specifies an API that must be fullfiled by the domain service
@@ -165,7 +161,10 @@ func (svc service) Identify(ctx context.Context, token string) (Key, error) {
 }
 
 func (svc service) Authorize(ctx context.Context, pr PolicyReq) error {
-	if pr.SubjectKind == tokenKind {
+	if err := svc.PolicyValidation(pr); err != nil {
+		return err
+	}
+	if pr.SubjectKind == TokenKind {
 		key, err := svc.Identify(ctx, pr.Subject)
 		if err != nil {
 			return err
@@ -179,7 +178,17 @@ func (svc service) Authorize(ctx context.Context, pr PolicyReq) error {
 }
 
 func (svc service) AddPolicy(ctx context.Context, pr PolicyReq) error {
+	if err := svc.PolicyValidation(pr); err != nil {
+		return err
+	}
 	return svc.agent.AddPolicy(ctx, pr)
+}
+
+func (svc service) PolicyValidation(pr PolicyReq) error {
+	if pr.ObjectType == PlatformType && pr.Object != MagistralaObject {
+		return errPlatform
+	}
+	return nil
 }
 
 // Yet to do.
@@ -189,7 +198,7 @@ func (svc service) AddPolicies(ctx context.Context, token, object string, subjec
 		return err
 	}
 
-	if err := svc.Authorize(ctx, PolicyReq{Object: magistralaObject, Subject: key.Subject}); err != nil {
+	if err := svc.Authorize(ctx, PolicyReq{Object: MagistralaObject, Subject: key.Subject}); err != nil {
 		return err
 	}
 
@@ -216,7 +225,7 @@ func (svc service) DeletePolicies(ctx context.Context, token, object string, sub
 	}
 
 	// Check if the user identified by token is the admin.
-	if err := svc.Authorize(ctx, PolicyReq{Object: magistralaObject, Subject: key.Subject}); err != nil {
+	if err := svc.Authorize(ctx, PolicyReq{Object: MagistralaObject, Subject: key.Subject}); err != nil {
 		return err
 	}
 
@@ -307,7 +316,7 @@ func (svc service) tmpKey(duration time.Duration, key Key) (Token, error) {
 func (svc service) accessKey(key Key) (Token, error) {
 	key.Type = AccessKey
 	key.ExpiresAt = time.Now().Add(svc.loginDuration)
-	key.Subject = svc.generateDomainUserID(key.Domain, key.User)
+	key.Subject = EncodeDomainUserID(key.Domain, key.User)
 	access, err := svc.tokenizer.Issue(key)
 	if err != nil {
 		return Token{}, errors.Wrap(errIssueTmp, err)
@@ -335,7 +344,7 @@ func (svc service) refreshKey(ctx context.Context, token string, key Key) (Token
 		key.Domain = k.Domain
 	}
 	key.User = k.User
-	key.Subject = svc.generateDomainUserID(key.Domain, key.User)
+	key.Subject = EncodeDomainUserID(key.Domain, key.User)
 	key.Type = AccessKey
 	key.ExpiresAt = time.Now().Add(svc.loginDuration)
 	access, err := svc.tokenizer.Issue(key)
@@ -560,7 +569,7 @@ func (svc service) ListUserDomains(ctx context.Context, token string, userID str
 
 func (svc service) addDomainPolicy(ctx context.Context, userID, domainID, relation string) (err error) {
 	pr := PolicyReq{
-		Subject:     svc.generateDomainUserID(domainID, userID),
+		Subject:     EncodeDomainUserID(domainID, userID),
 		SubjectType: UserType,
 		SubjectKind: UsersKind,
 		Relation:    relation,
@@ -589,7 +598,7 @@ func (svc service) addDomainPolicy(ctx context.Context, userID, domainID, relati
 func (svc service) addDomainPolicyRollback(ctx context.Context, userID, domainID, relation string) error {
 	var err error
 	pr := PolicyReq{
-		Subject:     svc.generateDomainUserID(domainID, userID),
+		Subject:     EncodeDomainUserID(domainID, userID),
 		SubjectType: UserType,
 		SubjectKind: UsersKind,
 		Relation:    relation,
@@ -614,7 +623,7 @@ func (svc service) addDomainPolicyRollback(ctx context.Context, userID, domainID
 
 func (svc service) removeDomainPolicy(ctx context.Context, userID, domainID, relation string) (err error) {
 	pr := PolicyReq{
-		Subject:     svc.generateDomainUserID(domainID, userID),
+		Subject:     EncodeDomainUserID(domainID, userID),
 		SubjectType: UserType,
 		SubjectKind: UsersKind,
 		Relation:    relation,
@@ -642,9 +651,21 @@ func (svc service) removeDomainPolicy(ctx context.Context, userID, domainID, rel
 
 }
 
-func (svc service) generateDomainUserID(domainID string, userID string) string {
+func EncodeDomainUserID(domainID string, userID string) string {
 	if domainID == "" || userID == "" {
 		return ""
 	}
 	return domainID + "_" + userID
+}
+
+func DecodeDomainUserID(domainUserID string) (string, string) {
+	if domainUserID == "" {
+		return domainUserID, domainUserID
+	}
+	duid := strings.Split(domainUserID, "_")
+
+	if len(duid) > 1 {
+		return duid[0], duid[1]
+	}
+	return duid[0], ""
 }

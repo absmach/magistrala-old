@@ -3,7 +3,6 @@ definition user {}
 definition thing {
 
 	relation administrator: user
-
 	relation group: group
 	relation domain: domain
 
@@ -19,7 +18,8 @@ definition thing {
 	permission edit_only = edit - admin
 	permission viewer_only = view - edit
 
-	permission ext_admin = admin - administrator
+	permission ext_admin = admin - administrator // For list of external admin , not having direct relation with group, but have indirect relation from parent group
+
 }
 
 definition group {
@@ -44,22 +44,31 @@ definition group {
 	permission viewer_only = view - edit
 	permission membership_only = membership - view
 
-	permission ext_admin = admin - administrator
-	permission ext_edit = edit - editor
-	permission ext_view = view - viewer
+	permission ext_admin = admin - administrator  // For list of external admin , not having direct relation with group, but have indirect relation from parent group
+	permission ext_edit = edit - editor  // For list of external edit , not having direct relation with group, but have indirect relation from parent group
+	permission ext_view = view - viewer  // For list of external view , not having direct relation with group, but have indirect relation from parent group
 
 }
 
 definition domain {
 
-	relation administrator: user
+	relation administrator: user // combination domain + user id
 	relation editor: user
 	relation viewer: user
 	relation member: user
 
-	permission admin = administrator
+	relation platform: platform
+
+	permission admin = administrator + platform->admin
 	permission edit =  admin + editor
 	permission view = edit + viewer
 	permission membership = view + member
+
+}
+
+definition platform {
+
+  relation administrator: user
+  permission admin = administrator
 
 }
