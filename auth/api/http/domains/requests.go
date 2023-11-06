@@ -23,6 +23,7 @@ type page struct {
 type createDomainReq struct {
 	token    string
 	Name     string                 `json:"name"`
+	Email    string                 `json:"email"`
 	Metadata map[string]interface{} `json:"metadata,omitempty"`
 	Tags     []string               `json:"tags,omitempty"`
 	Alias    string                 `json:"alias,omitempty"`

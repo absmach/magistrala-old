@@ -246,6 +246,14 @@ func (tm *tracingMiddleware) UpdateDomain(ctx context.Context, token string, id 
 	return tm.svc.UpdateDomain(ctx, token, id, d)
 }
 
+func (tm *tracingMiddleware) ChangeDomainStatus(ctx context.Context, token string, id string, d auth.DomainReq) (auth.Domain, error) {
+	ctx, span := tm.tracer.Start(ctx, "change_domain_status", trace.WithAttributes(
+		attribute.String("id", id),
+	))
+	defer span.End()
+	return tm.svc.ChangeDomainStatus(ctx, token, id, d)
+}
+
 func (tm *tracingMiddleware) ListDomains(ctx context.Context, token string, p auth.Page) (auth.DomainsPage, error) {
 	ctx, span := tm.tracer.Start(ctx, "list_domains")
 	defer span.End()

@@ -197,7 +197,7 @@ func newService(ctx context.Context, auth magistrala.AuthServiceClient, db *sqlx
 		logger.Error(fmt.Sprintf("failed to configure e-mailing util: %s", err.Error()))
 	}
 
-	csvc := users.NewService(cRepo, auth, emailer, hsr, idp, c.PassRegex)
+	csvc := users.NewService(cRepo, auth, emailer, hsr, idp, c.PassRegex, true)
 	gsvc := mggroups.NewService(gRepo, idp, auth)
 
 	csvc, err = uevents.NewEventStoreMiddleware(ctx, csvc, c.ESURL)
@@ -260,7 +260,7 @@ func createAdmin(ctx context.Context, c config, crepo clientspg.Repository, hsr 
 	if _, err = crepo.Save(ctx, client); err != nil {
 		return err
 	}
-	if _, err = svc.IssueToken(ctx, c.AdminEmail, c.AdminPassword); err != nil {
+	if _, err = svc.IssueToken(ctx, c.AdminEmail, c.AdminPassword, ""); err != nil {
 		return err
 	}
 

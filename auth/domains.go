@@ -19,17 +19,18 @@ type DomainReq struct {
 	Status   *clients.Status   `json:"status,omitempty"`
 }
 type Domain struct {
-	ID        string           `json:"id"`
-	Name      string           `json:"name"`
-	Email     string           `json:"email"`
-	Metadata  clients.Metadata `json:"metadata,omitempty"`
-	Tags      []string         `json:"tags,omitempty"`
-	Alias     string           `json:"alias,omitempty"`
-	Status    clients.Status   `json:"status"`
-	CreatedBy string           `json:"created_by,omitempty"`
-	CreatedAt time.Time        `json:"created_at"`
-	UpdatedBy string           `json:"updated_by,omitempty"`
-	UpdatedAt time.Time        `json:"updated_at,omitempty"`
+	ID         string           `json:"id"`
+	Name       string           `json:"name"`
+	Email      string           `json:"email"`
+	Metadata   clients.Metadata `json:"metadata,omitempty"`
+	Tags       []string         `json:"tags,omitempty"`
+	Alias      string           `json:"alias,omitempty"`
+	Status     clients.Status   `json:"status"`
+	Permission string           `json:"permission,omitempty"`
+	CreatedBy  string           `json:"created_by,omitempty"`
+	CreatedAt  time.Time        `json:"created_at"`
+	UpdatedBy  string           `json:"updated_by,omitempty"`
+	UpdatedAt  time.Time        `json:"updated_at,omitempty"`
 }
 
 type Page struct {
@@ -38,15 +39,16 @@ type Page struct {
 	Limit      uint64           `json:"limit"`
 	Name       string           `json:"name,omitempty"`
 	Email      string           `json:"email,omitempty"`
-	Order      string           `json:"order,omitempty"`
-	Dir        string           `json:"dir,omitempty"`
+	Order      string           `json:"-"`
+	Dir        string           `json:"-"`
 	Metadata   clients.Metadata `json:"metadata,omitempty"`
 	Tag        string           `json:"tag,omitempty"`
 	Permission string           `json:"permission,omitempty"`
 	Status     clients.Status   `json:"status,omitempty"`
 	ID         string           `json:"id,omitempty"`
-	IDs        []string         `json:"ids,omitempty"`
+	IDs        []string         `json:"-"`
 	Identity   string           `json:"identity,omitempty"`
+	SubjectID  string           `json:"-"`
 }
 
 type DomainsPage struct {
@@ -67,6 +69,7 @@ type Domains interface {
 	CreateDomain(ctx context.Context, token string, d Domain) (Domain, error)
 	RetrieveDomain(ctx context.Context, token string, id string) (Domain, error)
 	UpdateDomain(ctx context.Context, token string, id string, d DomainReq) (Domain, error)
+	ChangeDomainStatus(ctx context.Context, token string, id string, d DomainReq) (Domain, error)
 	ListDomains(ctx context.Context, token string, page Page) (DomainsPage, error)
 	AssignUsers(ctx context.Context, token string, id string, userIds []string, relation string) error
 	UnassignUsers(ctx context.Context, token string, id string, userIds []string, relation string) error
@@ -85,7 +88,7 @@ type DomainsRepository interface {
 	RetrieveAllByIDs(ctx context.Context, pm Page) (DomainsPage, error)
 
 	// Update updates the client name and metadata.
-	Update(ctx context.Context, d DomainReq) (Domain, error)
+	Update(ctx context.Context, id string, userID string, d DomainReq) (Domain, error)
 
 	// Delete
 	Delete(ctx context.Context, id string) error
@@ -95,4 +98,7 @@ type DomainsRepository interface {
 
 	// DeletePolicyCopy
 	DeletePolicyCopy(ctx context.Context, pc PolicyCopy) error
+
+	//ListDomains
+	ListDomains(ctx context.Context, pm Page) (DomainsPage, error)
 }

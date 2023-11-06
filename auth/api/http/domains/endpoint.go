@@ -20,6 +20,7 @@ func createDomainEndpoint(svc auth.Service) endpoint.Endpoint {
 
 		d := auth.Domain{
 			Name:     req.Name,
+			Email:    req.Email,
 			Metadata: req.Metadata,
 			Tags:     req.Tags,
 			Alias:    req.Alias,
@@ -114,7 +115,7 @@ func enableDomainEndpoint(svc auth.Service) endpoint.Endpoint {
 		d := auth.DomainReq{
 			Status: &enable,
 		}
-		if _, err := svc.UpdateDomain(ctx, req.token, req.domainID, d); err != nil {
+		if _, err := svc.ChangeDomainStatus(ctx, req.token, req.domainID, d); err != nil {
 			return nil, err
 		}
 		return enableDomainRes{}, nil
@@ -132,7 +133,7 @@ func disableDomainEndpoint(svc auth.Service) endpoint.Endpoint {
 		d := auth.DomainReq{
 			Status: &disable,
 		}
-		if _, err := svc.UpdateDomain(ctx, req.token, req.domainID, d); err != nil {
+		if _, err := svc.ChangeDomainStatus(ctx, req.token, req.domainID, d); err != nil {
 			return nil, err
 		}
 		return disableDomainRes{}, nil

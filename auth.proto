@@ -45,7 +45,7 @@ message IdentityReq {
 }
 
 message IdentityRes {
-    string id    = 1; // sub in jwt = user id  + domain id //
+    string id    = 1; // ToDo: change name from "id" to "subject" , sub in jwt = user id  + domain id //
     string user_id = 2; // user id
     string domain_id = 3; // domain id
 }
