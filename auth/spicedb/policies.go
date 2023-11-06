@@ -347,3 +347,38 @@ func (pa *policyAgent) publishToStream(resp *v1.WatchResponse) {
 		`, operation, objectType, objectID, relation, subjectType, subjectRelation, subjectID))
 	}
 }
+
+func (pa *policyAgent) addPolicyPreCondition(pr auth.PolicyReq) []*v1.Precondition {
+
+	switch {
+	case pr.SubjectType == auth.UserType && pr.ObjectType == auth.GroupType:
+		return []*v1.Precondition{
+			{
+				Operation: v1.Precondition_OPERATION_MUST_MATCH,
+				Filter: &v1.RelationshipFilter{
+					ResourceType:       auth.DomainType,
+					OptionalResourceId: pr.Domain,
+					OptionalRelation:   auth.MemberRelation,
+					OptionalSubjectFilter: &v1.SubjectFilter{
+						SubjectType:       auth.UserType,
+						OptionalSubjectId: pr.Subject,
+					},
+				},
+			},
+			{
+				Operation: v1.Precondition_OPERATION_MUST_MATCH,
+				Filter: &v1.RelationshipFilter{
+					ResourceType:       auth.GroupType,
+					OptionalResourceId: pr.Object,
+					OptionalRelation:   auth.DomainRelation,
+					OptionalSubjectFilter: &v1.SubjectFilter{
+						SubjectType:       auth.DomainType,
+						OptionalSubjectId: pr.Domain,
+					},
+				},
+			},
+		}
+
+	}
+	return nil
+}

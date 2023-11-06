@@ -8,7 +8,6 @@ import (
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/pkg/errors"
-	"github.com/mainflux/mainflux"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc"
 )

@@ -50,7 +50,7 @@ func TestRegisterClient(t *testing.T) {
 	cRepo := new(mocks.Repository)
 	auth := new(authmocks.Service)
 	e := mocks.NewEmailer()
-	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex)
+	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
 
 	cases := []struct {
 		desc   string

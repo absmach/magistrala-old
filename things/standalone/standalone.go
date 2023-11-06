@@ -26,7 +26,7 @@ func NewAuthService(id, token string) magistrala.AuthServiceClient {
 	}
 }
 
-func (repo singleUserRepo) Login(ctx context.Context, in *magistrala.LoginReq, opts ...grpc.CallOption) (*magistrala.Token, error) {
+func (repo singleUserRepo) Login(ctx context.Context, in *magistrala.IssueReq, opts ...grpc.CallOption) (*magistrala.Token, error) {
 	return nil, nil
 }
 
