@@ -61,6 +61,7 @@ definition domain {
 
 	permission admin = administrator + platform->admin
 	permission edit =  admin + editor
+	permission share = edit
 	permission view = edit + viewer
 	permission membership = view + member
 

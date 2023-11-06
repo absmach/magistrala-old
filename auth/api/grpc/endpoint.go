@@ -124,7 +124,7 @@ func addPoliciesEndpoint(svc auth.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		reqs := request.(policiesReq)
 		if err := reqs.validate(); err != nil {
-			return addPolicyRes{}, err
+			return addPoliciesRes{}, err
 		}
 
 		prs := []auth.PolicyReq{}
@@ -175,7 +175,7 @@ func deletePoliciesEndpoint(svc auth.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		reqs := request.(policiesReq)
 		if err := reqs.validate(); err != nil {
-			return deletePolicyRes{}, err
+			return deletePoliciesRes{}, err
 		}
 
 		prs := []auth.PolicyReq{}

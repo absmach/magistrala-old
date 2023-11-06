@@ -79,15 +79,16 @@ func (svc service) CreateGroup(ctx context.Context, token string, g groups.Group
 		ObjectType:  auth.GroupType,
 		Object:      g.ID,
 	})
-	policies.AddPoliciesReq = append(policies.AddPoliciesReq, &magistrala.AddPolicyReq{
-		Domain:      res.GetDomainId(),
-		SubjectType: auth.GroupType,
-		Subject:     g.Parent,
-		Relation:    auth.ParentGroupRelation,
-		ObjectType:  auth.GroupType,
-		Object:      g.ID,
-	})
-
+	if g.Parent != "" {
+		policies.AddPoliciesReq = append(policies.AddPoliciesReq, &magistrala.AddPolicyReq{
+			Domain:      res.GetDomainId(),
+			SubjectType: auth.GroupType,
+			Subject:     g.Parent,
+			Relation:    auth.ParentGroupRelation,
+			ObjectType:  auth.GroupType,
+			Object:      g.ID,
+		})
+	}
 	if _, err := svc.auth.AddPolicies(ctx, &policies); err != nil {
 		return groups.Group{}, err
 	}
@@ -306,7 +307,7 @@ func (svc service) Assign(ctx context.Context, token, groupID, relation, memberK
 	if err != nil {
 		return err
 	}
-	if _, err := svc.authorizeKind(ctx, auth.UserType, res.GetId(), auth.UsersKind, auth.EditPermission, auth.GroupType, groupID); err != nil {
+	if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, res.GetId(), auth.EditPermission, auth.GroupType, groupID); err != nil {
 		return err
 	}
 
@@ -361,7 +362,7 @@ func (svc service) Unassign(ctx context.Context, token, groupID, relation, membe
 	if err != nil {
 		return err
 	}
-	if _, err := svc.authorizeKind(ctx, auth.UserType, res.GetId(), auth.UsersKind, auth.EditPermission, auth.GroupType, groupID); err != nil {
+	if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, res.GetId(), auth.EditPermission, auth.GroupType, groupID); err != nil {
 		return err
 	}
 
