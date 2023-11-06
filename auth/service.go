@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
+	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
-	"github.com/mainflux/mainflux"
 )
 
 const (
@@ -82,7 +82,7 @@ var _ Service = (*service)(nil)
 type service struct {
 	keys            KeyRepository
 	domains         DomainsRepository
-	idProvider      mainflux.IDProvider
+	idProvider      magistrala.IDProvider
 	agent           PolicyAgent
 	tokenizer       Tokenizer
 	loginDuration   time.Duration
@@ -90,7 +90,7 @@ type service struct {
 }
 
 // New instantiates the auth service implementation.
-func New(keys KeyRepository, domains DomainsRepository, idp mainflux.IDProvider, tokenizer Tokenizer, policyAgent PolicyAgent, loginDuration, refreshDuration time.Duration) Service {
+func New(keys KeyRepository, domains DomainsRepository, idp magistrala.IDProvider, tokenizer Tokenizer, policyAgent PolicyAgent, loginDuration, refreshDuration time.Duration) Service {
 	return &service{
 		tokenizer:       tokenizer,
 		domains:         domains,
@@ -168,6 +168,9 @@ func (svc service) Authorize(ctx context.Context, pr PolicyReq) error {
 		key, err := svc.Identify(ctx, pr.Subject)
 		if err != nil {
 			return err
+		}
+		if key.Subject == "" {
+			return errors.ErrAuthorization
 		}
 		pr.Subject = key.Subject
 	}
@@ -468,18 +471,39 @@ func (svc service) RetrieveDomain(ctx context.Context, token string, id string) 
 }
 
 func (svc service) UpdateDomain(ctx context.Context, token string, id string, d DomainReq) (Domain, error) {
+	key, err := svc.Identify(ctx, token)
+	if err != nil {
+		return Domain{}, err
+	}
 	if err := svc.Authorize(ctx, PolicyReq{
-		Subject:     token,
+		Subject:     key.Subject,
 		SubjectType: UserType,
-		SubjectKind: TokenKind,
+		SubjectKind: UsersKind,
 		Object:      id,
 		ObjectType:  DomainType,
 		Permission:  EditPermission,
 	}); err != nil {
 		return Domain{}, err
 	}
+	return svc.domains.Update(ctx, id, key.User, d)
+}
 
-	return svc.domains.Update(ctx, d)
+func (svc service) ChangeDomainStatus(ctx context.Context, token string, id string, d DomainReq) (Domain, error) {
+	key, err := svc.Identify(ctx, token)
+	if err != nil {
+		return Domain{}, err
+	}
+	if err := svc.Authorize(ctx, PolicyReq{
+		Subject:     key.Subject,
+		SubjectType: UserType,
+		SubjectKind: UsersKind,
+		Object:      id,
+		ObjectType:  DomainType,
+		Permission:  AdminPermission,
+	}); err != nil {
+		return Domain{}, err
+	}
+	return svc.domains.Update(ctx, id, key.User, d)
 }
 
 func (svc service) ListDomains(ctx context.Context, token string, p Page) (DomainsPage, error) {
@@ -487,18 +511,8 @@ func (svc service) ListDomains(ctx context.Context, token string, p Page) (Domai
 	if err != nil {
 		return DomainsPage{}, err
 	}
-	pp, err := svc.ListAllObjects(ctx, PolicyReq{
-		Subject:     key.Subject,
-		SubjectType: UserType,
-		SubjectKind: UsersKind,
-		ObjectType:  DomainType,
-		Permission:  p.Permission,
-	})
-	if err != nil {
-		return DomainsPage{}, err
-	}
-	p.IDs = pp.Policies
-	return svc.domains.RetrieveAllByIDs(ctx, p)
+	p.SubjectID = key.User
+	return svc.domains.ListDomains(ctx, p)
 }
 
 func (svc service) AssignUsers(ctx context.Context, token string, id string, userIds []string, relation string) error {

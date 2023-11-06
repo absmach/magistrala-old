@@ -49,6 +49,8 @@ func (repo *tokenizer) Issue(key auth.Key) (string, error) {
 		Subject(key.Subject).
 		Claim(tokenType, key.Type).
 		Expiration(key.ExpiresAt)
+	builder.Claim("user", key.User)
+	builder.Claim("domain", key.Domain)
 	if key.ID != "" {
 		builder.JwtID(key.ID)
 	}
