@@ -122,27 +122,28 @@ func (svc service) ViewClient(ctx context.Context, token string, id string) (mgc
 func (svc service) ListClients(ctx context.Context, token string, reqUserID string, pm mgclients.Page) (mgclients.ClientsPage, error) {
 	var ids []string
 
-	userID, err := svc.identify(ctx, token)
+	res, err := svc.identify(ctx, token)
 	if err != nil {
 		return mgclients.ClientsPage{}, err
 	}
 
 	switch {
-	case (reqUserID != "" && reqUserID != userID):
+	case (reqUserID != "" && reqUserID != res.GetUserId()):
 		// ToDo: Check user is admin of Domain or Get all groups in which user is admin and filter the requested user id groups in the same domain
-		if _, err := svc.authorize(ctx, auth.UserType, auth.UsersKind, userID, auth.OwnerRelation, auth.UserType, reqUserID); err != nil {
+		// Check user is admin of domain, if yes then show listing on domain context
+		if _, err := svc.authorize(ctx, auth.UserType, auth.UsersKind, res.GetId(), auth.AdminPermission, auth.DomainType, res.GetDomainId()); err != nil {
 			return mgclients.ClientsPage{}, err
 		}
-		rtids, err := svc.listClientIDs(ctx, reqUserID, pm.Permission)
+		rtids, err := svc.listClientIDs(ctx, auth.EncodeDomainUserID(res.GetDomainId(), reqUserID), pm.Permission)
 		if err != nil {
 			return mgclients.ClientsPage{}, err
 		}
-		ids, err = svc.filterAllowedThingIDs(ctx, userID, pm.Permission, rtids)
+		ids, err = svc.filterAllowedThingIDs(ctx, res.GetId(), pm.Permission, rtids)
 		if err != nil {
 			return mgclients.ClientsPage{}, err
 		}
 	default:
-		ids, err = svc.listClientIDs(ctx, userID, pm.Permission)
+		ids, err = svc.listClientIDs(ctx, res.GetId(), pm.Permission)
 		if err != nil {
 			return mgclients.ClientsPage{}, err
 		}
@@ -404,13 +405,13 @@ func (svc service) Identify(ctx context.Context, key string) (string, error) {
 	return client.ID, nil
 }
 
-func (svc service) identify(ctx context.Context, token string) (string, error) {
-	user, err := svc.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
+func (svc service) identify(ctx context.Context, token string) (*magistrala.IdentityRes, error) {
+	res, err := svc.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return user.GetId(), nil
+	return res, nil
 }
 
 func (svc *service) authorize(ctx context.Context, subjType, subjKind, subj, perm, objType, obj string) (string, error) {

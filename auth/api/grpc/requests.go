@@ -54,7 +54,7 @@ func (req refreshReq) validate() error {
 // 2. object - an entity over which action will be executed
 // 3. action - type of action that will be executed (read/write).
 type authReq struct {
-	Namespace   string
+	Domain      string
 	SubjectType string
 	SubjectKind string
 	Subject     string
@@ -85,7 +85,7 @@ func (req authReq) validate() error {
 }
 
 type policyReq struct {
-	Namespace   string
+	Domain      string
 	SubjectType string
 	Subject     string
 	Relation    string
@@ -111,7 +111,7 @@ func (req policyReq) validate() error {
 }
 
 type listObjectsReq struct {
-	Namespace     string
+	Domain        string
 	SubjectType   string
 	Subject       string
 	Relation      string
@@ -123,7 +123,7 @@ type listObjectsReq struct {
 }
 
 type countObjectsReq struct {
-	Namespace     string
+	Domain        string
 	SubjectType   string
 	Subject       string
 	Relation      string
@@ -134,7 +134,7 @@ type countObjectsReq struct {
 }
 
 type listSubjectsReq struct {
-	Namespace     string
+	Domain        string
 	SubjectType   string
 	Subject       string
 	Relation      string
@@ -146,7 +146,7 @@ type listSubjectsReq struct {
 }
 
 type countSubjectsReq struct {
-	Namespace     string
+	Domain        string
 	SubjectType   string
 	Subject       string
 	Relation      string

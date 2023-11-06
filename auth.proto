@@ -45,13 +45,14 @@ message IdentityReq {
 }
 
 message IdentityRes {
-    string id1    = 1;
-    string user_id = 2;
-    string domain_id = 3;
+    string id    = 1; // sub in jwt = user id  + domain id //
+    string user_id = 2; // user id
+    string domain_id = 3; // domain id
 }
 
 message IssueReq {
-  string id = 1;
+  string user_id = 1;
+  optional string domain_id = 2;
   uint32 type = 3;
 }
 
@@ -61,7 +62,7 @@ message RefreshReq {
 }
 
 message AuthorizeReq {
-  string namespace = 1;        // Namespace = Domain
+  string domain = 1;           // Domain
   string subject_type = 2;     // Thing or User
   string subject_kind = 3;     // ID or Token
   string subject_relation = 4; // Subject relation
@@ -78,7 +79,7 @@ message AuthorizeRes {
 }
 
 message AddPolicyReq {
-  string namespace = 1;
+  string domain = 1;
   string subject_type = 2;
   string subject_relation = 3;
   string subject = 4;
@@ -91,7 +92,7 @@ message AddPolicyReq {
 message AddPolicyRes { bool authorized = 1; }
 
 message DeletePolicyReq {
-  string namespace = 1;
+  string domain = 1;
   string subject_type = 2;
   string subject_relation = 3;
   string subject = 4;
@@ -104,7 +105,7 @@ message DeletePolicyReq {
 message DeletePolicyRes { bool deleted = 1; }
 
 message ListObjectsReq {
-  string namespace = 1;
+  string domain = 1;
   string subject_type = 2;
   string subject_relation = 3;
   string subject = 4;
@@ -122,7 +123,7 @@ message ListObjectsRes {
 }
 
 message CountObjectsReq {
-  string namespace = 1;
+  string domain = 1;
   string subject_type = 2;
   string subject_relation = 3;
   string subject = 4;
@@ -136,7 +137,7 @@ message CountObjectsReq {
 message CountObjectsRes { int64 count = 1; }
 
 message ListSubjectsReq {
-  string namespace = 1;
+  string domain = 1;
   string subject_type = 2;
   string subject_relation = 3;
   string subject = 4;
@@ -154,7 +155,7 @@ message ListSubjectsRes {
 }
 
 message CountSubjectsReq {
-  string namespace = 1;
+  string domain = 1;
   string subject_type = 2;
   string subject_relation = 3;
   string subject = 4;

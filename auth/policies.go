@@ -15,18 +15,21 @@ const (
 	ThingsKind   = "things"
 	UsersKind    = "users"
 	DomainsKind  = "domains"
+	PlatformKind = "platform"
 
-	GroupType   = "group"
-	ChannelType = "channel"
-	ThingType   = "thing"
-	UserType    = "user"
-	DomainType  = "Domain"
+	GroupType    = "group"
+	ChannelType  = "channel"
+	ThingType    = "thing"
+	UserType     = "user"
+	DomainType   = "domain"
+	PlatformType = "platform"
 
 	// OwnerRelation       = "owner"
 	AdministratorRelation = "administrator"
 	EditorRelation        = "editor"
 	ViewerRelation        = "viewer"
 	MemberRelation        = "member"
+	DomainRelation        = "domain"
 	ParentGroupRelation   = "parent_group"
 	RoleGroupRelation     = "role_group"
 	GroupRelation         = "group"
@@ -39,20 +42,22 @@ const (
 	SharePermission      = "share"
 	PublishPermission    = "publish"
 	SubscribePermission  = "subscribe"
+
+	MagistralaObject = "magistrala"
 )
 
 // PolicyReq represents an argument struct for making a policy related
 // function calls.
 type PolicyReq struct {
-	Namespace       string `json:",omitempty"`
+	Domain          string `json:"domain,omitempty"`
 	Subject         string `json:"subject"`
 	SubjectType     string `json:"subject_type"`
 	SubjectKind     string `json:"subject_kind"`
-	SubjectRelation string `json:",omitempty"`
+	SubjectRelation string `json:"subject_relation,omitempty"`
 	Object          string `json:"object"`
 	ObjectType      string `json:"object_type"`
-	Relation        string `json:"relation"`
-	Permission      string `json:",omitempty"`
+	Relation        string `json:"relation,omitempty"`
+	Permission      string `json:"permission,omitempty"`
 }
 
 func (pr PolicyReq) String() string {
