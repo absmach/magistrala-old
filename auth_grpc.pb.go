@@ -141,9 +141,9 @@ type AuthServiceClient interface {
 	Identify(ctx context.Context, in *IdentityReq, opts ...grpc.CallOption) (*IdentityRes, error)
 	Authorize(ctx context.Context, in *AuthorizeReq, opts ...grpc.CallOption) (*AuthorizeRes, error)
 	AddPolicy(ctx context.Context, in *AddPolicyReq, opts ...grpc.CallOption) (*AddPolicyRes, error)
-	AddPolicies(ctx context.Context, in *AddPoliciesReq, opts ...grpc.CallOption) (*AddPolicyRes, error)
+	AddPolicies(ctx context.Context, in *AddPoliciesReq, opts ...grpc.CallOption) (*AddPoliciesRes, error)
 	DeletePolicy(ctx context.Context, in *DeletePolicyReq, opts ...grpc.CallOption) (*DeletePolicyRes, error)
-	DeletePolicies(ctx context.Context, in *DeletePoliciesReq, opts ...grpc.CallOption) (*DeletePolicyRes, error)
+	DeletePolicies(ctx context.Context, in *DeletePoliciesReq, opts ...grpc.CallOption) (*DeletePoliciesRes, error)
 	ListObjects(ctx context.Context, in *ListObjectsReq, opts ...grpc.CallOption) (*ListObjectsRes, error)
 	ListAllObjects(ctx context.Context, in *ListObjectsReq, opts ...grpc.CallOption) (*ListObjectsRes, error)
 	CountObjects(ctx context.Context, in *CountObjectsReq, opts ...grpc.CallOption) (*CountObjectsRes, error)
@@ -205,8 +205,8 @@ func (c *authServiceClient) AddPolicy(ctx context.Context, in *AddPolicyReq, opt
 	return out, nil
 }
 
-func (c *authServiceClient) AddPolicies(ctx context.Context, in *AddPoliciesReq, opts ...grpc.CallOption) (*AddPolicyRes, error) {
-	out := new(AddPolicyRes)
+func (c *authServiceClient) AddPolicies(ctx context.Context, in *AddPoliciesReq, opts ...grpc.CallOption) (*AddPoliciesRes, error) {
+	out := new(AddPoliciesRes)
 	err := c.cc.Invoke(ctx, AuthService_AddPolicies_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -223,8 +223,8 @@ func (c *authServiceClient) DeletePolicy(ctx context.Context, in *DeletePolicyRe
 	return out, nil
 }
 
-func (c *authServiceClient) DeletePolicies(ctx context.Context, in *DeletePoliciesReq, opts ...grpc.CallOption) (*DeletePolicyRes, error) {
-	out := new(DeletePolicyRes)
+func (c *authServiceClient) DeletePolicies(ctx context.Context, in *DeletePoliciesReq, opts ...grpc.CallOption) (*DeletePoliciesRes, error) {
+	out := new(DeletePoliciesRes)
 	err := c.cc.Invoke(ctx, AuthService_DeletePolicies_FullMethodName, in, out, opts...)
 	if err != nil {
 		return nil, err
@@ -295,9 +295,9 @@ type AuthServiceServer interface {
 	Identify(context.Context, *IdentityReq) (*IdentityRes, error)
 	Authorize(context.Context, *AuthorizeReq) (*AuthorizeRes, error)
 	AddPolicy(context.Context, *AddPolicyReq) (*AddPolicyRes, error)
-	AddPolicies(context.Context, *AddPoliciesReq) (*AddPolicyRes, error)
+	AddPolicies(context.Context, *AddPoliciesReq) (*AddPoliciesRes, error)
 	DeletePolicy(context.Context, *DeletePolicyReq) (*DeletePolicyRes, error)
-	DeletePolicies(context.Context, *DeletePoliciesReq) (*DeletePolicyRes, error)
+	DeletePolicies(context.Context, *DeletePoliciesReq) (*DeletePoliciesRes, error)
 	ListObjects(context.Context, *ListObjectsReq) (*ListObjectsRes, error)
 	ListAllObjects(context.Context, *ListObjectsReq) (*ListObjectsRes, error)
 	CountObjects(context.Context, *CountObjectsReq) (*CountObjectsRes, error)
@@ -326,13 +326,13 @@ func (UnimplementedAuthServiceServer) Authorize(context.Context, *AuthorizeReq) 
 func (UnimplementedAuthServiceServer) AddPolicy(context.Context, *AddPolicyReq) (*AddPolicyRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddPolicy not implemented")
 }
-func (UnimplementedAuthServiceServer) AddPolicies(context.Context, *AddPoliciesReq) (*AddPolicyRes, error) {
+func (UnimplementedAuthServiceServer) AddPolicies(context.Context, *AddPoliciesReq) (*AddPoliciesRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method AddPolicies not implemented")
 }
 func (UnimplementedAuthServiceServer) DeletePolicy(context.Context, *DeletePolicyReq) (*DeletePolicyRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeletePolicy not implemented")
 }
-func (UnimplementedAuthServiceServer) DeletePolicies(context.Context, *DeletePoliciesReq) (*DeletePolicyRes, error) {
+func (UnimplementedAuthServiceServer) DeletePolicies(context.Context, *DeletePoliciesReq) (*DeletePoliciesRes, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method DeletePolicies not implemented")
 }
 func (UnimplementedAuthServiceServer) ListObjects(context.Context, *ListObjectsReq) (*ListObjectsRes, error) {

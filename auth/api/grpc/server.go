@@ -151,12 +151,28 @@ func (s *grpcServer) AddPolicy(ctx context.Context, req *magistrala.AddPolicyReq
 	return res.(*magistrala.AddPolicyRes), nil
 }
 
+func (s *grpcServer) AddPolicies(ctx context.Context, req *magistrala.AddPoliciesReq) (*magistrala.AddPoliciesRes, error) {
+	_, res, err := s.addPolicies.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, encodeError(err)
+	}
+	return res.(*magistrala.AddPoliciesRes), nil
+}
+
 func (s *grpcServer) DeletePolicy(ctx context.Context, req *magistrala.DeletePolicyReq) (*magistrala.DeletePolicyRes, error) {
 	_, res, err := s.deletePolicy.ServeGRPC(ctx, req)
 	if err != nil {
 		return nil, encodeError(err)
 	}
 	return res.(*magistrala.DeletePolicyRes), nil
+}
+
+func (s *grpcServer) DeletePolicies(ctx context.Context, req *magistrala.DeletePoliciesReq) (*magistrala.DeletePoliciesRes, error) {
+	_, res, err := s.deletePolicies.ServeGRPC(ctx, req)
+	if err != nil {
+		return nil, encodeError(err)
+	}
+	return res.(*magistrala.DeletePoliciesRes), nil
 }
 
 func (s *grpcServer) ListObjects(ctx context.Context, req *magistrala.ListObjectsReq) (*magistrala.ListObjectsRes, error) {
@@ -292,8 +308,8 @@ func decodeAddPoliciesRequest(_ context.Context, grpcReq interface{}) (interface
 }
 
 func encodeAddPoliciesResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
-	res := grpcRes.(addPolicyRes)
-	return &magistrala.AddPolicyRes{Authorized: res.authorized}, nil
+	res := grpcRes.(addPoliciesRes)
+	return &magistrala.AddPoliciesRes{Authorized: res.authorized}, nil
 }
 
 func decodeDeletePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -332,8 +348,8 @@ func decodeDeletePoliciesRequest(_ context.Context, grpcReq interface{}) (interf
 }
 
 func encodeDeletePoliciesResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
-	res := grpcRes.(deletePolicyRes)
-	return &magistrala.DeletePolicyRes{Deleted: res.deleted}, nil
+	res := grpcRes.(deletePoliciesRes)
+	return &magistrala.DeletePoliciesRes{Deleted: res.deleted}, nil
 }
 
 func decodeListObjectsRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {

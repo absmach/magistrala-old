@@ -23,7 +23,7 @@ const (
 // Paths are unique per owner.
 type Group struct {
 	ID          string           `json:"id"`
-	Owner       string           `json:"owner_id"`
+	Owner       string           `json:"owner_id,omitempty"`
 	Parent      string           `json:"parent_id,omitempty"`
 	Name        string           `json:"name"`
 	Description string           `json:"description,omitempty"`

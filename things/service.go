@@ -59,7 +59,7 @@ func (svc service) Authorize(ctx context.Context, req *magistrala.AuthorizeReq) 
 }
 
 func (svc service) CreateThings(ctx context.Context, token string, cls ...mgclients.Client) ([]mgclients.Client, error) {
-	user, err := svc.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
+	user, err := svc.identify(ctx, token)
 	if err != nil {
 		return []mgclients.Client{}, errors.Wrap(errors.ErrAuthorization, err)
 	}

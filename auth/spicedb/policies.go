@@ -66,7 +66,7 @@ func (pa *policyAgent) AddPolicies(ctx context.Context, prs []auth.PolicyReq) er
 	if len(updates) > 0 {
 		_, err := pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates})
 		if err != nil {
-			return errors.Wrap(errors.ErrMalformedEntity, fmt.Errorf("failed to add policy: %w", err))
+			return errors.Wrap(errors.ErrMalformedEntity, fmt.Errorf("failed to add policies: %w", err))
 		}
 	}
 	return nil

@@ -22,9 +22,9 @@ service AuthService {
   rpc Identify(IdentityReq) returns (IdentityRes) {}
   rpc Authorize(AuthorizeReq) returns (AuthorizeRes) {}
   rpc AddPolicy(AddPolicyReq) returns (AddPolicyRes) {}
-  rpc AddPolicies(AddPoliciesReq) returns (AddPolicyRes) {}
+  rpc AddPolicies(AddPoliciesReq) returns (AddPoliciesRes) {}
   rpc DeletePolicy(DeletePolicyReq) returns (DeletePolicyRes) {}
-  rpc DeletePolicies(DeletePoliciesReq) returns (DeletePolicyRes) {}
+  rpc DeletePolicies(DeletePoliciesReq) returns (DeletePoliciesRes) {}
   rpc ListObjects(ListObjectsReq) returns (ListObjectsRes) {}
   rpc ListAllObjects(ListObjectsReq) returns (ListObjectsRes) {}
   rpc CountObjects(CountObjectsReq) returns (CountObjectsRes) {}
@@ -97,6 +97,8 @@ message AddPoliciesReq{
 
 message AddPolicyRes { bool authorized = 1; }
 
+message AddPoliciesRes { bool authorized = 1; }
+
 message DeletePolicyReq {
   string domain = 1;
   string subject_type = 2;
@@ -113,6 +115,8 @@ message DeletePoliciesReq {
 }
 
 message DeletePolicyRes { bool deleted = 1; }
+
+message DeletePoliciesRes { bool deleted = 1; }
 
 message ListObjectsReq {
   string domain = 1;
