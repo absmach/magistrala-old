@@ -182,7 +182,7 @@ func (lm *loggingMiddleware) AddPolicy(ctx context.Context, pr auth.PolicyReq) (
 	return lm.svc.AddPolicy(ctx, pr)
 }
 
-func (lm *loggingMiddleware) AddPolicies(ctx context.Context, token, object string, subjectIDs, relations []string) (err error) {
+func (lm *loggingMiddleware) AddPolicies(ctx context.Context, prs []auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method create_policy_bulk took %s to complete", time.Since(begin))
 		if err != nil {
@@ -192,7 +192,7 @@ func (lm *loggingMiddleware) AddPolicies(ctx context.Context, token, object stri
 		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
 
-	return lm.svc.AddPolicies(ctx, token, object, subjectIDs, relations)
+	return lm.svc.AddPolicies(ctx, prs)
 }
 
 func (lm *loggingMiddleware) DeletePolicy(ctx context.Context, pr auth.PolicyReq) (err error) {
@@ -207,7 +207,7 @@ func (lm *loggingMiddleware) DeletePolicy(ctx context.Context, pr auth.PolicyReq
 	return lm.svc.DeletePolicy(ctx, pr)
 }
 
-func (lm *loggingMiddleware) DeletePolicies(ctx context.Context, token, object string, subjectIDs, relations []string) (err error) {
+func (lm *loggingMiddleware) DeletePolicies(ctx context.Context, prs []auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method delete_policies took %s to complete", time.Since(begin))
 		if err != nil {
@@ -216,7 +216,7 @@ func (lm *loggingMiddleware) DeletePolicies(ctx context.Context, token, object s
 		}
 		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
-	return lm.svc.DeletePolicies(ctx, token, object, subjectIDs, relations)
+	return lm.svc.DeletePolicies(ctx, prs)
 }
 
 func (lm *loggingMiddleware) CreateDomain(ctx context.Context, token string, d auth.Domain) (do auth.Domain, err error) {

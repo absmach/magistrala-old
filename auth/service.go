@@ -170,7 +170,10 @@ func (svc service) Authorize(ctx context.Context, pr PolicyReq) error {
 			return err
 		}
 		if key.Subject == "" {
-			return errors.ErrAuthorization
+			if pr.ObjectType == GroupType || pr.ObjectType == ThingType || pr.ObjectType == DomainType {
+				return errors.ErrDomainAuthorization
+			}
+			return errors.ErrAuthentication
 		}
 		pr.Subject = key.Subject
 	}
@@ -194,53 +197,26 @@ func (svc service) PolicyValidation(pr PolicyReq) error {
 	return nil
 }
 
-// Yet to do.
-func (svc service) AddPolicies(ctx context.Context, token, object string, subjectIDs, relations []string) error {
-	key, err := svc.Identify(ctx, token)
-	if err != nil {
-		return err
-	}
-
-	if err := svc.Authorize(ctx, PolicyReq{Object: MagistralaObject, Subject: key.Subject}); err != nil {
-		return err
-	}
-
-	var errs error
-	for _, subjectID := range subjectIDs {
-		for _, relation := range relations {
-			if err := svc.AddPolicy(ctx, PolicyReq{Object: object, Relation: relation, Subject: subjectID}); err != nil {
-				errs = errors.Wrap(fmt.Errorf("cannot add '%s' policy on object '%s' for subject '%s': %w", relation, object, subjectID, err), errs)
-			}
+func (svc service) AddPolicies(ctx context.Context, prs []PolicyReq) error {
+	for _, pr := range prs {
+		if err := svc.PolicyValidation(pr); err != nil {
+			return err
 		}
 	}
-	return errs
+	return svc.agent.AddPolicies(ctx, prs)
 }
 
 func (svc service) DeletePolicy(ctx context.Context, pr PolicyReq) error {
 	return svc.agent.DeletePolicy(ctx, pr)
 }
 
-// Yet to do.
-func (svc service) DeletePolicies(ctx context.Context, token, object string, subjectIDs, relations []string) error {
-	key, err := svc.Identify(ctx, token)
-	if err != nil {
-		return err
-	}
-
-	// Check if the user identified by token is the admin.
-	if err := svc.Authorize(ctx, PolicyReq{Object: MagistralaObject, Subject: key.Subject}); err != nil {
-		return err
-	}
-
-	var errs error
-	for _, subjectID := range subjectIDs {
-		for _, relation := range relations {
-			if err := svc.DeletePolicy(ctx, PolicyReq{Object: object, Relation: relation, Subject: subjectID}); err != nil {
-				errs = errors.Wrap(fmt.Errorf("cannot delete '%s' policy on object '%s' for subject '%s': %w", relation, object, subjectID, err), errs)
-			}
+func (svc service) DeletePolicies(ctx context.Context, prs []PolicyReq) error {
+	for _, pr := range prs {
+		if err := svc.PolicyValidation(pr); err != nil {
+			return err
 		}
 	}
-	return errs
+	return svc.agent.DeletePolicies(ctx, prs)
 }
 
 func (svc service) ListObjects(ctx context.Context, pr PolicyReq, nextPageToken string, limit int32) (PolicyPage, error) {

@@ -33,7 +33,7 @@ func NewService(g groups.Repository, idp magistrala.IDProvider, auth magistrala.
 	}
 }
 
-func (svc service) CreateGroup(ctx context.Context, token string, g groups.Group) (groups.Group, error) {
+func (svc service) CreateGroup(ctx context.Context, token string, g groups.Group) (gr groups.Group, err error) {
 	res, err := svc.identify(ctx, token)
 	if err != nil {
 		return groups.Group{}, err
@@ -60,39 +60,36 @@ func (svc service) CreateGroup(ctx context.Context, token string, g groups.Group
 	if err != nil {
 		return groups.Group{}, err
 	}
+	// ToDo: Add defer function , if return err is not nil, then delete group
 
-	policy := magistrala.AddPolicyReq{
+	policies := magistrala.AddPoliciesReq{}
+	policies.AddPoliciesReq = append(policies.AddPoliciesReq, &magistrala.AddPolicyReq{
+		Domain:      res.GetDomainId(),
 		SubjectType: auth.UserType,
 		Subject:     res.GetId(),
 		Relation:    auth.AdministratorRelation,
 		ObjectType:  auth.GroupType,
 		Object:      g.ID,
-	}
-	if _, err := svc.auth.AddPolicy(ctx, &policy); err != nil {
-		return groups.Group{}, err
-	}
-
-	policy = magistrala.AddPolicyReq{
-		SubjectType: auth.UserType,
-		Subject:     res.GetId(),
-		Relation:    auth.AdministratorRelation,
+	})
+	policies.AddPoliciesReq = append(policies.AddPoliciesReq, &magistrala.AddPolicyReq{
+		Domain:      res.GetDomainId(),
+		SubjectType: auth.DomainType,
+		Subject:     res.GetDomainId(),
+		Relation:    auth.DomainRelation,
 		ObjectType:  auth.GroupType,
 		Object:      g.ID,
-	}
-	if _, err := svc.auth.AddPolicy(ctx, &policy); err != nil {
+	})
+	policies.AddPoliciesReq = append(policies.AddPoliciesReq, &magistrala.AddPolicyReq{
+		Domain:      res.GetDomainId(),
+		SubjectType: auth.GroupType,
+		Subject:     g.Parent,
+		Relation:    auth.ParentGroupRelation,
+		ObjectType:  auth.GroupType,
+		Object:      g.ID,
+	})
+
+	if _, err := svc.auth.AddPolicies(ctx, &policies); err != nil {
 		return groups.Group{}, err
-	}
-	if g.Parent != "" {
-		policy = magistrala.AddPolicyReq{
-			SubjectType: auth.GroupType,
-			Subject:     g.Parent,
-			Relation:    auth.ParentGroupRelation,
-			ObjectType:  auth.GroupType,
-			Object:      g.ID,
-		}
-		if _, err := svc.auth.AddPolicy(ctx, &policy); err != nil {
-			return groups.Group{}, err
-		}
 	}
 
 	return g, nil
@@ -204,6 +201,7 @@ func (svc service) ListGroups(ctx context.Context, token string, memberKind, mem
 	return svc.groups.RetrieveByIDs(ctx, gm, ids...)
 }
 
+// ToDo: remove this function and all its related auxillary function, ListMembers are moved to respective service
 func (svc service) ListMembers(ctx context.Context, token, groupID, permission, memberKind string) (groups.MembersPage, error) {
 	_, err := svc.authorize(ctx, auth.UserType, token, auth.ViewPermission, auth.GroupType, groupID)
 	if err != nil {
@@ -304,16 +302,20 @@ func (svc service) DisableGroup(ctx context.Context, token, id string) (groups.G
 }
 
 func (svc service) Assign(ctx context.Context, token, groupID, relation, memberKind string, memberIDs ...string) error {
-	_, err := svc.authorize(ctx, auth.UserType, token, auth.EditPermission, auth.GroupType, groupID)
+	res, err := svc.identify(ctx, token)
 	if err != nil {
 		return err
 	}
+	if _, err := svc.authorizeKind(ctx, auth.UserType, res.GetId(), auth.UsersKind, auth.EditPermission, auth.GroupType, groupID); err != nil {
+		return err
+	}
 
-	prs := []*magistrala.AddPolicyReq{}
+	policies := magistrala.AddPoliciesReq{}
 	switch memberKind {
 	case auth.ThingsKind:
 		for _, memberID := range memberIDs {
-			prs = append(prs, &magistrala.AddPolicyReq{
+			policies.AddPoliciesReq = append(policies.AddPoliciesReq, &magistrala.AddPolicyReq{
+				Domain:      res.GetDomainId(),
 				SubjectType: auth.GroupType,
 				Subject:     groupID,
 				Relation:    relation,
@@ -323,7 +325,8 @@ func (svc service) Assign(ctx context.Context, token, groupID, relation, memberK
 		}
 	case auth.GroupsKind:
 		for _, memberID := range memberIDs {
-			prs = append(prs, &magistrala.AddPolicyReq{
+			policies.AddPoliciesReq = append(policies.AddPoliciesReq, &magistrala.AddPolicyReq{
+				Domain:      res.GetDomainId(),
 				SubjectType: auth.GroupType,
 				Subject:     memberID,
 				Relation:    relation,
@@ -333,9 +336,10 @@ func (svc service) Assign(ctx context.Context, token, groupID, relation, memberK
 		}
 	case auth.UsersKind:
 		for _, memberID := range memberIDs {
-			prs = append(prs, &magistrala.AddPolicyReq{
+			policies.AddPoliciesReq = append(policies.AddPoliciesReq, &magistrala.AddPolicyReq{
+				Domain:      res.GetDomainId(),
 				SubjectType: auth.UserType,
-				Subject:     memberID,
+				Subject:     auth.EncodeDomainUserID(res.GetDomainId(), memberID),
 				Relation:    relation,
 				ObjectType:  auth.GroupType,
 				Object:      groupID,
@@ -345,26 +349,29 @@ func (svc service) Assign(ctx context.Context, token, groupID, relation, memberK
 		return fmt.Errorf("invalid member kind")
 	}
 
-	for _, pr := range prs {
-		if _, err := svc.auth.AddPolicy(ctx, pr); err != nil {
-			return fmt.Errorf("failed to add policies : %w", err)
-		}
+	if _, err := svc.auth.AddPolicies(ctx, &policies); err != nil {
+		return fmt.Errorf("failed to add policies : %w", err)
 	}
+
 	return nil
 }
 
 func (svc service) Unassign(ctx context.Context, token, groupID, relation, memberKind string, memberIDs ...string) error {
-	_, err := svc.authorize(ctx, auth.UserType, token, auth.EditPermission, auth.GroupType, groupID)
+	res, err := svc.identify(ctx, token)
 	if err != nil {
 		return err
 	}
+	if _, err := svc.authorizeKind(ctx, auth.UserType, res.GetId(), auth.UsersKind, auth.EditPermission, auth.GroupType, groupID); err != nil {
+		return err
+	}
 
-	prs := []*magistrala.DeletePolicyReq{}
+	policies := magistrala.DeletePoliciesReq{}
 
 	switch memberKind {
 	case auth.ThingsKind:
 		for _, memberID := range memberIDs {
-			prs = append(prs, &magistrala.DeletePolicyReq{
+			policies.DeletePoliciesReq = append(policies.DeletePoliciesReq, &magistrala.DeletePolicyReq{
+				Domain:      res.GetDomainId(),
 				SubjectType: auth.GroupType,
 				Subject:     groupID,
 				Relation:    relation,
@@ -374,7 +381,8 @@ func (svc service) Unassign(ctx context.Context, token, groupID, relation, membe
 		}
 	case auth.GroupsKind:
 		for _, memberID := range memberIDs {
-			prs = append(prs, &magistrala.DeletePolicyReq{
+			policies.DeletePoliciesReq = append(policies.DeletePoliciesReq, &magistrala.DeletePolicyReq{
+				Domain:      res.GetDomainId(),
 				SubjectType: auth.GroupType,
 				Subject:     memberID,
 				Relation:    relation,
@@ -384,9 +392,10 @@ func (svc service) Unassign(ctx context.Context, token, groupID, relation, membe
 		}
 	case auth.UsersKind:
 		for _, memberID := range memberIDs {
-			prs = append(prs, &magistrala.DeletePolicyReq{
+			policies.DeletePoliciesReq = append(policies.DeletePoliciesReq, &magistrala.DeletePolicyReq{
+				Domain:      res.GetDomainId(),
 				SubjectType: auth.UserType,
-				Subject:     memberID,
+				Subject:     auth.EncodeDomainUserID(res.GetDomainId(), memberID),
 				Relation:    relation,
 				ObjectType:  auth.GroupType,
 				Object:      groupID,
@@ -396,12 +405,9 @@ func (svc service) Unassign(ctx context.Context, token, groupID, relation, membe
 		return fmt.Errorf("invalid member kind")
 	}
 
-	for _, pr := range prs {
-		if _, err := svc.auth.DeletePolicy(ctx, pr); err != nil {
-			return fmt.Errorf("failed to delete policies : %w", err)
-		}
+	if _, err := svc.auth.DeletePolicies(ctx, &policies); err != nil {
+		return fmt.Errorf("failed to delete policies : %w", err)
 	}
-
 	return nil
 }
 
@@ -456,6 +462,9 @@ func (svc service) identify(ctx context.Context, token string) (*magistrala.Iden
 	res, err := svc.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
 		return nil, err
+	}
+	if res.GetId() == "" || res.GetDomainId() == "" {
+		return nil, errors.ErrDomainAuthorization
 	}
 	return res, nil
 }
