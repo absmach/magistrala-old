@@ -24,7 +24,9 @@ type grpcClient struct {
 	identify        endpoint.Endpoint
 	authorize       endpoint.Endpoint
 	addPolicy       endpoint.Endpoint
+	addPolicies     endpoint.Endpoint
 	deletePolicy    endpoint.Endpoint
+	deletePolicies  endpoint.Endpoint
 	listObjects     endpoint.Endpoint
 	listAllObjects  endpoint.Endpoint
 	countObjects    endpoint.Endpoint
@@ -77,12 +79,28 @@ func NewClient(conn *grpc.ClientConn, timeout time.Duration) magistrala.AuthServ
 			decodeAddPolicyResponse,
 			magistrala.AddPolicyRes{},
 		).Endpoint(),
+		addPolicies: kitgrpc.NewClient(
+			conn,
+			svcName,
+			"AddPolicies",
+			encodeAddPoliciesRequest,
+			decodeAddPoliciesResponse,
+			magistrala.AddPolicyRes{},
+		).Endpoint(),
 		deletePolicy: kitgrpc.NewClient(
 			conn,
 			svcName,
 			"DeletePolicy",
 			encodeDeletePolicyRequest,
 			decodeDeletePolicyResponse,
+			magistrala.DeletePolicyRes{},
+		).Endpoint(),
+		deletePolicies: kitgrpc.NewClient(
+			conn,
+			svcName,
+			"DeletePolicies",
+			encodeDeletePoliciesRequest,
+			decodeDeletePoliciesResponse,
 			magistrala.DeletePolicyRes{},
 		).Endpoint(),
 		listObjects: kitgrpc.NewClient(
@@ -281,6 +299,57 @@ func encodeAddPolicyRequest(_ context.Context, grpcReq interface{}) (interface{}
 	}, nil
 }
 
+func (client grpcClient) AddPolicies(ctx context.Context, in *magistrala.AddPoliciesReq, opts ...grpc.CallOption) (*magistrala.AddPolicyRes, error) {
+	ctx, close := context.WithTimeout(ctx, client.timeout)
+	defer close()
+	r := policiesReq{}
+	if in.GetAddPoliciesReq() != nil {
+		for _, mgApr := range in.GetAddPoliciesReq() {
+			r = append(r, policyReq{
+				Domain:      mgApr.GetDomain(),
+				SubjectType: mgApr.GetSubjectType(),
+				Subject:     mgApr.GetSubject(),
+				Relation:    mgApr.GetRelation(),
+				Permission:  mgApr.GetPermission(),
+				ObjectType:  mgApr.GetObjectType(),
+				Object:      mgApr.GetObject(),
+			})
+		}
+	}
+
+	res, err := client.addPolicies(ctx, r)
+	if err != nil {
+		return &magistrala.AddPolicyRes{}, err
+	}
+
+	apr := res.(addPolicyRes)
+	return &magistrala.AddPolicyRes{Authorized: apr.authorized}, err
+}
+
+func decodeAddPoliciesResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+	res := grpcRes.(*magistrala.AddPolicyRes)
+	return addPoliciesRes{authorized: res.Authorized}, nil
+}
+
+func encodeAddPoliciesRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	reqs := grpcReq.(policiesReq)
+
+	addPolicies := []*magistrala.AddPolicyReq{}
+
+	for _, req := range reqs {
+		addPolicies = append(addPolicies, &magistrala.AddPolicyReq{
+			Domain:      req.Domain,
+			SubjectType: req.SubjectType,
+			Subject:     req.Subject,
+			Relation:    req.Relation,
+			Permission:  req.Permission,
+			ObjectType:  req.ObjectType,
+			Object:      req.Object,
+		})
+	}
+	return &magistrala.AddPoliciesReq{AddPoliciesReq: addPolicies}, nil
+}
+
 func (client grpcClient) DeletePolicy(ctx context.Context, in *magistrala.DeletePolicyReq, opts ...grpc.CallOption) (*magistrala.DeletePolicyRes, error) {
 	ctx, close := context.WithTimeout(ctx, client.timeout)
 	defer close()
@@ -308,6 +377,51 @@ func decodeDeletePolicyResponse(_ context.Context, grpcRes interface{}) (interfa
 }
 
 func encodeDeletePolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
+	req := grpcReq.(policyReq)
+	return &magistrala.DeletePolicyReq{
+		Domain:      req.Domain,
+		SubjectType: req.SubjectType,
+		Subject:     req.Subject,
+		Relation:    req.Relation,
+		Permission:  req.Permission,
+		ObjectType:  req.ObjectType,
+		Object:      req.Object,
+	}, nil
+}
+
+func (client grpcClient) DeletePolicies(ctx context.Context, in *magistrala.DeletePoliciesReq, opts ...grpc.CallOption) (*magistrala.DeletePolicyRes, error) {
+	ctx, close := context.WithTimeout(ctx, client.timeout)
+	defer close()
+	r := policiesReq{}
+
+	if in.GetDeletePoliciesReq() != nil {
+		for _, mgApr := range in.GetDeletePoliciesReq() {
+			r = append(r, policyReq{
+				Domain:      mgApr.GetDomain(),
+				SubjectType: mgApr.GetSubjectType(),
+				Subject:     mgApr.GetSubject(),
+				Relation:    mgApr.GetRelation(),
+				Permission:  mgApr.GetPermission(),
+				ObjectType:  mgApr.GetObjectType(),
+				Object:      mgApr.GetObject(),
+			})
+		}
+	}
+	res, err := client.deletePolicies(ctx, r)
+	if err != nil {
+		return &magistrala.DeletePolicyRes{}, err
+	}
+
+	dpr := res.(deletePolicyRes)
+	return &magistrala.DeletePolicyRes{Deleted: dpr.deleted}, err
+}
+
+func decodeDeletePoliciesResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
+	res := grpcRes.(*magistrala.DeletePolicyRes)
+	return deletePoliciesRes{deleted: res.GetDeleted()}, nil
+}
+
+func encodeDeletePoliciesRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(policyReq)
 	return &magistrala.DeletePolicyReq{
 		Domain:      req.Domain,

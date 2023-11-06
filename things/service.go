@@ -79,9 +79,6 @@ func (svc service) CreateThings(ctx context.Context, token string, cls ...mgclie
 			}
 			c.Credentials.Secret = key
 		}
-		if c.Owner == "" {
-			c.Owner = user.GetId()
-		}
 		if c.Status != mgclients.DisabledStatus && c.Status != mgclients.EnabledStatus {
 			return []mgclients.Client{}, apiutil.ErrInvalidStatus
 		}
@@ -93,18 +90,29 @@ func (svc service) CreateThings(ctx context.Context, token string, cls ...mgclie
 	if err != nil {
 		return nil, err
 	}
+	// ToDo: Add defer function, on error delete all clients
 
+	policies := magistrala.AddPoliciesReq{}
 	for _, c := range saved {
-		policy := magistrala.AddPolicyReq{
+		policies.AddPoliciesReq = append(policies.AddPoliciesReq, &magistrala.AddPolicyReq{
+			Domain:      user.GetDomainId(),
 			SubjectType: auth.UserType,
 			Subject:     user.GetId(),
 			Relation:    auth.AdministratorRelation,
 			ObjectType:  auth.ThingType,
 			Object:      c.ID,
-		}
-		if _, err := svc.auth.AddPolicy(ctx, &policy); err != nil {
-			return nil, err
-		}
+		})
+		policies.AddPoliciesReq = append(policies.AddPoliciesReq, &magistrala.AddPolicyReq{
+			Domain:      user.GetDomainId(),
+			SubjectType: auth.DomainType,
+			Subject:     user.GetDomainId(),
+			Relation:    auth.DomainRelation,
+			ObjectType:  auth.ThingType,
+			Object:      c.ID,
+		})
+	}
+	if _, err := svc.auth.AddPolicies(ctx, &policies); err != nil {
+		return nil, err
 	}
 
 	return saved, nil
@@ -129,7 +137,6 @@ func (svc service) ListClients(ctx context.Context, token string, reqUserID stri
 
 	switch {
 	case (reqUserID != "" && reqUserID != res.GetUserId()):
-		// ToDo: Check user is admin of Domain or Get all groups in which user is admin and filter the requested user id groups in the same domain
 		// Check user is admin of domain, if yes then show listing on domain context
 		if _, err := svc.authorize(ctx, auth.UserType, auth.UsersKind, res.GetId(), auth.AdminPermission, auth.DomainType, res.GetDomainId()); err != nil {
 			return mgclients.ClientsPage{}, err
@@ -292,53 +299,59 @@ func (svc service) DisableClient(ctx context.Context, token, id string) (mgclien
 }
 
 func (svc service) Share(ctx context.Context, token, id, relation string, userids ...string) error {
-	_, err := svc.authorize(ctx, auth.UserType, auth.TokenKind, token, auth.DeletePermission, auth.ThingType, id)
+	user, err := svc.identify(ctx, token)
 	if err != nil {
+		return nil
+	}
+	if _, err := svc.authorize(ctx, auth.UserType, auth.UsersKind, user.GetId(), auth.DeletePermission, auth.ThingType, id); err != nil {
 		return err
 	}
 
+	policies := magistrala.AddPoliciesReq{}
 	for _, userid := range userids {
-		addPolicyReq := &magistrala.AddPolicyReq{
+		policies.AddPoliciesReq = append(policies.AddPoliciesReq, &magistrala.AddPolicyReq{
 			SubjectType: auth.UserType,
-			Subject:     userid,
+			Subject:     auth.EncodeDomainUserID(user.GetDomainId(), userid),
 			Relation:    relation,
 			ObjectType:  auth.ThingType,
 			Object:      id,
-		}
-
-		res, err := svc.auth.AddPolicy(ctx, addPolicyReq)
-		if err != nil {
-			return err
-		}
-		if !res.Authorized {
-			return errors.ErrAuthorization
-		}
+		})
+	}
+	res, err := svc.auth.AddPolicies(ctx, &policies)
+	if err != nil {
+		return err
+	}
+	if !res.Authorized {
+		return errors.ErrAuthorization
 	}
 	return nil
 }
 
 func (svc service) Unshare(ctx context.Context, token, id, relation string, userids ...string) error {
-	_, err := svc.authorize(ctx, auth.UserType, auth.TokenKind, token, auth.DeletePermission, auth.ThingType, id)
+	user, err := svc.identify(ctx, token)
 	if err != nil {
+		return nil
+	}
+	if _, err := svc.authorize(ctx, auth.UserType, auth.UsersKind, user.GetId(), auth.DeletePermission, auth.ThingType, id); err != nil {
 		return err
 	}
 
+	policies := magistrala.DeletePoliciesReq{}
 	for _, userid := range userids {
-		delPolicyReq := &magistrala.DeletePolicyReq{
+		policies.DeletePoliciesReq = append(policies.DeletePoliciesReq, &magistrala.DeletePolicyReq{
 			SubjectType: auth.UserType,
-			Subject:     userid,
+			Subject:     auth.EncodeDomainUserID(user.GetDomainId(), userid),
 			Relation:    relation,
 			ObjectType:  auth.ThingType,
 			Object:      id,
-		}
-
-		res, err := svc.auth.DeletePolicy(ctx, delPolicyReq)
-		if err != nil {
-			return err
-		}
-		if !res.Deleted {
-			return errors.ErrAuthorization
-		}
+		})
+	}
+	res, err := svc.auth.DeletePolicies(ctx, &policies)
+	if err != nil {
+		return err
+	}
+	if !res.Deleted {
+		return errors.ErrAuthorization
 	}
 	return nil
 }
@@ -410,7 +423,9 @@ func (svc service) identify(ctx context.Context, token string) (*magistrala.Iden
 	if err != nil {
 		return nil, err
 	}
-
+	if res.GetId() == "" || res.GetDomainId() == "" {
+		return nil, errors.ErrDomainAuthorization
+	}
 	return res, nil
 }
 

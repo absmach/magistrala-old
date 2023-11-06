@@ -22,7 +22,9 @@ service AuthService {
   rpc Identify(IdentityReq) returns (IdentityRes) {}
   rpc Authorize(AuthorizeReq) returns (AuthorizeRes) {}
   rpc AddPolicy(AddPolicyReq) returns (AddPolicyRes) {}
+  rpc AddPolicies(AddPoliciesReq) returns (AddPolicyRes) {}
   rpc DeletePolicy(DeletePolicyReq) returns (DeletePolicyRes) {}
+  rpc DeletePolicies(DeletePoliciesReq) returns (DeletePolicyRes) {}
   rpc ListObjects(ListObjectsReq) returns (ListObjectsRes) {}
   rpc ListAllObjects(ListObjectsReq) returns (ListObjectsRes) {}
   rpc CountObjects(CountObjectsReq) returns (CountObjectsRes) {}
@@ -89,6 +91,10 @@ message AddPolicyReq {
   string object_type = 8;
 }
 
+message AddPoliciesReq{
+  repeated AddPolicyReq addPoliciesReq= 1;
+}
+
 message AddPolicyRes { bool authorized = 1; }
 
 message DeletePolicyReq {
@@ -100,6 +106,10 @@ message DeletePolicyReq {
   string permission = 6;
   string object = 7;
   string object_type = 8;
+}
+
+message DeletePoliciesReq {
+  repeated DeletePolicyReq deletePoliciesReq = 1;
 }
 
 message DeletePolicyRes { bool deleted = 1; }

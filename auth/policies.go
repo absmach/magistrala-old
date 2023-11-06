@@ -101,14 +101,14 @@ type Authz interface {
 
 	// AddPolicies adds new policies for given subjects. This method is
 	// only allowed to use as an admin.
-	AddPolicies(ctx context.Context, token, object string, subjectIDs, relations []string) error
+	AddPolicies(ctx context.Context, prs []PolicyReq) error
 
 	// DeletePolicy removes a policy.
 	DeletePolicy(ctx context.Context, pr PolicyReq) error
 
 	// DeletePolicies deletes policies for given subjects. This method is
 	// only allowed to use as an admin.
-	DeletePolicies(ctx context.Context, token, object string, subjectIDs, relations []string) error
+	DeletePolicies(ctx context.Context, prs []PolicyReq) error
 
 	// ListObjects lists policies based on the given PolicyReq structure.
 	ListObjects(ctx context.Context, pr PolicyReq, nextPageToken string, limit int32) (PolicyPage, error)

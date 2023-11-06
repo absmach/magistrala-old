@@ -134,13 +134,13 @@ func (ms *metricsMiddleware) AddPolicy(ctx context.Context, pr auth.PolicyReq) e
 	return ms.svc.AddPolicy(ctx, pr)
 }
 
-func (ms *metricsMiddleware) AddPolicies(ctx context.Context, token, object string, subjectIDs, relations []string) (err error) {
+func (ms *metricsMiddleware) AddPolicies(ctx context.Context, prs []auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
 		ms.counter.With("method", "create_policy_bulk").Add(1)
 		ms.latency.With("method", "create_policy_bulk").Observe(time.Since(begin).Seconds())
 	}(time.Now())
 
-	return ms.svc.AddPolicies(ctx, token, object, subjectIDs, relations)
+	return ms.svc.AddPolicies(ctx, prs)
 }
 
 func (ms *metricsMiddleware) DeletePolicy(ctx context.Context, pr auth.PolicyReq) error {
@@ -151,12 +151,12 @@ func (ms *metricsMiddleware) DeletePolicy(ctx context.Context, pr auth.PolicyReq
 	return ms.svc.DeletePolicy(ctx, pr)
 }
 
-func (ms *metricsMiddleware) DeletePolicies(ctx context.Context, token, object string, subjectIDs, relations []string) error {
+func (ms *metricsMiddleware) DeletePolicies(ctx context.Context, prs []auth.PolicyReq) error {
 	defer func(begin time.Time) {
 		ms.counter.With("method", "delete_policies").Add(1)
 		ms.latency.With("method", "delete_policies").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return ms.svc.DeletePolicies(ctx, token, object, subjectIDs, relations)
+	return ms.svc.DeletePolicies(ctx, prs)
 }
 
 func (ms *metricsMiddleware) CreateDomain(ctx context.Context, token string, d auth.Domain) (auth.Domain, error) {
