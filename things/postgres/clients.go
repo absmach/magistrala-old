@@ -69,12 +69,12 @@ func (repo clientRepo) Save(ctx context.Context, cs ...mgclients.Client) ([]mgcl
 		row.Next()
 		dbcli = pgclients.DBClient{}
 		if err := row.StructScan(&dbcli); err != nil {
-			return []mgclients.Client{}, err
+			return []mgclients.Client{}, errors.Wrap(repoerror.ErrFailedOpDB, err)
 		}
 
 		client, err := pgclients.ToClient(dbcli)
 		if err != nil {
-			return []mgclients.Client{}, err
+			return []mgclients.Client{}, errors.Wrap(repoerror.ErrFailedOpDB, err)
 		}
 		clients = append(clients, client)
 	}

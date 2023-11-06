@@ -66,7 +66,7 @@ func (svc service) RegisterClient(ctx context.Context, token string, cli mgclien
 
 	clientID, err := svc.idProvider.ID()
 	if err != nil {
-		return mgclients.Client{}, errors.Wrap(repoerror.ErrMalformedEntity, err)
+		return mgclients.Client{}, errors.Wrap(repoerror.ErrUniqueID, err)
 	}
 	if cli.Owner == "" && ownerID != "" {
 		cli.Owner = ownerID
