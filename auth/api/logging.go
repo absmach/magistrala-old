@@ -255,6 +255,18 @@ func (lm *loggingMiddleware) UpdateDomain(ctx context.Context, token string, id 
 	return lm.svc.UpdateDomain(ctx, token, id, d)
 }
 
+func (lm *loggingMiddleware) ChangeDomainStatus(ctx context.Context, token string, id string, d auth.DomainReq) (do auth.Domain, err error) {
+	defer func(begin time.Time) {
+		message := fmt.Sprintf("Method change_domain_status for domain id %s took %s to complete", id, time.Since(begin))
+		if err != nil {
+			lm.logger.Warn(fmt.Sprintf("%s with error: %s.", message, err))
+			return
+		}
+		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
+	}(time.Now())
+	return lm.svc.ChangeDomainStatus(ctx, token, id, d)
+}
+
 func (lm *loggingMiddleware) ListDomains(ctx context.Context, token string, page auth.Page) (do auth.DomainsPage, err error) {
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method list_domains took %s to complete", time.Since(begin))

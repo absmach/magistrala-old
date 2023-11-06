@@ -183,6 +183,14 @@ func (ms *metricsMiddleware) UpdateDomain(ctx context.Context, token string, id 
 	return ms.svc.UpdateDomain(ctx, token, id, d)
 }
 
+func (ms *metricsMiddleware) ChangeDomainStatus(ctx context.Context, token string, id string, d auth.DomainReq) (auth.Domain, error) {
+	defer func(begin time.Time) {
+		ms.counter.With("method", "change_domain_status").Add(1)
+		ms.latency.With("method", "change_domain_status").Observe(time.Since(begin).Seconds())
+	}(time.Now())
+	return ms.svc.ChangeDomainStatus(ctx, token, id, d)
+}
+
 func (ms *metricsMiddleware) ListDomains(ctx context.Context, token string, page auth.Page) (auth.DomainsPage, error) {
 	defer func(begin time.Time) {
 		ms.counter.With("method", "list_domains").Add(1)

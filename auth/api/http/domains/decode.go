@@ -13,7 +13,7 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	mfclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
-	"github.com/go-chi/chi/v5"
+	"github.com/go-zoo/bone"
 )
 
 func decodeCreateDomainRequest(_ context.Context, r *http.Request) (interface{}, error) {
@@ -31,9 +31,9 @@ func decodeCreateDomainRequest(_ context.Context, r *http.Request) (interface{},
 }
 
 func decodeRetrieveDomainRequest(_ context.Context, r *http.Request) (interface{}, error) {
-	req := assignUsersReq{
+	req := retrieveDomainRequest{
 		token:    apiutil.ExtractBearerToken(r),
-		domainID: chi.URLParam(r, "domainID"),
+		domainID: bone.GetValue(r, "domainID"),
 	}
 	return req, nil
 }
@@ -45,7 +45,7 @@ func decodeUpdateDomainRequest(_ context.Context, r *http.Request) (interface{},
 
 	req := updateDomainReq{
 		token:    apiutil.ExtractBearerToken(r),
-		domainID: chi.URLParam(r, "domainID"),
+		domainID: bone.GetValue(r, "domainID"),
 	}
 
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -72,7 +72,7 @@ func decodeListDomainRequest(ctx context.Context, r *http.Request) (interface{},
 func decodeEnableDomainRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	req := enableDomainReq{
 		token:    apiutil.ExtractBearerToken(r),
-		domainID: chi.URLParam(r, "domainID"),
+		domainID: bone.GetValue(r, "domainID"),
 	}
 	return req, nil
 }
@@ -80,7 +80,7 @@ func decodeEnableDomainRequest(_ context.Context, r *http.Request) (interface{},
 func decodeDisableDomainRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	req := disableDomainReq{
 		token:    apiutil.ExtractBearerToken(r),
-		domainID: chi.URLParam(r, "domainID"),
+		domainID: bone.GetValue(r, "domainID"),
 	}
 	return req, nil
 }
@@ -92,7 +92,7 @@ func decodeAssignUsersRequest(_ context.Context, r *http.Request) (interface{}, 
 
 	req := assignUsersReq{
 		token:    apiutil.ExtractBearerToken(r),
-		domainID: chi.URLParam(r, "domainID"),
+		domainID: bone.GetValue(r, "domainID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
@@ -108,7 +108,7 @@ func decodeUnassignUsersRequest(_ context.Context, r *http.Request) (interface{}
 
 	req := unassignUsersReq{
 		token:    apiutil.ExtractBearerToken(r),
-		domainID: chi.URLParam(r, "domainID"),
+		domainID: bone.GetValue(r, "domainID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
@@ -124,7 +124,7 @@ func decodeListUserDomainsRequest(ctx context.Context, r *http.Request) (interfa
 	}
 	req := listUserDomainsReq{
 		token:  apiutil.ExtractBearerToken(r),
-		userID: chi.URLParam(r, "userID"),
+		userID: bone.GetValue(r, "userID"),
 		page:   page,
 	}
 	return req, nil

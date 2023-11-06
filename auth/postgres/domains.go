@@ -40,9 +40,9 @@ func NewDomainRepository(db postgres.Database) auth.DomainsRepository {
 // Save
 func (repo domainRepo) Save(ctx context.Context, d auth.Domain) (ad auth.Domain, err error) {
 
-	q := `INSERT INTO domains (id, name, email, tags, metadata, created_at, updated_at, updated_by, created_by, status)
-	VALUES (:id, :name, :email, :tags, :metadata, :created_at, :updated_at, :updated_by, :created_by, :status)
-	RETURNING id, name, email, tags, metadata, created_at, updated_at, updated_by, created_by, status;`
+	q := `INSERT INTO domains (id, name, email, tags, alias, metadata, created_at, updated_at, updated_by, created_by, status)
+	VALUES (:id, :name, :email, :tags, :alias, :metadata, :created_at, :updated_at, :updated_by, :created_by, :status)
+	RETURNING id, name, email, tags, alias, metadata, created_at, updated_at, updated_by, created_by, status;`
 
 	dbd, err := toDBDomains(d)
 	if err != nil {
@@ -71,14 +71,14 @@ func (repo domainRepo) Save(ctx context.Context, d auth.Domain) (ad auth.Domain,
 
 // RetrieveByID retrieves Domain by its unique ID.
 func (repo domainRepo) RetrieveByID(ctx context.Context, id string) (auth.Domain, error) {
-	q := `SELECT id, name, email, tags, metadata, created_at, updated_at, updated_by, created_by, status
-        FROM domains WHERE id = :id`
+	q := `SELECT d.id as id, d.name as name, d.email as email, d.tags as tags,  d.alias as alias, d.metadata as metadata, d.created_at as created_at, d.updated_at as updated_at, d.updated_by as updated_by, d.created_by as created_by, d.status as status
+        FROM domains d WHERE d.id = :id`
 
-	dbd := dbDomain{
+	dbdp := dbDomainsPage{
 		ID: id,
 	}
 
-	row, err := repo.db.NamedQueryContext(ctx, q, dbd)
+	row, err := repo.db.NamedQueryContext(ctx, q, dbdp)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return auth.Domain{}, errors.Wrap(errors.ErrNotFound, err)
@@ -88,7 +88,7 @@ func (repo domainRepo) RetrieveByID(ctx context.Context, id string) (auth.Domain
 
 	defer row.Close()
 	row.Next()
-	dbd = dbDomain{}
+	dbd := dbDomain{}
 	if err := row.StructScan(&dbd); err != nil {
 		return auth.Domain{}, errors.Wrap(errors.ErrNotFound, err)
 	}
@@ -110,9 +110,9 @@ func (repo domainRepo) RetrieveAllByIDs(ctx context.Context, pm auth.Page) (auth
 		return auth.DomainsPage{}, nil
 	}
 
-	q = `SELECT id, name, email, tags, metadata, created_at, updated_at, updated_by, created_by, status
-	FROM domains`
-	q = fmt.Sprintf("%s %s ORDER BY :order :dir  LIMIT :limit OFFSET :offset;", q, query)
+	q = `SELECT d.id as id, d.name as name, d.email as email, d.tags as tags, d.alias as alias, d.metadata as metadata, d.created_at as created_at, d.updated_at as updated_at, d.updated_by as updated_by, d.created_by as created_by, d.status as status
+	FROM domains d`
+	q = fmt.Sprintf("%s %s  LIMIT %d OFFSET %d;", q, query, pm.Limit, pm.Offset)
 
 	dbPage, err := toDBClientsPage(pm)
 	if err != nil {
@@ -130,7 +130,60 @@ func (repo domainRepo) RetrieveAllByIDs(ctx context.Context, pm auth.Page) (auth
 		return auth.DomainsPage{}, errors.Wrap(postgres.ErrFailedToRetrieveAll, err)
 	}
 
-	cq := "SELECT COUNT(*) FROM domains"
+	cq := "SELECT COUNT(*) FROM domains d"
+	if query != "" {
+		cq = fmt.Sprintf(" %s %s", cq, query)
+	}
+
+	total, err := postgres.Total(ctx, repo.db, cq, dbPage)
+	if err != nil {
+		return auth.DomainsPage{}, errors.Wrap(postgres.ErrFailedToRetrieveAll, err)
+	}
+
+	pm.Total = total
+	return auth.DomainsPage{
+		Page:    pm,
+		Domains: domains,
+	}, nil
+}
+
+// ListDomains list domains of user.
+func (repo domainRepo) ListDomains(ctx context.Context, pm auth.Page) (auth.DomainsPage, error) {
+	var q string
+	query, err := buildPageQuery(pm)
+	if err != nil {
+		return auth.DomainsPage{}, err
+	}
+	if query == "" {
+		return auth.DomainsPage{}, nil
+	}
+
+	q = `SELECT d.id as id, d.name as name, d.email as email, d.tags as tags, d.alias as alias, d.metadata as metadata, d.created_at as created_at, d.updated_at as updated_at, d.updated_by as updated_by, d.created_by as created_by, d.status as status, pc.relation as relation
+	FROM domains as d
+	JOIN policies_copy pc
+	ON pc.object_id = d.id`
+
+	q = fmt.Sprintf("%s %s LIMIT %d OFFSET %d", q, query, pm.Limit, pm.Offset)
+
+	dbPage, err := toDBClientsPage(pm)
+	if err != nil {
+		return auth.DomainsPage{}, errors.Wrap(postgres.ErrFailedToRetrieveAll, err)
+	}
+
+	fmt.Println(q)
+	fmt.Println(dbPage)
+	rows, err := repo.db.NamedQueryContext(ctx, q, dbPage)
+	if err != nil {
+		return auth.DomainsPage{}, errors.Wrap(postgres.ErrFailedToRetrieveAll, err)
+	}
+	defer rows.Close()
+
+	domains, err := repo.processRows(rows)
+	if err != nil {
+		return auth.DomainsPage{}, errors.Wrap(postgres.ErrFailedToRetrieveAll, err)
+	}
+
+	cq := "SELECT COUNT(*) FROM domains d JOIN policies_copy pc ON pc.object_id = d.id"
 	if query != "" {
 		cq = fmt.Sprintf(" %s %s", cq, query)
 	}
@@ -148,10 +201,11 @@ func (repo domainRepo) RetrieveAllByIDs(ctx context.Context, pm auth.Page) (auth
 }
 
 // Update updates the client name and metadata.
-func (repo domainRepo) Update(ctx context.Context, dr auth.DomainReq) (auth.Domain, error) {
+func (repo domainRepo) Update(ctx context.Context, id string, userID string, dr auth.DomainReq) (auth.Domain, error) {
 	var query []string
 	var upq string
-	var d auth.Domain
+	var ws string = "AND status = :status"
+	d := auth.Domain{ID: id}
 	if dr.Name != nil && *dr.Name != "" {
 		query = append(query, "name = :name, ")
 		d.Name = *dr.Name
@@ -169,27 +223,34 @@ func (repo domainRepo) Update(ctx context.Context, dr auth.DomainReq) (auth.Doma
 		d.Tags = *dr.Tags
 	}
 	if dr.Status != nil {
+		ws = ""
 		query = append(query, "status = :status, ")
 		d.Status = *dr.Status
 	}
+	if dr.Alias != nil {
+		query = append(query, "alias = :alias, ")
+		d.Alias = *dr.Alias
+	}
+	d.UpdatedAt = time.Now()
+	d.UpdatedBy = userID
 	if len(query) > 0 {
 		upq = strings.Join(query, " ")
 	}
-	q := fmt.Sprintf(`UPDATE clients SET %s  updated_at = :updated_at, updated_by = :updated_by
-        WHERE id = :id AND status = :status
-        RETURNING id, name, email, tags, metadata, created_at, updated_at, updated_by, created_by, status;`,
-		upq)
+	q := fmt.Sprintf(`UPDATE domains SET %s  updated_at = :updated_at, updated_by = :updated_by
+        WHERE id = :id %s
+        RETURNING id, name, email, tags, alias, metadata, created_at, updated_at, updated_by, created_by, status;`,
+		upq, ws)
 
 	dbd, err := toDBDomains(d)
 	if err != nil {
-		return auth.Domain{}, errors.Wrap(errors.ErrCreateEntity, err)
+		return auth.Domain{}, errors.Wrap(errors.ErrUpdateEntity, err)
 	}
 	row, err := repo.db.NamedQueryContext(ctx, q, dbd)
 	if err != nil {
-		return auth.Domain{}, postgres.HandleError(err, errors.ErrCreateEntity)
+		return auth.Domain{}, postgres.HandleError(err, errors.ErrUpdateEntity)
 	}
 
-	defer row.Close()
+	// defer row.Close()
 	row.Next()
 	dbd = dbDomain{}
 	if err := row.StructScan(&dbd); err != nil {
@@ -279,17 +340,18 @@ func (repo domainRepo) processRows(rows *sqlx.Rows) ([]auth.Domain, error) {
 }
 
 type dbDomain struct {
-	ID        string           `db:"id"`
-	Name      string           `db:"name"`
-	Email     string           `db:"Email"`
-	Metadata  []byte           `db:"metadata,omitempty"`
-	Tags      pgtype.TextArray `db:"tags,omitempty"`
-	Alias     *string          `db:"alias,omitempty"`
-	Status    clients.Status   `db:"status"`
-	CreatedBy string           `db:"created_by"`
-	CreatedAt time.Time        `db:"created_at"`
-	UpdatedBy *string          `db:"updated_by,omitempty"`
-	UpdatedAt sql.NullTime     `db:"updated_at,omitempty"`
+	ID         string           `db:"id"`
+	Name       string           `db:"name"`
+	Email      string           `db:"email"`
+	Metadata   []byte           `db:"metadata,omitempty"`
+	Tags       pgtype.TextArray `db:"tags,omitempty"`
+	Alias      *string          `db:"alias,omitempty"`
+	Status     clients.Status   `db:"status"`
+	Permission string           `db:"relation"`
+	CreatedBy  string           `db:"created_by"`
+	CreatedAt  time.Time        `db:"created_at"`
+	UpdatedBy  *string          `db:"updated_by,omitempty"`
+	UpdatedAt  sql.NullTime     `db:"updated_at,omitempty"`
 }
 
 func toDBDomains(d auth.Domain) (dbDomain, error) {
@@ -309,6 +371,11 @@ func toDBDomains(d auth.Domain) (dbDomain, error) {
 	if d.Alias != "" {
 		alias = &d.Alias
 	}
+
+	// var relation *string
+	// if d.Relation != "" {
+	// 	relation = &d.Relation
+	// }
 	var updatedBy *string
 	if d.UpdatedBy != "" {
 		updatedBy = &d.UpdatedBy
@@ -319,17 +386,18 @@ func toDBDomains(d auth.Domain) (dbDomain, error) {
 	}
 
 	return dbDomain{
-		ID:        d.ID,
-		Name:      d.Name,
-		Email:     d.Email,
-		Metadata:  data,
-		Tags:      tags,
-		Alias:     alias,
-		Status:    d.Status,
-		CreatedBy: d.CreatedBy,
-		CreatedAt: d.CreatedAt,
-		UpdatedBy: updatedBy,
-		UpdatedAt: updatedAt,
+		ID:         d.ID,
+		Name:       d.Name,
+		Email:      d.Email,
+		Metadata:   data,
+		Tags:       tags,
+		Alias:      alias,
+		Status:     d.Status,
+		Permission: d.Permission,
+		CreatedBy:  d.CreatedBy,
+		CreatedAt:  d.CreatedAt,
+		UpdatedBy:  updatedBy,
+		UpdatedAt:  updatedAt,
 	}, nil
 }
 
@@ -358,33 +426,36 @@ func toDomain(d dbDomain) (auth.Domain, error) {
 	}
 
 	return auth.Domain{
-		ID:        d.ID,
-		Name:      d.Name,
-		Email:     d.Email,
-		Metadata:  metadata,
-		Tags:      tags,
-		Alias:     alias,
-		Status:    d.Status,
-		CreatedBy: d.CreatedBy,
-		CreatedAt: d.CreatedAt,
-		UpdatedBy: updatedBy,
-		UpdatedAt: updatedAt,
+		ID:         d.ID,
+		Name:       d.Name,
+		Email:      d.Email,
+		Metadata:   metadata,
+		Tags:       tags,
+		Alias:      alias,
+		Permission: d.Permission,
+		Status:     d.Status,
+		CreatedBy:  d.CreatedBy,
+		CreatedAt:  d.CreatedAt,
+		UpdatedBy:  updatedBy,
+		UpdatedAt:  updatedAt,
 	}, nil
 }
 
 type dbDomainsPage struct {
-	Total    uint64         `db:"total"`
-	Limit    uint64         `db:"limit"`
-	Offset   uint64         `db:"offset"`
-	Order    string         `db:"order"`
-	Dir      string         `db:"dir"`
-	Name     string         `db:"name"`
-	Email    string         `db:"email"`
-	ID       string         `db:"id"`
-	IDs      []string       `db:"ids"`
-	Metadata []byte         `db:"metadata"`
-	Tag      string         `db:"tag"`
-	Status   clients.Status `db:"status"`
+	Total      uint64         `db:"total"`
+	Limit      uint64         `db:"limit"`
+	Offset     uint64         `db:"offset"`
+	Order      string         `db:"order"`
+	Dir        string         `db:"dir"`
+	Name       string         `db:"name"`
+	Email      string         `db:"email"`
+	Permission string         `db:"relation"`
+	ID         string         `db:"id"`
+	IDs        []string       `db:"ids"`
+	Metadata   []byte         `db:"metadata"`
+	Tag        string         `db:"tag"`
+	Status     clients.Status `db:"status"`
+	SubjectID  string         `db:"subject_id"`
 }
 
 func toDBClientsPage(pm auth.Page) (dbDomainsPage, error) {
@@ -393,18 +464,20 @@ func toDBClientsPage(pm auth.Page) (dbDomainsPage, error) {
 		return dbDomainsPage{}, errors.Wrap(errors.ErrViewEntity, err)
 	}
 	return dbDomainsPage{
-		Total:    pm.Total,
-		Limit:    pm.Limit,
-		Offset:   pm.Offset,
-		Order:    pm.Order,
-		Dir:      pm.Dir,
-		Name:     pm.Name,
-		Email:    pm.Email,
-		ID:       pm.ID,
-		IDs:      pm.IDs,
-		Metadata: data,
-		Tag:      pm.Tag,
-		Status:   pm.Status,
+		Total:      pm.Total,
+		Limit:      pm.Limit,
+		Offset:     pm.Offset,
+		Order:      pm.Order,
+		Dir:        pm.Dir,
+		Name:       pm.Name,
+		Email:      pm.Email,
+		Permission: pm.Permission,
+		ID:         pm.ID,
+		IDs:        pm.IDs,
+		Metadata:   data,
+		Tag:        pm.Tag,
+		Status:     pm.Status,
+		SubjectID:  pm.SubjectID,
 	}, nil
 }
 
@@ -413,11 +486,11 @@ func buildPageQuery(pm auth.Page) (string, error) {
 	var emq string
 
 	if pm.ID != "" {
-		query = append(query, "id = :id")
+		query = append(query, "d.id = :id")
 	}
 
 	if len(pm.IDs) != 0 {
-		query = append(query, fmt.Sprintf("id IN ('%s')", strings.Join(pm.IDs, "','")))
+		query = append(query, fmt.Sprintf("d.id IN ('%s')", strings.Join(pm.IDs, "','")))
 	}
 
 	if pm.Status != clients.AllStatus {
@@ -425,11 +498,15 @@ func buildPageQuery(pm auth.Page) (string, error) {
 	}
 
 	if pm.Email != "" {
-		query = append(query, "email = :email")
+		query = append(query, "d.email = :email")
 	}
 
 	if pm.Name != "" {
-		query = append(query, "name = :name")
+		query = append(query, "d.name = :name")
+	}
+
+	if pm.SubjectID != "" {
+		query = append(query, "pc.subject_id = :subject_id")
 	}
 
 	if pm.Tag != "" {

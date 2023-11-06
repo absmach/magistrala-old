@@ -7,15 +7,15 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/mainflux/mainflux"
+	"github.com/absmach/magistrala"
 )
 
 var (
-	_ mainflux.Response = (*createDomainRes)(nil)
-	_ mainflux.Response = (*retrieveDomainRes)(nil)
-	_ mainflux.Response = (*assignUsersRes)(nil)
-	_ mainflux.Response = (*unassignUsersRes)(nil)
-	_ mainflux.Response = (*listDomainsRes)(nil)
+	_ magistrala.Response = (*createDomainRes)(nil)
+	_ magistrala.Response = (*retrieveDomainRes)(nil)
+	_ magistrala.Response = (*assignUsersRes)(nil)
+	_ magistrala.Response = (*unassignUsersRes)(nil)
+	_ magistrala.Response = (*listDomainsRes)(nil)
 )
 
 type createDomainRes struct {

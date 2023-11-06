@@ -30,8 +30,13 @@ func (m *DomainsRepo) RetrieveAllByIDs(ctx context.Context, pm auth.Page) (auth.
 
 	return ret.Get(0).(auth.DomainsPage), ret.Error(1)
 }
-func (m *DomainsRepo) Update(ctx context.Context, d auth.DomainReq) (auth.Domain, error) {
-	ret := m.Called(ctx, d)
+func (m *DomainsRepo) ListDomains(ctx context.Context, pm auth.Page) (auth.DomainsPage, error) {
+	ret := m.Called(ctx, pm)
+
+	return ret.Get(0).(auth.DomainsPage), ret.Error(1)
+}
+func (m *DomainsRepo) Update(ctx context.Context, id string, userID string, d auth.DomainReq) (auth.Domain, error) {
+	ret := m.Called(ctx, d, id, userID)
 
 	return ret.Get(0).(auth.Domain), ret.Error(1)
 }
