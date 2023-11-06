@@ -85,7 +85,7 @@ func NewClient(conn *grpc.ClientConn, timeout time.Duration) magistrala.AuthServ
 			"AddPolicies",
 			encodeAddPoliciesRequest,
 			decodeAddPoliciesResponse,
-			magistrala.AddPolicyRes{},
+			magistrala.AddPoliciesRes{},
 		).Endpoint(),
 		deletePolicy: kitgrpc.NewClient(
 			conn,
@@ -101,7 +101,7 @@ func NewClient(conn *grpc.ClientConn, timeout time.Duration) magistrala.AuthServ
 			"DeletePolicies",
 			encodeDeletePoliciesRequest,
 			decodeDeletePoliciesResponse,
-			magistrala.DeletePolicyRes{},
+			magistrala.DeletePoliciesRes{},
 		).Endpoint(),
 		listObjects: kitgrpc.NewClient(
 			conn,
@@ -299,7 +299,7 @@ func encodeAddPolicyRequest(_ context.Context, grpcReq interface{}) (interface{}
 	}, nil
 }
 
-func (client grpcClient) AddPolicies(ctx context.Context, in *magistrala.AddPoliciesReq, opts ...grpc.CallOption) (*magistrala.AddPolicyRes, error) {
+func (client grpcClient) AddPolicies(ctx context.Context, in *magistrala.AddPoliciesReq, opts ...grpc.CallOption) (*magistrala.AddPoliciesRes, error) {
 	ctx, close := context.WithTimeout(ctx, client.timeout)
 	defer close()
 	r := policiesReq{}
@@ -319,15 +319,15 @@ func (client grpcClient) AddPolicies(ctx context.Context, in *magistrala.AddPoli
 
 	res, err := client.addPolicies(ctx, r)
 	if err != nil {
-		return &magistrala.AddPolicyRes{}, err
+		return &magistrala.AddPoliciesRes{}, err
 	}
 
-	apr := res.(addPolicyRes)
-	return &magistrala.AddPolicyRes{Authorized: apr.authorized}, err
+	apr := res.(addPoliciesRes)
+	return &magistrala.AddPoliciesRes{Authorized: apr.authorized}, err
 }
 
 func decodeAddPoliciesResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
-	res := grpcRes.(*magistrala.AddPolicyRes)
+	res := grpcRes.(*magistrala.AddPoliciesRes)
 	return addPoliciesRes{authorized: res.Authorized}, nil
 }
 
@@ -389,7 +389,7 @@ func encodeDeletePolicyRequest(_ context.Context, grpcReq interface{}) (interfac
 	}, nil
 }
 
-func (client grpcClient) DeletePolicies(ctx context.Context, in *magistrala.DeletePoliciesReq, opts ...grpc.CallOption) (*magistrala.DeletePolicyRes, error) {
+func (client grpcClient) DeletePolicies(ctx context.Context, in *magistrala.DeletePoliciesReq, opts ...grpc.CallOption) (*magistrala.DeletePoliciesRes, error) {
 	ctx, close := context.WithTimeout(ctx, client.timeout)
 	defer close()
 	r := policiesReq{}
@@ -409,29 +409,35 @@ func (client grpcClient) DeletePolicies(ctx context.Context, in *magistrala.Dele
 	}
 	res, err := client.deletePolicies(ctx, r)
 	if err != nil {
-		return &magistrala.DeletePolicyRes{}, err
+		return &magistrala.DeletePoliciesRes{}, err
 	}
 
-	dpr := res.(deletePolicyRes)
-	return &magistrala.DeletePolicyRes{Deleted: dpr.deleted}, err
+	dpr := res.(deletePoliciesRes)
+	return &magistrala.DeletePoliciesRes{Deleted: dpr.deleted}, err
 }
 
 func decodeDeletePoliciesResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
-	res := grpcRes.(*magistrala.DeletePolicyRes)
+	res := grpcRes.(*magistrala.DeletePoliciesRes)
 	return deletePoliciesRes{deleted: res.GetDeleted()}, nil
 }
 
 func encodeDeletePoliciesRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	req := grpcReq.(policyReq)
-	return &magistrala.DeletePolicyReq{
-		Domain:      req.Domain,
-		SubjectType: req.SubjectType,
-		Subject:     req.Subject,
-		Relation:    req.Relation,
-		Permission:  req.Permission,
-		ObjectType:  req.ObjectType,
-		Object:      req.Object,
-	}, nil
+	reqs := grpcReq.(policiesReq)
+
+	deletePolicies := []*magistrala.DeletePolicyReq{}
+
+	for _, req := range reqs {
+		deletePolicies = append(deletePolicies, &magistrala.DeletePolicyReq{
+			Domain:      req.Domain,
+			SubjectType: req.SubjectType,
+			Subject:     req.Subject,
+			Relation:    req.Relation,
+			Permission:  req.Permission,
+			ObjectType:  req.ObjectType,
+			Object:      req.Object,
+		})
+	}
+	return &magistrala.DeletePoliciesReq{DeletePoliciesReq: deletePolicies}, nil
 }
 
 func (client grpcClient) ListObjects(ctx context.Context, in *magistrala.ListObjectsReq, opts ...grpc.CallOption) (*magistrala.ListObjectsRes, error) {
