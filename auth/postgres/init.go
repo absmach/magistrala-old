@@ -30,7 +30,6 @@ func Migration() *migrate.MemoryMigrationSource {
                         name        VARCHAR(254),
                         email       VARCHAR(254) NOT NULL,
                         tags        TEXT[],
-                        name        VARCHAR(254),
                         metadata    JSONB,
                         alias       VARCHAR(254) NULL UNIQUE,
                         created_at  TIMESTAMP,
