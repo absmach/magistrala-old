@@ -162,6 +162,13 @@ func clientsHandler(svc users.Service, r *chi.Mux, logger mglog.Logger) http.Han
 		api.EncodeResponse,
 		opts...,
 	), "list_users_by_thing_id").ServeHTTP)
+
+	r.Get("/domains/{domainID}/users", otelhttp.NewHandler(kithttp.NewServer(
+		listMembersByDomainEndpoint(svc),
+		decodeListMembersByDomain,
+		api.EncodeResponse,
+		opts...,
+	), "list_users_by_domain_id").ServeHTTP)
 	return r
 }
 
@@ -440,6 +447,20 @@ func decodeListMembersByThing(_ context.Context, r *http.Request) (interface{}, 
 		token:    apiutil.ExtractBearerToken(r),
 		Page:     page,
 		objectID: chi.URLParam(r, "thingID"),
+	}
+
+	return req, nil
+}
+
+func decodeListMembersByDomain(_ context.Context, r *http.Request) (interface{}, error) {
+	page, err := queryPageParams(r)
+	if err != nil {
+		return nil, err
+	}
+	req := listMembersByObjectReq{
+		token:    apiutil.ExtractBearerToken(r),
+		Page:     page,
+		objectID: chi.URLParam(r, "domainID"),
 	}
 
 	return req, nil

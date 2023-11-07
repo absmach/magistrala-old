@@ -157,6 +157,24 @@ func listMembersByThingEndpoint(svc users.Service) endpoint.Endpoint {
 	}
 }
 
+func listMembersByDomainEndpoint(svc users.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(listMembersByObjectReq)
+		req.objectKind = "domains"
+		if err := req.validate(); err != nil {
+			return nil, errors.Wrap(apiutil.ErrValidation, err)
+		}
+
+		// TODO : remove svc.ListMembers and all functions to svc.ListClients https://github.com/absmach/magistrala/issues/5
+		page, err := svc.ListMembers(ctx, req.token, req.objectKind, req.objectID, req.Page)
+		if err != nil {
+			return nil, err
+		}
+
+		return buildClientsResponse(page), nil
+	}
+}
+
 func updateClientEndpoint(svc users.Service) endpoint.Endpoint {
 	return func(ctx context.Context, request interface{}) (interface{}, error) {
 		req := request.(updateClientReq)
