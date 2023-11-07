@@ -170,8 +170,6 @@ func (repo domainRepo) ListDomains(ctx context.Context, pm auth.Page) (auth.Doma
 		return auth.DomainsPage{}, errors.Wrap(postgres.ErrFailedToRetrieveAll, err)
 	}
 
-	fmt.Println(q)
-	fmt.Println(dbPage)
 	rows, err := repo.db.NamedQueryContext(ctx, q, dbPage)
 	if err != nil {
 		return auth.DomainsPage{}, errors.Wrap(postgres.ErrFailedToRetrieveAll, err)
@@ -296,6 +294,33 @@ func (repo domainRepo) SavePolicyCopy(ctx context.Context, pc auth.PolicyCopy) e
 	}
 	defer row.Close()
 
+	return nil
+}
+
+// CheckPolicyCopy
+func (repo domainRepo) CheckPolicyCopy(ctx context.Context, pc auth.PolicyCopy) error {
+	q := `
+		SELECT
+			subject_type, subject_id, subject_relation, relation, object_type, object_id FROM policies_copy
+		WHERE
+			subject_type = :subject_type
+			AND subject_id = :subject_id
+			AND	subject_relation = :subject_relation
+			AND relation = :relation
+			AND object_type = :object_type
+			AND object_id = :object_id
+		LIMIT 1
+	`
+	dbpc := toDBPolicyCopy(pc)
+	row, err := repo.db.NamedQueryContext(ctx, q, dbpc)
+	if err != nil {
+		return postgres.HandleError(err, errors.ErrCreateEntity)
+	}
+	defer row.Close()
+	row.Next()
+	if err := row.StructScan(&dbpc); err != nil {
+		return err
+	}
 	return nil
 }
 

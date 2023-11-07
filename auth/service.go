@@ -488,6 +488,15 @@ func (svc service) ListDomains(ctx context.Context, token string, p Page) (Domai
 		return DomainsPage{}, err
 	}
 	p.SubjectID = key.User
+	if err := svc.Authorize(ctx, PolicyReq{
+		Subject:     key.User,
+		SubjectType: UserType,
+		Permission:  AdminPermission,
+		ObjectType:  PlatformType,
+		Object:      MagistralaObject,
+	}); err == nil {
+		p.SubjectID = ""
+	}
 	return svc.domains.ListDomains(ctx, p)
 }
 
@@ -568,10 +577,11 @@ func (svc service) ListUserDomains(ctx context.Context, token string, userID str
 	}); err != nil {
 		return DomainsPage{}, err
 	}
-	if res.User != userID {
+	if userID != "" && res.User != userID {
 		p.SubjectID = userID
+	} else {
+		p.SubjectID = res.User
 	}
-	p.SubjectID = res.User
 	return svc.domains.ListDomains(ctx, p)
 }
 
