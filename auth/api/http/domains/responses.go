@@ -141,7 +141,7 @@ type listUserDomainsRes struct {
 }
 
 func (res listUserDomainsRes) Code() int {
-	return http.StatusNoContent
+	return http.StatusAccepted
 }
 func (res listUserDomainsRes) Headers() map[string]string {
 	return map[string]string{}

@@ -557,8 +557,26 @@ func (svc service) UnassignUsers(ctx context.Context, token string, id string, u
 	return nil
 }
 
+// ToDo: Take decision: Only Patform admin or both Patform and domain admins can see others users domain
 func (svc service) ListUserDomains(ctx context.Context, token string, userID string, p Page) (DomainsPage, error) {
-	return DomainsPage{}, nil
+	res, err := svc.Identify(ctx, token)
+	if err != nil {
+		return DomainsPage{}, err
+	}
+	if err := svc.Authorize(ctx, PolicyReq{
+		Subject:     res.User,
+		SubjectType: UserType,
+		Permission:  AdminPermission,
+		Object:      MagistralaObject,
+		ObjectType:  PlatformType,
+	}); err != nil {
+		return DomainsPage{}, err
+	}
+	if res.User != userID {
+		p.SubjectID = userID
+	}
+	p.SubjectID = res.User
+	return svc.domains.ListDomains(ctx, p)
 }
 
 func (svc service) addDomainPolicy(ctx context.Context, userID, domainID, relation string) (err error) {
@@ -658,8 +676,14 @@ func DecodeDomainUserID(domainUserID string) (string, string) {
 	}
 	duid := strings.Split(domainUserID, "_")
 
-	if len(duid) > 1 {
+	switch {
+	case len(duid) == 2:
 		return duid[0], duid[1]
+	case len(duid) == 1:
+		return duid[0], ""
+	case len(duid) <= 0 || len(duid) > 2:
+		fallthrough
+	default:
+		return "", ""
 	}
-	return duid[0], ""
 }

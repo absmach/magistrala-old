@@ -389,6 +389,9 @@ func (svc service) ListMembers(ctx context.Context, token, objectKind string, ob
 	case auth.ThingsKind:
 		objectType = auth.ThingType
 		authzPerm = pm.Permission
+	case auth.DomainsKind:
+		objectType = auth.DomainType
+		authzPerm = auth.SwitchToPermission(pm.Permission)
 	case auth.GroupsKind:
 		fallthrough
 	default:
@@ -399,7 +402,7 @@ func (svc service) ListMembers(ctx context.Context, token, objectKind string, ob
 	if _, err := svc.authorize(ctx, auth.UserType, auth.TokenKind, token, authzPerm, objectType, objectID); err != nil {
 		return mgclients.MembersPage{}, err
 	}
-	uids, err := svc.auth.ListAllSubjects(ctx, &magistrala.ListSubjectsReq{
+	duids, err := svc.auth.ListAllSubjects(ctx, &magistrala.ListSubjectsReq{
 		SubjectType: auth.UserType,
 		Permission:  pm.Permission,
 		Object:      objectID,
@@ -408,13 +411,19 @@ func (svc service) ListMembers(ctx context.Context, token, objectKind string, ob
 	if err != nil {
 		return mgclients.MembersPage{}, err
 	}
-	if len(uids.Policies) == 0 {
+	if len(duids.Policies) == 0 {
 		return mgclients.MembersPage{
 			Page: mgclients.Page{Total: 0, Offset: pm.Offset, Limit: pm.Limit},
 		}, nil
 	}
 
-	pm.IDs = uids.Policies
+	var userIDs []string
+
+	for _, domainUserID := range duids.Policies {
+		_, userID := auth.DecodeDomainUserID(domainUserID)
+		userIDs = append(userIDs, userID)
+	}
+	pm.IDs = userIDs
 
 	cp, err := svc.clients.RetrieveAll(ctx, pm)
 	if err != nil {
