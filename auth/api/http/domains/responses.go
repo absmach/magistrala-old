@@ -141,13 +141,13 @@ type listUserDomainsRes struct {
 }
 
 func (res listUserDomainsRes) Code() int {
-	return http.StatusAccepted
+	return http.StatusOK
 }
 func (res listUserDomainsRes) Headers() map[string]string {
 	return map[string]string{}
 }
 func (res listUserDomainsRes) Empty() bool {
-	return true
+	return false
 }
 func (res listUserDomainsRes) MarshalJSON() ([]byte, error) {
 	return json.Marshal(res.Data)
