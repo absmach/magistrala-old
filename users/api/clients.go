@@ -97,8 +97,8 @@ func clientsHandler(svc users.Service, r *chi.Mux, logger mglog.Logger) http.Han
 		), "password_reset").ServeHTTP)
 
 		r.Patch("/{id}/owner", otelhttp.NewHandler(kithttp.NewServer(
-			updateClientOwnerEndpoint(svc),
-			decodeUpdateClientOwner,
+			updateClientRoleEndpoint(svc),
+			decodeUpdateClientRole,
 			api.EncodeResponse,
 			opts...,
 		), "update_client_owner").ServeHTTP)
@@ -162,6 +162,13 @@ func clientsHandler(svc users.Service, r *chi.Mux, logger mglog.Logger) http.Han
 		api.EncodeResponse,
 		opts...,
 	), "list_users_by_thing_id").ServeHTTP)
+
+	r.Get("/domains/{domainID}/users", otelhttp.NewHandler(kithttp.NewServer(
+		listMembersByDomainEndpoint(svc),
+		decodeListMembersByDomain,
+		api.EncodeResponse,
+		opts...,
+	), "list_users_by_domain_id").ServeHTTP)
 	return r
 }
 
@@ -341,20 +348,21 @@ func decodePasswordReset(_ context.Context, r *http.Request) (interface{}, error
 	return req, nil
 }
 
-func decodeUpdateClientOwner(_ context.Context, r *http.Request) (interface{}, error) {
+func decodeUpdateClientRole(_ context.Context, r *http.Request) (interface{}, error) {
 	if !strings.Contains(r.Header.Get("Content-Type"), api.ContentType) {
 		return nil, errors.Wrap(apiutil.ErrValidation, apiutil.ErrUnsupportedContentType)
 	}
 
-	req := updateClientOwnerReq{
+	req := updateClientRoleReq{
 		token: apiutil.ExtractBearerToken(r),
 		id:    chi.URLParam(r, "id"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
 	}
-
-	return req, nil
+	var err error
+	req.role, err = mgclients.ToRole(req.Role)
+	return req, err
 }
 
 func decodeCredentials(_ context.Context, r *http.Request) (interface{}, error) {
@@ -439,6 +447,20 @@ func decodeListMembersByThing(_ context.Context, r *http.Request) (interface{}, 
 		token:    apiutil.ExtractBearerToken(r),
 		Page:     page,
 		objectID: chi.URLParam(r, "thingID"),
+	}
+
+	return req, nil
+}
+
+func decodeListMembersByDomain(_ context.Context, r *http.Request) (interface{}, error) {
+	page, err := queryPageParams(r)
+	if err != nil {
+		return nil, err
+	}
+	req := listMembersByObjectReq{
+		token:    apiutil.ExtractBearerToken(r),
+		Page:     page,
+		objectID: chi.URLParam(r, "domainID"),
 	}
 
 	return req, nil

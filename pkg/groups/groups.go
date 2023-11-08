@@ -23,7 +23,7 @@ const (
 // Paths are unique per owner.
 type Group struct {
 	ID          string           `json:"id"`
-	Owner       string           `json:"owner_id"`
+	Owner       string           `json:"owner_id,omitempty"`
 	Parent      string           `json:"parent_id,omitempty"`
 	Name        string           `json:"name"`
 	Description string           `json:"description,omitempty"`
@@ -90,7 +90,7 @@ type Repository interface {
 
 type Service interface {
 	// CreateGroup creates new  group.
-	CreateGroup(ctx context.Context, token string, g Group) (Group, error)
+	CreateGroup(ctx context.Context, token string, kind string, g Group) (Group, error)
 
 	// UpdateGroup updates the group identified by the provided ID.
 	UpdateGroup(ctx context.Context, token string, g Group) (Group, error)
