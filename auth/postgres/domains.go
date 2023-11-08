@@ -474,7 +474,7 @@ type dbDomainsPage struct {
 	Dir        string         `db:"dir"`
 	Name       string         `db:"name"`
 	Email      string         `db:"email"`
-	Permission string         `db:"relation"`
+	Permission string         `db:"permission"`
 	ID         string         `db:"id"`
 	IDs        []string       `db:"ids"`
 	Metadata   []byte         `db:"metadata"`
@@ -532,6 +532,10 @@ func buildPageQuery(pm auth.Page) (string, error) {
 
 	if pm.SubjectID != "" {
 		query = append(query, "pc.subject_id = :subject_id")
+	}
+
+	if pm.Permission != "" {
+		query = append(query, "pc.relation = :permission")
 	}
 
 	if pm.Tag != "" {

@@ -267,10 +267,12 @@ func (client grpcClient) AddPolicy(ctx context.Context, in *magistrala.AddPolicy
 	res, err := client.addPolicy(ctx, policyReq{
 		Domain:      in.GetDomain(),
 		SubjectType: in.GetSubjectType(),
+		SubjectKind: in.GetSubjectKind(),
 		Subject:     in.GetSubject(),
 		Relation:    in.GetRelation(),
 		Permission:  in.GetPermission(),
 		ObjectType:  in.GetObjectType(),
+		ObjectKind:  in.GetObjectKind(),
 		Object:      in.GetObject(),
 	})
 	if err != nil {
@@ -291,10 +293,12 @@ func encodeAddPolicyRequest(_ context.Context, grpcReq interface{}) (interface{}
 	return &magistrala.AddPolicyReq{
 		Domain:      req.Domain,
 		SubjectType: req.SubjectType,
+		SubjectKind: req.SubjectKind,
 		Subject:     req.Subject,
 		Relation:    req.Relation,
 		Permission:  req.Permission,
 		ObjectType:  req.ObjectType,
+		ObjectKind:  req.ObjectKind,
 		Object:      req.Object,
 	}, nil
 }
@@ -308,10 +312,12 @@ func (client grpcClient) AddPolicies(ctx context.Context, in *magistrala.AddPoli
 			r = append(r, policyReq{
 				Domain:      mgApr.GetDomain(),
 				SubjectType: mgApr.GetSubjectType(),
+				SubjectKind: mgApr.GetSubjectKind(),
 				Subject:     mgApr.GetSubject(),
 				Relation:    mgApr.GetRelation(),
 				Permission:  mgApr.GetPermission(),
 				ObjectType:  mgApr.GetObjectType(),
+				ObjectKind:  mgApr.GetObjectKind(),
 				Object:      mgApr.GetObject(),
 			})
 		}
@@ -340,10 +346,12 @@ func encodeAddPoliciesRequest(_ context.Context, grpcReq interface{}) (interface
 		addPolicies = append(addPolicies, &magistrala.AddPolicyReq{
 			Domain:      req.Domain,
 			SubjectType: req.SubjectType,
+			SubjectKind: req.SubjectKind,
 			Subject:     req.Subject,
 			Relation:    req.Relation,
 			Permission:  req.Permission,
 			ObjectType:  req.ObjectType,
+			ObjectKind:  req.ObjectKind,
 			Object:      req.Object,
 		})
 	}
@@ -357,10 +365,12 @@ func (client grpcClient) DeletePolicy(ctx context.Context, in *magistrala.Delete
 	res, err := client.deletePolicy(ctx, policyReq{
 		Domain:      in.GetDomain(),
 		SubjectType: in.GetSubjectType(),
+		SubjectKind: in.GetSubjectKind(),
 		Subject:     in.GetSubject(),
 		Relation:    in.GetRelation(),
 		Permission:  in.GetPermission(),
 		ObjectType:  in.GetObjectType(),
+		ObjectKind:  in.GetObjectKind(),
 		Object:      in.GetObject(),
 	})
 	if err != nil {
@@ -381,10 +391,12 @@ func encodeDeletePolicyRequest(_ context.Context, grpcReq interface{}) (interfac
 	return &magistrala.DeletePolicyReq{
 		Domain:      req.Domain,
 		SubjectType: req.SubjectType,
+		SubjectKind: req.SubjectKind,
 		Subject:     req.Subject,
 		Relation:    req.Relation,
 		Permission:  req.Permission,
 		ObjectType:  req.ObjectType,
+		ObjectKind:  req.ObjectKind,
 		Object:      req.Object,
 	}, nil
 }
@@ -399,10 +411,12 @@ func (client grpcClient) DeletePolicies(ctx context.Context, in *magistrala.Dele
 			r = append(r, policyReq{
 				Domain:      mgApr.GetDomain(),
 				SubjectType: mgApr.GetSubjectType(),
+				SubjectKind: mgApr.GetSubjectKind(),
 				Subject:     mgApr.GetSubject(),
 				Relation:    mgApr.GetRelation(),
 				Permission:  mgApr.GetPermission(),
 				ObjectType:  mgApr.GetObjectType(),
+				ObjectKind:  mgApr.GetObjectKind(),
 				Object:      mgApr.GetObject(),
 			})
 		}
@@ -430,10 +444,12 @@ func encodeDeletePoliciesRequest(_ context.Context, grpcReq interface{}) (interf
 		deletePolicies = append(deletePolicies, &magistrala.DeletePolicyReq{
 			Domain:      req.Domain,
 			SubjectType: req.SubjectType,
+			SubjectKind: req.SubjectKind,
 			Subject:     req.Subject,
 			Relation:    req.Relation,
 			Permission:  req.Permission,
 			ObjectType:  req.ObjectType,
+			ObjectKind:  req.ObjectKind,
 			Object:      req.Object,
 		})
 	}

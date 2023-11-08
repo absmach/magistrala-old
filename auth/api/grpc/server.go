@@ -277,10 +277,12 @@ func decodeAddPolicyRequest(_ context.Context, grpcReq interface{}) (interface{}
 	return policyReq{
 		Domain:      req.GetDomain(),
 		SubjectType: req.GetSubjectType(),
+		SubjectKind: req.GetSubjectKind(),
 		Subject:     req.GetSubject(),
 		Relation:    req.GetRelation(),
 		Permission:  req.GetPermission(),
 		ObjectType:  req.GetObjectType(),
+		ObjectKind:  req.GetObjectKind(),
 		Object:      req.GetObject(),
 	}, nil
 }
@@ -297,10 +299,12 @@ func decodeAddPoliciesRequest(_ context.Context, grpcReq interface{}) (interface
 		r = append(r, policyReq{
 			Domain:      req.GetDomain(),
 			SubjectType: req.GetSubjectType(),
+			SubjectKind: req.GetSubjectKind(),
 			Subject:     req.GetSubject(),
 			Relation:    req.GetRelation(),
 			Permission:  req.GetPermission(),
 			ObjectType:  req.GetObjectType(),
+			ObjectKind:  req.GetObjectKind(),
 			Object:      req.GetObject(),
 		})
 	}
@@ -317,10 +321,12 @@ func decodeDeletePolicyRequest(_ context.Context, grpcReq interface{}) (interfac
 	return policyReq{
 		Domain:      req.GetDomain(),
 		SubjectType: req.GetSubjectType(),
+		SubjectKind: req.GetSubjectKind(),
 		Subject:     req.GetSubject(),
 		Relation:    req.GetRelation(),
 		Permission:  req.GetPermission(),
 		ObjectType:  req.GetObjectType(),
+		ObjectKind:  req.GetObjectKind(),
 		Object:      req.GetObject(),
 	}, nil
 }
@@ -337,10 +343,12 @@ func decodeDeletePoliciesRequest(_ context.Context, grpcReq interface{}) (interf
 		r = append(r, policyReq{
 			Domain:      req.GetDomain(),
 			SubjectType: req.GetSubjectType(),
+			SubjectKind: req.GetSubjectKind(),
 			Subject:     req.GetSubject(),
 			Relation:    req.GetRelation(),
 			Permission:  req.GetPermission(),
 			ObjectType:  req.GetObjectType(),
+			ObjectKind:  req.GetObjectKind(),
 			Object:      req.GetObject(),
 		})
 	}

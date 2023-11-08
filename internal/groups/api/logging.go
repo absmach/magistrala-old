@@ -26,16 +26,16 @@ func LoggingMiddleware(svc groups.Service, logger mglog.Logger) groups.Service {
 
 // CreateGroup logs the create_group request. It logs the group name, id and token and the time it took to complete the request.
 // If the request fails, it logs the error.
-func (lm *loggingMiddleware) CreateGroup(ctx context.Context, token string, group groups.Group) (g groups.Group, err error) {
+func (lm *loggingMiddleware) CreateGroup(ctx context.Context, token string, kind string, group groups.Group) (g groups.Group, err error) {
 	defer func(begin time.Time) {
-		message := fmt.Sprintf("Method create_group for group %s with id %s using token %s took %s to complete", g.Name, g.ID, token, time.Since(begin))
+		message := fmt.Sprintf("Method create_group for %s %s  with id %s using token %s took %s to complete", g.Name, kind, g.ID, token, time.Since(begin))
 		if err != nil {
 			lm.logger.Warn(fmt.Sprintf("%s with error: %s.", message, err))
 			return
 		}
 		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
-	return lm.svc.CreateGroup(ctx, token, group)
+	return lm.svc.CreateGroup(ctx, token, kind, group)
 }
 
 // UpdateGroup logs the update_group request. It logs the group name, id and token and the time it took to complete the request.
