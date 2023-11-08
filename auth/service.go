@@ -13,10 +13,12 @@ import (
 )
 
 const (
-	recoveryDuration = 5 * time.Minute
-	thingsKind       = "things"
-	channelsKind     = "channels"
-	usersKind        = "users"
+	recoveryDuration   = 5 * time.Minute
+	invitationDuration = 24 * time.Hour
+
+	thingsKind   = "things"
+	channelsKind = "channels"
+	usersKind    = "users"
 
 	thingType   = "thing"
 	channelType = "channel"
@@ -124,6 +126,8 @@ func (svc service) Issue(ctx context.Context, token string, key Key) (Token, err
 		return svc.refreshKey(ctx, token, key)
 	case RecoveryKey:
 		return svc.tmpKey(recoveryDuration, key)
+	case InvitationKey:
+		return svc.tmpKey(invitationDuration, key)
 	default:
 		return svc.accessKey(key)
 	}
