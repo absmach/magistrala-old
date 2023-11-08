@@ -6,7 +6,7 @@ agent:
     os_image: ubuntu2004
 auto_cancel:
   running:
-    when: branch != 'master'
+    when: branch != 'main'
 global_job_config:
   prologue:
     commands:
