@@ -34,8 +34,8 @@ func NewEventStoreMiddleware(ctx context.Context, svc groups.Service, url string
 	}, nil
 }
 
-func (es eventStore) CreateGroup(ctx context.Context, token string, group groups.Group) (groups.Group, error) {
-	group, err := es.svc.CreateGroup(ctx, token, group)
+func (es eventStore) CreateGroup(ctx context.Context, token string, kind string, group groups.Group) (groups.Group, error) {
+	group, err := es.svc.CreateGroup(ctx, token, kind, group)
 	if err != nil {
 		return group, err
 	}

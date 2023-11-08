@@ -90,7 +90,7 @@ type Repository interface {
 
 type Service interface {
 	// CreateGroup creates new  group.
-	CreateGroup(ctx context.Context, token string, g Group) (Group, error)
+	CreateGroup(ctx context.Context, token string, kind string, g Group) (Group, error)
 
 	// UpdateGroup updates the group identified by the provided ID.
 	UpdateGroup(ctx context.Context, token string, g Group) (Group, error)

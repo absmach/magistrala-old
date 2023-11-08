@@ -99,6 +99,7 @@ func (svc service) CreateThings(ctx context.Context, token string, cls ...mgclie
 			SubjectType: auth.UserType,
 			Subject:     user.GetId(),
 			Relation:    auth.AdministratorRelation,
+			ObjectKind:  auth.NewThingKind,
 			ObjectType:  auth.ThingType,
 			Object:      c.ID,
 		})

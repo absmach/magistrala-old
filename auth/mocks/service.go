@@ -71,10 +71,10 @@ func (m *Service) AddPolicy(ctx context.Context, in *magistrala.AddPolicyReq, op
 	return ret.Get(0).(*magistrala.AddPolicyRes), ret.Error(1)
 }
 
-func (m *Service) AddPolicies(ctx context.Context, in *magistrala.AddPoliciesReq, opts ...grpc.CallOption) (*magistrala.AddPolicyRes, error) {
+func (m *Service) AddPolicies(ctx context.Context, in *magistrala.AddPoliciesReq, opts ...grpc.CallOption) (*magistrala.AddPoliciesRes, error) {
 	ret := m.Called(ctx, in)
 
-	return ret.Get(0).(*magistrala.AddPolicyRes), ret.Error(1)
+	return ret.Get(0).(*magistrala.AddPoliciesRes), ret.Error(1)
 }
 
 func (m *Service) DeletePolicy(ctx context.Context, in *magistrala.DeletePolicyReq, opts ...grpc.CallOption) (*magistrala.DeletePolicyRes, error) {
@@ -83,10 +83,10 @@ func (m *Service) DeletePolicy(ctx context.Context, in *magistrala.DeletePolicyR
 	return ret.Get(0).(*magistrala.DeletePolicyRes), ret.Error(1)
 }
 
-func (m *Service) DeletePolicies(ctx context.Context, in *magistrala.DeletePoliciesReq, opts ...grpc.CallOption) (*magistrala.DeletePolicyRes, error) {
+func (m *Service) DeletePolicies(ctx context.Context, in *magistrala.DeletePoliciesReq, opts ...grpc.CallOption) (*magistrala.DeletePoliciesRes, error) {
 	ret := m.Called(ctx, in)
 
-	return ret.Get(0).(*magistrala.DeletePolicyRes), ret.Error(1)
+	return ret.Get(0).(*magistrala.DeletePoliciesRes), ret.Error(1)
 }
 
 func (m *Service) ListObjects(ctx context.Context, in *magistrala.ListObjectsReq, opts ...grpc.CallOption) (*magistrala.ListObjectsRes, error) {

@@ -70,6 +70,9 @@ definition domain {
 definition platform {
 
   relation administrator: user
+  relation member: user
+
   permission admin = administrator
+  permission membership = administrator + member
 
 }

@@ -167,7 +167,7 @@ func decodePageRequest(_ context.Context, r *http.Request) (page, error) {
 	if err != nil {
 		return page{}, errors.Wrap(apiutil.ErrValidation, err)
 	}
-	p, err := apiutil.ReadStringQuery(r, api.PermissionKey, api.DefPermission)
+	p, err := apiutil.ReadStringQuery(r, api.PermissionKey, "")
 	if err != nil {
 		return page{}, errors.Wrap(apiutil.ErrValidation, err)
 	}
