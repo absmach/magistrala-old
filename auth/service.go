@@ -297,9 +297,15 @@ func (svc service) tmpKey(duration time.Duration, key Key) (Token, error) {
 }
 
 func (svc service) accessKey(key Key) (Token, error) {
+	var err error
 	key.Type = AccessKey
 	key.ExpiresAt = time.Now().Add(svc.loginDuration)
-	key.Subject = EncodeDomainUserID(key.Domain, key.User)
+
+	key.Subject, err = svc.checkUserDomain(key)
+	if err != nil {
+		return Token{}, err
+	}
+
 	access, err := svc.tokenizer.Issue(key)
 	if err != nil {
 		return Token{}, errors.Wrap(errIssueTmp, err)
@@ -327,8 +333,13 @@ func (svc service) refreshKey(ctx context.Context, token string, key Key) (Token
 		key.Domain = k.Domain
 	}
 	key.User = k.User
-	key.Subject = EncodeDomainUserID(key.Domain, key.User)
 	key.Type = AccessKey
+
+	key.Subject, err = svc.checkUserDomain(key)
+	if err != nil {
+		return Token{}, err
+	}
+
 	key.ExpiresAt = time.Now().Add(svc.loginDuration)
 	access, err := svc.tokenizer.Issue(key)
 	if err != nil {
@@ -342,6 +353,34 @@ func (svc service) refreshKey(ctx context.Context, token string, key Key) (Token
 	}
 
 	return Token{AccessToken: access, RefreshToken: refresh}, nil
+}
+
+func (svc service) checkUserDomain(key Key) (subject string, err error) {
+	if key.Domain != "" {
+		// Check user is platform admin
+		if err = svc.Authorize(context.Background(), PolicyReq{
+			Subject:     key.User,
+			SubjectType: UserType,
+			Permission:  AdminPermission,
+			Object:      MagistralaObject,
+			ObjectType:  PlatformType,
+		}); err == nil {
+			return key.User, nil
+		}
+		//Check user is domain member
+		domainUserSubject := EncodeDomainUserID(key.Domain, key.User)
+		if err = svc.Authorize(context.Background(), PolicyReq{
+			Subject:     domainUserSubject,
+			SubjectType: UserType,
+			Permission:  MembershipPermission,
+			Object:      key.Domain,
+			ObjectType:  DomainType,
+		}); err != nil {
+			return "", err
+		}
+		return domainUserSubject, nil
+	}
+	return "", nil
 }
 
 func (svc service) userKey(ctx context.Context, token string, key Key) (Token, error) {
@@ -421,12 +460,12 @@ func (svc service) CreateDomain(ctx context.Context, token string, d Domain) (do
 
 	d.CreatedAt = time.Now()
 
-	if err := svc.addDomainPolicy(ctx, key.User, domainID, AdministratorRelation); err != nil {
+	if err := svc.createDomainPolicy(ctx, key.User, domainID, AdministratorRelation); err != nil {
 		return Domain{}, err
 	}
 	defer func() {
 		if err != nil {
-			if errRollBack := svc.addDomainPolicyRollback(ctx, key.User, domainID, AdministratorRelation); errRollBack != nil {
+			if errRollBack := svc.createDomainPolicyRollback(ctx, key.User, domainID, AdministratorRelation); errRollBack != nil {
 				err = errors.Wrap(err, fmt.Errorf("failed to rollback policy %w", errRollBack))
 			}
 		}
@@ -528,6 +567,15 @@ func (svc service) AssignUsers(ctx context.Context, token string, id string, use
 	}
 
 	for _, userID := range userIds {
+		if err := svc.Authorize(ctx, PolicyReq{
+			Subject:     userID,
+			SubjectType: UserType,
+			Permission:  MembershipPermission,
+			Object:      MagistralaObject,
+			ObjectType:  PlatformType,
+		}); err != nil {
+			return errors.Wrap(errors.ErrMalformedEntity, fmt.Errorf("invalid user id : %s ", userID))
+		}
 		if err := svc.addDomainPolicy(ctx, userID, id, relation); err != nil {
 			return err
 		}
@@ -617,17 +665,63 @@ func (svc service) addDomainPolicy(ctx context.Context, userID, domainID, relati
 	})
 }
 
-func (svc service) addDomainPolicyRollback(ctx context.Context, userID, domainID, relation string) error {
-	var err error
-	pr := PolicyReq{
-		Subject:     EncodeDomainUserID(domainID, userID),
-		SubjectType: UserType,
-		SubjectKind: UsersKind,
-		Relation:    relation,
-		Object:      domainID,
-		ObjectType:  DomainType,
+func (svc service) createDomainPolicy(ctx context.Context, userID, domainID, relation string) (err error) {
+	prs := []PolicyReq{
+		{
+			Subject:     EncodeDomainUserID(domainID, userID),
+			SubjectType: UserType,
+			SubjectKind: UsersKind,
+			Relation:    relation,
+			Object:      domainID,
+			ObjectType:  DomainType,
+		},
+		{
+			Subject:     MagistralaObject,
+			SubjectType: PlatformType,
+			Relation:    PlatformRelation,
+			Object:      domainID,
+			ObjectType:  DomainType,
+		},
 	}
-	if errPolicy := svc.agent.DeletePolicy(ctx, pr); errPolicy != nil {
+	if err := svc.agent.AddPolicies(ctx, prs); err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if errDel := svc.agent.DeletePolicies(ctx, prs); errDel != nil {
+				err = errors.Wrap(err, fmt.Errorf("failed to rollback policy %w", errDel))
+			}
+		}
+	}()
+	return svc.domains.SavePolicyCopy(ctx, PolicyCopy{
+		SubjectType: UserType,
+		SubjectID:   userID,
+		Relation:    relation,
+		ObjectType:  DomainType,
+		ObjectID:    domainID,
+	})
+}
+
+func (svc service) createDomainPolicyRollback(ctx context.Context, userID, domainID, relation string) error {
+	var err error
+	prs := []PolicyReq{
+		{
+			Subject:     EncodeDomainUserID(domainID, userID),
+			SubjectType: UserType,
+			SubjectKind: UsersKind,
+			Relation:    relation,
+			Object:      domainID,
+			ObjectType:  DomainType,
+		},
+		{
+			Subject:     MagistralaObject,
+			SubjectType: PlatformType,
+			Relation:    PlatformRelation,
+			Object:      domainID,
+			ObjectType:  DomainType,
+		},
+	}
+	if errPolicy := svc.agent.DeletePolicies(ctx, prs); errPolicy != nil {
 		err = fmt.Errorf("failed to remove from policy engine %w", errPolicy)
 	}
 	errPolicyCopy := svc.domains.SavePolicyCopy(ctx, PolicyCopy{

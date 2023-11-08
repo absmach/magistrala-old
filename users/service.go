@@ -5,6 +5,7 @@ package users
 
 import (
 	"context"
+	"fmt"
 	"regexp"
 	"time"
 
@@ -47,7 +48,7 @@ func NewService(crepo postgres.Repository, auth magistrala.AuthServiceClient, em
 	}
 }
 
-func (svc service) RegisterClient(ctx context.Context, token string, cli mgclients.Client) (mgclients.Client, error) {
+func (svc service) RegisterClient(ctx context.Context, token string, cli mgclients.Client) (rc mgclients.Client, err error) {
 	// We don't check the error or user id currently since we can register client with empty token
 	if !svc.selfRegister {
 		userID, err := svc.Identify(ctx, token)
@@ -80,6 +81,33 @@ func (svc service) RegisterClient(ctx context.Context, token string, cli mgclien
 	}
 	cli.ID = clientID
 	cli.CreatedAt = time.Now()
+
+	res, err := svc.auth.AddPolicy(ctx, &magistrala.AddPolicyReq{
+		SubjectType: auth.UserType,
+		Subject:     cli.ID,
+		Relation:    auth.MemberRelation,
+		Object:      auth.MagistralaObject,
+		ObjectType:  auth.PlatformType,
+	})
+	if err != nil {
+		return mgclients.Client{}, err
+	}
+	if !res.Authorized {
+		return mgclients.Client{}, fmt.Errorf("failed to create policy")
+	}
+	defer func() {
+		if err != nil {
+			if _, errRollback := svc.auth.DeletePolicy(ctx, &magistrala.DeletePolicyReq{
+				SubjectType: auth.UserType,
+				Subject:     cli.ID,
+				Relation:    auth.MemberRelation,
+				Object:      auth.MagistralaObject,
+				ObjectType:  auth.PlatformType,
+			}); errRollback != nil {
+				err = errors.Wrap(err, errors.Wrap(apiutil.ErrRollbackTx, errRollback))
+			}
+		}
+	}()
 
 	return svc.clients.Save(ctx, cli)
 }

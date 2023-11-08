@@ -89,9 +89,11 @@ type policyReq struct {
 	Domain      string
 	SubjectType string
 	Subject     string
+	SubjectKind string
 	Relation    string
 	Permission  string
 	ObjectType  string
+	ObjectKind  string
 	Object      string
 }
 

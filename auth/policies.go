@@ -9,16 +9,18 @@ import (
 )
 
 const (
-	TokenKind    = "token"
-	GroupsKind   = "groups"
-	ChannelsKind = "channels"
-	ThingsKind   = "things"
-	UsersKind    = "users"
-	DomainsKind  = "domains"
-	PlatformKind = "platform"
+	TokenKind      = "token"
+	GroupsKind     = "groups"
+	NewGroupKind   = "new_group"
+	ChannelsKind   = "channels"
+	NewChannelKind = "new_channel"
+	ThingsKind     = "things"
+	NewThingKind   = "new_thing"
+	UsersKind      = "users"
+	DomainsKind    = "domains"
+	PlatformKind   = "platform"
 
 	GroupType    = "group"
-	ChannelType  = "channel"
 	ThingType    = "thing"
 	UserType     = "user"
 	DomainType   = "domain"
@@ -33,6 +35,7 @@ const (
 	ParentGroupRelation   = "parent_group"
 	RoleGroupRelation     = "role_group"
 	GroupRelation         = "group"
+	PlatformRelation      = "platform"
 
 	AdminPermission      = "admin"
 	DeletePermission     = "delete"
@@ -55,6 +58,7 @@ type PolicyReq struct {
 	SubjectKind     string `json:"subject_kind"`
 	SubjectRelation string `json:"subject_relation,omitempty"`
 	Object          string `json:"object"`
+	ObjectKind      string `json:"object_kind"`
 	ObjectType      string `json:"object_type"`
 	Relation        string `json:"relation,omitempty"`
 	Permission      string `json:"permission,omitempty"`

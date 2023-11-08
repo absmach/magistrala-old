@@ -107,10 +107,12 @@ func addPolicyEndpoint(svc auth.Service) endpoint.Endpoint {
 		err := svc.AddPolicy(ctx, auth.PolicyReq{
 			Domain:      req.Domain,
 			SubjectType: req.SubjectType,
+			SubjectKind: req.SubjectKind,
 			Subject:     req.Subject,
 			Relation:    req.Relation,
 			Permission:  req.Permission,
 			ObjectType:  req.ObjectType,
+			ObjectKind:  req.ObjectKind,
 			Object:      req.Object,
 		})
 		if err != nil {
@@ -133,10 +135,12 @@ func addPoliciesEndpoint(svc auth.Service) endpoint.Endpoint {
 			prs = append(prs, auth.PolicyReq{
 				Domain:      req.Domain,
 				SubjectType: req.SubjectType,
+				SubjectKind: req.SubjectKind,
 				Subject:     req.Subject,
 				Relation:    req.Relation,
 				Permission:  req.Permission,
 				ObjectType:  req.ObjectType,
+				ObjectKind:  req.ObjectKind,
 				Object:      req.Object,
 			})
 		}
@@ -157,11 +161,13 @@ func deletePolicyEndpoint(svc auth.Service) endpoint.Endpoint {
 
 		err := svc.DeletePolicy(ctx, auth.PolicyReq{
 			Domain:      req.Domain,
+			SubjectKind: req.SubjectKind,
 			SubjectType: req.SubjectType,
 			Subject:     req.Subject,
 			Relation:    req.Relation,
 			Permission:  req.Permission,
 			ObjectType:  req.ObjectType,
+			ObjectKind:  req.ObjectKind,
 			Object:      req.Object,
 		})
 		if err != nil {
@@ -184,10 +190,12 @@ func deletePoliciesEndpoint(svc auth.Service) endpoint.Endpoint {
 			prs = append(prs, auth.PolicyReq{
 				Domain:      req.Domain,
 				SubjectType: req.SubjectType,
+				SubjectKind: req.SubjectKind,
 				Subject:     req.Subject,
 				Relation:    req.Relation,
 				Permission:  req.Permission,
 				ObjectType:  req.ObjectType,
+				ObjectKind:  req.ObjectKind,
 				Object:      req.Object,
 			})
 		}

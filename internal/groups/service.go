@@ -33,7 +33,7 @@ func NewService(g groups.Repository, idp magistrala.IDProvider, auth magistrala.
 	}
 }
 
-func (svc service) CreateGroup(ctx context.Context, token string, g groups.Group) (gr groups.Group, err error) {
+func (svc service) CreateGroup(ctx context.Context, token string, kind string, g groups.Group) (gr groups.Group, err error) {
 	res, err := svc.identify(ctx, token)
 	if err != nil {
 		return groups.Group{}, err
@@ -68,6 +68,7 @@ func (svc service) CreateGroup(ctx context.Context, token string, g groups.Group
 		SubjectType: auth.UserType,
 		Subject:     res.GetId(),
 		Relation:    auth.AdministratorRelation,
+		ObjectKind:  kind,
 		ObjectType:  auth.GroupType,
 		Object:      g.ID,
 	})
@@ -85,6 +86,7 @@ func (svc service) CreateGroup(ctx context.Context, token string, g groups.Group
 			SubjectType: auth.GroupType,
 			Subject:     g.Parent,
 			Relation:    auth.ParentGroupRelation,
+			ObjectKind:  kind,
 			ObjectType:  auth.GroupType,
 			Object:      g.ID,
 		})
@@ -318,6 +320,7 @@ func (svc service) Assign(ctx context.Context, token, groupID, relation, memberK
 			policies.AddPoliciesReq = append(policies.AddPoliciesReq, &magistrala.AddPolicyReq{
 				Domain:      res.GetDomainId(),
 				SubjectType: auth.GroupType,
+				SubjectKind: auth.ChannelsKind,
 				Subject:     groupID,
 				Relation:    relation,
 				ObjectType:  auth.ThingType,
@@ -374,6 +377,7 @@ func (svc service) Unassign(ctx context.Context, token, groupID, relation, membe
 			policies.DeletePoliciesReq = append(policies.DeletePoliciesReq, &magistrala.DeletePolicyReq{
 				Domain:      res.GetDomainId(),
 				SubjectType: auth.GroupType,
+				SubjectKind: auth.ChannelsKind,
 				Subject:     groupID,
 				Relation:    relation,
 				ObjectType:  auth.ThingType,
