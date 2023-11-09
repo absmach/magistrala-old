@@ -97,6 +97,20 @@ func groupsHandler(svc groups.Service, r *chi.Mux, logger logger.Logger) http.Ha
 			api.EncodeResponse,
 			opts...,
 		), "unassign_users").ServeHTTP)
+
+		r.Post("/{groupID}/groups/assign", otelhttp.NewHandler(kithttp.NewServer(
+			assignGroupsEndpoint(svc),
+			decodeAssignGroupsRequest,
+			api.EncodeResponse,
+			opts...,
+		), "assign_groups").ServeHTTP)
+
+		r.Post("/{groupID}/groups/unassign", otelhttp.NewHandler(kithttp.NewServer(
+			unassignGroupsEndpoint(svc),
+			decodeUnassignGroupsRequest,
+			api.EncodeResponse,
+			opts...,
+		), "unassign_groups").ServeHTTP)
 	})
 
 	// The ideal placeholder name should be {channelID}, but gapi.DecodeListGroupsRequest uses {memberID} as a placeholder for the ID.
@@ -162,6 +176,57 @@ func unassignUsersEndpoint(svc groups.Service) endpoint.Endpoint {
 		}
 
 		if err := svc.Unassign(ctx, req.token, req.groupID, req.Relation, "users", req.UserIDs...); err != nil {
+			return nil, err
+		}
+		return unassignUsersRes{}, nil
+	}
+}
+
+func decodeAssignGroupsRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	req := assignGroupsReq{
+		token:   apiutil.ExtractBearerToken(r),
+		groupID: chi.URLParam(r, "groupID"),
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+	}
+	return req, nil
+}
+
+func decodeUnassignGroupsRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	req := unassignGroupsReq{
+		token:   apiutil.ExtractBearerToken(r),
+		groupID: chi.URLParam(r, "groupID"),
+	}
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+	}
+	return req, nil
+}
+
+func assignGroupsEndpoint(svc groups.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(assignGroupsReq)
+
+		if err := req.validate(); err != nil {
+			return nil, errors.Wrap(apiutil.ErrValidation, err)
+		}
+		if err := svc.Assign(ctx, req.token, req.groupID, auth.ParentGroupRelation, auth.GroupsKind, req.GroupIDs...); err != nil {
+			return nil, err
+		}
+		return assignUsersRes{}, nil
+	}
+}
+
+func unassignGroupsEndpoint(svc groups.Service) endpoint.Endpoint {
+	return func(ctx context.Context, request interface{}) (interface{}, error) {
+		req := request.(unassignGroupsReq)
+
+		if err := req.validate(); err != nil {
+			return nil, errors.Wrap(apiutil.ErrValidation, err)
+		}
+
+		if err := svc.Unassign(ctx, req.token, req.groupID, auth.ParentGroupRelation, auth.GroupsKind, req.GroupIDs...); err != nil {
 			return nil, err
 		}
 		return unassignUsersRes{}, nil

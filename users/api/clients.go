@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/absmach/magistrala/auth"
 	"github.com/absmach/magistrala/internal/api"
 	"github.com/absmach/magistrala/internal/apiutil"
 	mglog "github.com/absmach/magistrala/logger"
@@ -457,6 +458,13 @@ func decodeListMembersByDomain(_ context.Context, r *http.Request) (interface{},
 	if err != nil {
 		return nil, err
 	}
+	// For domains default permission in membership, In "queryPageParams" default is view,
+	// So overwriting the permission given by queryPageParams function with default membership permission.
+	p, err := apiutil.ReadStringQuery(r, api.PermissionKey, auth.MembershipPermission)
+	if err != nil {
+		return mgclients.Page{}, errors.Wrap(apiutil.ErrValidation, err)
+	}
+	page.Permission = p
 	req := listMembersByObjectReq{
 		token:    apiutil.ExtractBearerToken(r),
 		Page:     page,

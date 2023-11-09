@@ -327,7 +327,7 @@ func (svc service) Assign(ctx context.Context, token, groupID, relation, memberK
 				Object:      memberID,
 			})
 		}
-	case auth.GroupsKind:
+	case auth.ChannelsKind:
 		for _, memberID := range memberIDs {
 			policies.AddPoliciesReq = append(policies.AddPoliciesReq, &magistrala.AddPolicyReq{
 				Domain:      res.GetDomainId(),
@@ -338,6 +338,9 @@ func (svc service) Assign(ctx context.Context, token, groupID, relation, memberK
 				Object:      groupID,
 			})
 		}
+	case auth.GroupsKind:
+		return svc.assignParentGroup(ctx, res.GetDomainId(), groupID, memberIDs)
+
 	case auth.UsersKind:
 		for _, memberID := range memberIDs {
 			policies.AddPoliciesReq = append(policies.AddPoliciesReq, &magistrala.AddPolicyReq{
@@ -358,6 +361,98 @@ func (svc service) Assign(ctx context.Context, token, groupID, relation, memberK
 	}
 
 	return nil
+}
+
+func (svc service) assignParentGroup(ctx context.Context, domain, parentGroupID string, groupIDs []string) (err error) {
+	groups, err := svc.groups.RetrieveByIDs(ctx, groups.Page{PageMeta: groups.PageMeta{Limit: 1<<63 - 1}}, groupIDs...)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve groups: %w", err)
+	}
+	if len(groups.Groups) == 0 {
+		return fmt.Errorf("invalid group ids")
+	}
+	var addPolicies magistrala.AddPoliciesReq
+	var deletePolicies magistrala.DeletePoliciesReq
+	for _, group := range groups.Groups {
+		if group.Parent != "" {
+			return fmt.Errorf("%s group already have parent", group.ID)
+		}
+		addPolicies.AddPoliciesReq = append(addPolicies.AddPoliciesReq, &magistrala.AddPolicyReq{
+			Domain:      domain,
+			SubjectType: auth.GroupType,
+			Subject:     parentGroupID,
+			Relation:    auth.ParentGroupRelation,
+			ObjectType:  auth.GroupType,
+			Object:      group.ID,
+		})
+		deletePolicies.DeletePoliciesReq = append(deletePolicies.DeletePoliciesReq, &magistrala.DeletePolicyReq{
+			Domain:      domain,
+			SubjectType: auth.GroupType,
+			Subject:     parentGroupID,
+			Relation:    auth.ParentGroupRelation,
+			ObjectType:  auth.GroupType,
+			Object:      group.ID,
+		})
+	}
+
+	if _, err := svc.auth.AddPolicies(ctx, &addPolicies); err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if _, errRollback := svc.auth.DeletePolicies(ctx, &deletePolicies); errRollback != nil {
+				err = errors.Wrap(err, errors.Wrap(apiutil.ErrRollbackTx, errRollback))
+			}
+		}
+	}()
+
+	return svc.groups.AssignParentGroup(ctx, parentGroupID, groupIDs...)
+}
+
+func (svc service) unassignParentGroup(ctx context.Context, domain, parentGroupID string, groupIDs []string) error {
+	groups, err := svc.groups.RetrieveByIDs(ctx, groups.Page{PageMeta: groups.PageMeta{Limit: 1<<63 - 1}}, groupIDs...)
+	if err != nil {
+		return fmt.Errorf("failed to retrieve groups: %w", err)
+	}
+	if len(groups.Groups) == 0 {
+		return fmt.Errorf("invalid group ids")
+	}
+	var addPolicies magistrala.AddPoliciesReq
+	var deletePolicies magistrala.DeletePoliciesReq
+	for _, group := range groups.Groups {
+		if group.Parent != "" && group.Parent != parentGroupID {
+			return fmt.Errorf("%s group doesn't have same parent", group.ID)
+		}
+		addPolicies.AddPoliciesReq = append(addPolicies.AddPoliciesReq, &magistrala.AddPolicyReq{
+			Domain:      domain,
+			SubjectType: auth.GroupType,
+			Subject:     parentGroupID,
+			Relation:    auth.ParentGroupRelation,
+			ObjectType:  auth.GroupType,
+			Object:      group.ID,
+		})
+		deletePolicies.DeletePoliciesReq = append(deletePolicies.DeletePoliciesReq, &magistrala.DeletePolicyReq{
+			Domain:      domain,
+			SubjectType: auth.GroupType,
+			Subject:     parentGroupID,
+			Relation:    auth.ParentGroupRelation,
+			ObjectType:  auth.GroupType,
+			Object:      group.ID,
+		})
+	}
+
+	if _, err := svc.auth.DeletePolicies(ctx, &deletePolicies); err != nil {
+		return err
+	}
+	defer func() {
+		if err != nil {
+			if _, errRollback := svc.auth.AddPolicies(ctx, &addPolicies); errRollback != nil {
+				err = errors.Wrap(err, errors.Wrap(apiutil.ErrRollbackTx, errRollback))
+			}
+		}
+	}()
+
+	return svc.groups.UnassignParentGroup(ctx, parentGroupID, groupIDs...)
 }
 
 func (svc service) Unassign(ctx context.Context, token, groupID, relation, memberKind string, memberIDs ...string) error {
@@ -384,7 +479,7 @@ func (svc service) Unassign(ctx context.Context, token, groupID, relation, membe
 				Object:      memberID,
 			})
 		}
-	case auth.GroupsKind:
+	case auth.ChannelsKind:
 		for _, memberID := range memberIDs {
 			policies.DeletePoliciesReq = append(policies.DeletePoliciesReq, &magistrala.DeletePolicyReq{
 				Domain:      res.GetDomainId(),
@@ -395,6 +490,8 @@ func (svc service) Unassign(ctx context.Context, token, groupID, relation, membe
 				Object:      groupID,
 			})
 		}
+	case auth.GroupsKind:
+		return svc.unassignParentGroup(ctx, res.GetDomainId(), groupID, memberIDs)
 	case auth.UsersKind:
 		for _, memberID := range memberIDs {
 			policies.DeletePoliciesReq = append(policies.DeletePoliciesReq, &magistrala.DeletePolicyReq{
