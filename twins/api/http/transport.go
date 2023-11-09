@@ -216,17 +216,6 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 		errors.Contains(err, apiutil.ErrNameSize),
 		errors.Contains(err, apiutil.ErrLimitSize):
 		w.WriteHeader(http.StatusBadRequest)
-	case errors.Contains(err, repoerror.ErrNotFound):
-		w.WriteHeader(http.StatusNotFound)
-	case errors.Contains(err, repoerror.ErrConflict):
-		w.WriteHeader(http.StatusConflict)
-
-	case errors.Contains(err, repoerror.ErrCreateEntity),
-		errors.Contains(err, repoerror.ErrUpdateEntity),
-		errors.Contains(err, repoerror.ErrViewEntity),
-		errors.Contains(err, repoerror.ErrRemoveEntity):
-		w.WriteHeader(http.StatusInternalServerError)
-
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
 	}
