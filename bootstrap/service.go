@@ -124,7 +124,7 @@ func New(auth magistrala.AuthServiceClient, configs ConfigRepository, sdk mgsdk.
 func (bs bootstrapService) Add(ctx context.Context, token string, cfg Config) (Config, error) {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return Config{}, errors.Wrap(svcerror.ErrAuthentication, err)
+		return Config{}, errors.Wrap(errors.ErrAuthentication, err)
 	}
 
 	toConnect := bs.toIDList(cfg.Channels)
@@ -171,7 +171,7 @@ func (bs bootstrapService) Add(ctx context.Context, token string, cfg Config) (C
 func (bs bootstrapService) View(ctx context.Context, token, id string) (Config, error) {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return Config{}, errors.Wrap(svcerror.ErrAuthentication, err)
+		return Config{}, errors.Wrap(errors.ErrAuthentication, err)
 	}
 
 	return bs.configs.RetrieveByID(ctx, owner, id)
@@ -180,7 +180,7 @@ func (bs bootstrapService) View(ctx context.Context, token, id string) (Config, 
 func (bs bootstrapService) Update(ctx context.Context, token string, cfg Config) error {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return errors.Wrap(svcerror.ErrAuthentication, err)
+		return errors.Wrap(errors.ErrAuthentication, err)
 	}
 
 	cfg.Owner = owner
@@ -191,7 +191,7 @@ func (bs bootstrapService) Update(ctx context.Context, token string, cfg Config)
 func (bs bootstrapService) UpdateCert(ctx context.Context, token, thingID, clientCert, clientKey, caCert string) (Config, error) {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return Config{}, errors.Wrap(svcerror.ErrAuthentication, err)
+		return Config{}, errors.Wrap(errors.ErrAuthentication, err)
 	}
 	cfg, err := bs.configs.UpdateCert(ctx, owner, thingID, clientCert, clientKey, caCert)
 	if err != nil {
@@ -203,7 +203,7 @@ func (bs bootstrapService) UpdateCert(ctx context.Context, token, thingID, clien
 func (bs bootstrapService) UpdateConnections(ctx context.Context, token, id string, connections []string) error {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return errors.Wrap(svcerror.ErrAuthentication, err)
+		return errors.Wrap(errors.ErrAuthentication, err)
 	}
 
 	cfg, err := bs.configs.RetrieveByID(ctx, owner, id)
@@ -257,7 +257,7 @@ func (bs bootstrapService) UpdateConnections(ctx context.Context, token, id stri
 func (bs bootstrapService) List(ctx context.Context, token string, filter Filter, offset, limit uint64) (ConfigsPage, error) {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return ConfigsPage{}, errors.Wrap(svcerror.ErrAuthentication, err)
+		return ConfigsPage{}, errors.Wrap(errors.ErrAuthentication, err)
 	}
 
 	return bs.configs.RetrieveAll(ctx, owner, filter, offset, limit), nil
@@ -266,7 +266,7 @@ func (bs bootstrapService) List(ctx context.Context, token string, filter Filter
 func (bs bootstrapService) Remove(ctx context.Context, token, id string) error {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return errors.Wrap(svcerror.ErrAuthentication, err)
+		return errors.Wrap(errors.ErrAuthentication, err)
 	}
 	if err := bs.configs.Remove(ctx, owner, id); err != nil {
 		return errors.Wrap(errRemoveBootstrap, err)
@@ -296,7 +296,7 @@ func (bs bootstrapService) Bootstrap(ctx context.Context, externalKey, externalI
 func (bs bootstrapService) ChangeState(ctx context.Context, token, id string, state State) error {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return errors.Wrap(svcerror.ErrAuthentication, err)
+		return errors.Wrap(errors.ErrAuthentication, err)
 	}
 
 	cfg, err := bs.configs.RetrieveByID(ctx, owner, id)

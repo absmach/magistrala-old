@@ -104,7 +104,7 @@ func (ts *twinsService) AddTwin(ctx context.Context, token string, twin Twin, de
 	defer ts.publish(ctx, &id, &err, crudOp["createSucc"], crudOp["createFail"], &b)
 	res, err := ts.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return Twin{}, errors.Wrap(svcerror.ErrAuthentication, err)
+		return Twin{}, errors.Wrap(errors.ErrAuthentication, err)
 	}
 
 	twin.ID, err = ts.idProvider.ID()
@@ -197,7 +197,7 @@ func (ts *twinsService) ViewTwin(ctx context.Context, token, twinID string) (tw 
 
 	_, err = ts.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return Twin{}, errors.Wrap(svcerror.ErrAuthorization, err)
+		return Twin{}, errors.Wrap(errors.ErrAuthorization, err)
 	}
 
 	twin, err := ts.twins.RetrieveByID(ctx, twinID)

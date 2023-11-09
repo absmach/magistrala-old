@@ -7,7 +7,7 @@ import (
 // Wrapper for Service errors
 var (
 	// ErrAuthentication indicates failure occurred while authenticating the entity.
-	ErrAuthentication = errors.New("failed to perform authentication over the entity")
+	ErrAuthentication = errors.New("authentication error")
 
 	// ErrAuthorization indicates failure occurred while authorizing the entity.
 	ErrAuthorization = errors.New("failed to perform authorization over the entity")
