@@ -113,7 +113,6 @@ services:
       - ${MG_AUTH_GRPC_PORT}:${MG_AUTH_GRPC_PORT}
     networks:
       - magistrala-base-net
-    command: ["postgres", "-c", "log_statement=all"]
     volumes:
       - ./spicedb/schema.zed:${MG_SPICEDB_SCHEMA_FILE}
 

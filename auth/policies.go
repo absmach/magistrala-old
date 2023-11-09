@@ -19,14 +19,17 @@ const (
 	UsersKind      = "users"
 	DomainsKind    = "domains"
 	PlatformKind   = "platform"
+)
 
+const (
 	GroupType    = "group"
 	ThingType    = "thing"
 	UserType     = "user"
 	DomainType   = "domain"
 	PlatformType = "platform"
+)
 
-	// OwnerRelation       = "owner"
+const (
 	AdministratorRelation = "administrator"
 	EditorRelation        = "editor"
 	ViewerRelation        = "viewer"
@@ -36,7 +39,9 @@ const (
 	RoleGroupRelation     = "role_group"
 	GroupRelation         = "group"
 	PlatformRelation      = "platform"
+)
 
+const (
 	AdminPermission      = "admin"
 	DeletePermission     = "delete"
 	EditPermission       = "edit"
@@ -45,9 +50,9 @@ const (
 	SharePermission      = "share"
 	PublishPermission    = "publish"
 	SubscribePermission  = "subscribe"
-
-	MagistralaObject = "magistrala"
 )
+
+const MagistralaObject = "magistrala"
 
 // PolicyReq represents an argument struct for making a policy related
 // function calls.

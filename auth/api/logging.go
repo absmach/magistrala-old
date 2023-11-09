@@ -145,7 +145,7 @@ func (lm *loggingMiddleware) RetrieveKey(ctx context.Context, token, id string) 
 	return lm.svc.RetrieveKey(ctx, token, id)
 }
 
-func (lm *loggingMiddleware) Identify(ctx context.Context, key string) (id auth.Key, err error) {
+func (lm *loggingMiddleware) Identify(ctx context.Context, token string) (id auth.Key, err error) {
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method identify took %s to complete", time.Since(begin))
 		if err != nil {
@@ -155,7 +155,7 @@ func (lm *loggingMiddleware) Identify(ctx context.Context, key string) (id auth.
 		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
 
-	return lm.svc.Identify(ctx, key)
+	return lm.svc.Identify(ctx, token)
 }
 
 func (lm *loggingMiddleware) Authorize(ctx context.Context, pr auth.PolicyReq) (err error) {
