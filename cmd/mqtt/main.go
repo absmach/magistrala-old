@@ -10,24 +10,25 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"time"
 
 	"github.com/absmach/magistrala"
-	authapi "github.com/absmach/magistrala/internal/clients/grpc/auth"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
-	"github.com/absmach/magistrala/internal/env"
 	"github.com/absmach/magistrala/internal/server"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/mqtt"
 	"github.com/absmach/magistrala/mqtt/events"
 	mqtttracing "github.com/absmach/magistrala/mqtt/tracing"
+	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/errors"
 	"github.com/absmach/magistrala/pkg/messaging/brokers"
 	brokerstracing "github.com/absmach/magistrala/pkg/messaging/brokers/tracing"
 	"github.com/absmach/magistrala/pkg/messaging/handler"
 	mqttpub "github.com/absmach/magistrala/pkg/messaging/mqtt"
 	"github.com/absmach/magistrala/pkg/uuid"
+	"github.com/caarlos0/env/v10"
 	"github.com/cenkalti/backoff/v4"
 	chclient "github.com/mainflux/callhome/pkg/client"
 	mp "github.com/mainflux/mproxy/pkg/mqtt"
@@ -36,7 +37,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const svcName = "mqtt"
+const (
+	svcName        = "mqtt"
+	envPrefixAuthz = "MG_THINGS_AUTH_GRPC_"
+)
 
 type config struct {
 	LogLevel              string        `env:"MG_MQTT_ADAPTER_LOG_LEVEL"                    envDefault:"info"`
@@ -51,7 +55,7 @@ type config struct {
 	HTTPTargetPort        string        `env:"MG_MQTT_ADAPTER_WS_TARGET_PORT"               envDefault:"8080"`
 	HTTPTargetPath        string        `env:"MG_MQTT_ADAPTER_WS_TARGET_PATH"               envDefault:"/mqtt"`
 	Instance              string        `env:"MG_MQTT_ADAPTER_INSTANCE"                     envDefault:""`
-	JaegerURL             string        `env:"MG_JAEGER_URL"                                envDefault:"http://jaeger:14268/api/traces"`
+	JaegerURL             url.URL       `env:"MG_JAEGER_URL"                                envDefault:"http://jaeger:14268/api/traces"`
 	BrokerURL             string        `env:"MG_MESSAGE_BROKER_URL"                        envDefault:"nats://localhost:4222"`
 	SendTelemetry         bool          `env:"MG_SEND_TELEMETRY"                            envDefault:"true"`
 	InstanceID            string        `env:"MG_MQTT_ADAPTER_INSTANCE_ID"                  envDefault:""`
@@ -156,7 +160,7 @@ func main() {
 		return
 	}
 
-	auth, aHandler, err := authapi.SetupAuthz("authz")
+	authClient, aHandler, err := auth.SetupAuthz(envPrefixAuthz)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
@@ -166,7 +170,7 @@ func main() {
 
 	logger.Info("Successfully connected to things grpc server " + aHandler.Secure())
 
-	h := mqtt.NewHandler(np, es, logger, auth)
+	h := mqtt.NewHandler(np, es, logger, authClient)
 	h = handler.NewTracing(tracer, h)
 
 	if cfg.SendTelemetry {

@@ -8,16 +8,15 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"time"
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/internal"
-	authclient "github.com/absmach/magistrala/internal/clients/grpc/auth"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	pgclient "github.com/absmach/magistrala/internal/clients/postgres"
 	redisclient "github.com/absmach/magistrala/internal/clients/redis"
-	"github.com/absmach/magistrala/internal/env"
 	mggroups "github.com/absmach/magistrala/internal/groups"
 	gapi "github.com/absmach/magistrala/internal/groups/api"
 	gpostgres "github.com/absmach/magistrala/internal/groups/postgres"
@@ -27,6 +26,7 @@ import (
 	grpcserver "github.com/absmach/magistrala/internal/server/grpc"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
+	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/groups"
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/absmach/magistrala/things"
@@ -38,6 +38,7 @@ import (
 	thingspg "github.com/absmach/magistrala/things/postgres"
 	localusers "github.com/absmach/magistrala/things/standalone"
 	ctracing "github.com/absmach/magistrala/things/tracing"
+	"github.com/caarlos0/env/v10"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-redis/redis/v8"
 	"github.com/jmoiron/sqlx"
@@ -53,22 +54,23 @@ const (
 	envPrefixDB        = "MG_THINGS_DB_"
 	envPrefixHTTP      = "MG_THINGS_HTTP_"
 	envPrefixGRPC      = "MG_THINGS_AUTH_GRPC_"
+	envPrefixAuth      = "MG_AUTH_GRPC_"
 	defDB              = "things"
 	defSvcHTTPPort     = "9000"
 	defSvcAuthGRPCPort = "7000"
 )
 
 type config struct {
-	LogLevel         string  `env:"MG_THINGS_LOG_LEVEL"           envDefault:"info"`
-	StandaloneID     string  `env:"MG_THINGS_STANDALONE_ID"       envDefault:""`
-	StandaloneToken  string  `env:"MG_THINGS_STANDALONE_TOKEN"    envDefault:""`
-	JaegerURL        string  `env:"MG_JAEGER_URL"                 envDefault:"http://jaeger:14268/api/traces"`
-	CacheKeyDuration string  `env:"MG_THINGS_CACHE_KEY_DURATION"  envDefault:"10m"`
-	SendTelemetry    bool    `env:"MG_SEND_TELEMETRY"             envDefault:"true"`
-	InstanceID       string  `env:"MG_THINGS_INSTANCE_ID"         envDefault:""`
-	ESURL            string  `env:"MG_THINGS_ES_URL"              envDefault:"redis://localhost:6379/0"`
-	CacheURL         string  `env:"MG_THINGS_CACHE_URL"           envDefault:"redis://localhost:6379/0"`
-	TraceRatio       float64 `env:"MG_JAEGER_TRACE_RATIO"         envDefault:"1.0"`
+	LogLevel         string        `env:"MG_THINGS_LOG_LEVEL"           envDefault:"info"`
+	StandaloneID     string        `env:"MG_THINGS_STANDALONE_ID"       envDefault:""`
+	StandaloneToken  string        `env:"MG_THINGS_STANDALONE_TOKEN"    envDefault:""`
+	JaegerURL        url.URL       `env:"MG_JAEGER_URL"                 envDefault:"http://jaeger:14268/api/traces"`
+	CacheKeyDuration time.Duration `env:"MG_THINGS_CACHE_KEY_DURATION"  envDefault:"10m"`
+	SendTelemetry    bool          `env:"MG_SEND_TELEMETRY"             envDefault:"true"`
+	InstanceID       string        `env:"MG_THINGS_INSTANCE_ID"         envDefault:""`
+	ESURL            string        `env:"MG_THINGS_ES_URL"              envDefault:"redis://localhost:6379/0"`
+	CacheURL         string        `env:"MG_THINGS_CACHE_URL"           envDefault:"redis://localhost:6379/0"`
+	TraceRatio       float64       `env:"MG_JAEGER_TRACE_RATIO"         envDefault:"1.0"`
 }
 
 func main() {
@@ -136,25 +138,25 @@ func main() {
 	}
 	defer cacheclient.Close()
 
-	var auth magistrala.AuthServiceClient
+	var authClient magistrala.AuthServiceClient
 
 	switch cfg.StandaloneID != "" && cfg.StandaloneToken != "" {
 	case true:
-		auth = localusers.NewAuthService(cfg.StandaloneID, cfg.StandaloneToken)
+		authClient = localusers.NewAuthService(cfg.StandaloneID, cfg.StandaloneToken)
 		logger.Info("Using standalone auth service")
 	default:
-		authServiceClient, authHandler, err := authclient.Setup(svcName)
+		authServiceClient, authHandler, err := auth.Setup(envPrefixAuth)
 		if err != nil {
 			logger.Error(err.Error())
 			exitCode = 1
 			return
 		}
 		defer authHandler.Close()
-		auth = authServiceClient
+		authClient = authServiceClient
 		logger.Info("Successfully connected to auth grpc server " + authHandler.Secure())
 	}
 
-	csvc, gsvc, err := newService(ctx, db, dbConfig, auth, cacheclient, cfg.CacheKeyDuration, cfg.ESURL, tracer, logger)
+	csvc, gsvc, err := newService(ctx, db, dbConfig, authClient, cacheclient, cfg.CacheKeyDuration, cfg.ESURL, tracer, logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to create services: %s", err))
 		exitCode = 1
@@ -162,7 +164,7 @@ func main() {
 	}
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
-	if err := env.Parse(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
+	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
 		logger.Error(fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
 		exitCode = 1
 		return
@@ -171,7 +173,7 @@ func main() {
 	httpSvc := httpserver.New(ctx, cancel, svcName, httpServerConfig, httpapi.MakeHandler(csvc, gsvc, mux, logger, cfg.InstanceID), logger)
 
 	grpcServerConfig := server.Config{Port: defSvcAuthGRPCPort}
-	if err := env.Parse(&grpcServerConfig, env.Options{Prefix: envPrefixGRPC}); err != nil {
+	if err := env.ParseWithOptions(&grpcServerConfig, env.Options{Prefix: envPrefixGRPC}); err != nil {
 		logger.Error(fmt.Sprintf("failed to load %s gRPC server configuration : %s", svcName, err))
 		exitCode = 1
 		return
@@ -205,24 +207,19 @@ func main() {
 	}
 }
 
-func newService(ctx context.Context, db *sqlx.DB, dbConfig pgclient.Config, auth magistrala.AuthServiceClient, cacheClient *redis.Client, keyDuration, esURL string, tracer trace.Tracer, logger mglog.Logger) (things.Service, groups.Service, error) {
+func newService(ctx context.Context, db *sqlx.DB, dbConfig pgclient.Config, auth magistrala.AuthServiceClient, cacheClient *redis.Client, keyDuration time.Duration, esURL string, tracer trace.Tracer, logger mglog.Logger) (things.Service, groups.Service, error) {
 	database := postgres.NewDatabase(db, dbConfig, tracer)
 	cRepo := thingspg.NewRepository(database)
 	gRepo := gpostgres.New(database)
 
 	idp := uuid.New()
 
-	kDuration, err := time.ParseDuration(keyDuration)
-	if err != nil {
-		logger.Error(fmt.Sprintf("failed to parse cache key duration: %s", err.Error()))
-	}
-
-	thingCache := thcache.NewCache(cacheClient, kDuration)
+	thingCache := thcache.NewCache(cacheClient, keyDuration)
 
 	csvc := things.NewService(auth, cRepo, gRepo, thingCache, idp)
 	gsvc := mggroups.NewService(gRepo, idp, auth)
 
-	csvc, err = thevents.NewEventStoreMiddleware(ctx, csvc, esURL)
+	csvc, err := thevents.NewEventStoreMiddleware(ctx, csvc, esURL)
 	if err != nil {
 		return nil, nil, err
 	}

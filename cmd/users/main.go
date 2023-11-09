@@ -8,17 +8,16 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 	"regexp"
 	"time"
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/internal"
-	authclient "github.com/absmach/magistrala/internal/clients/grpc/auth"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	pgclient "github.com/absmach/magistrala/internal/clients/postgres"
 	"github.com/absmach/magistrala/internal/email"
-	"github.com/absmach/magistrala/internal/env"
 	mggroups "github.com/absmach/magistrala/internal/groups"
 	gapi "github.com/absmach/magistrala/internal/groups/api"
 	gevents "github.com/absmach/magistrala/internal/groups/events"
@@ -28,6 +27,7 @@ import (
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
+	"github.com/absmach/magistrala/pkg/auth"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/groups"
 	"github.com/absmach/magistrala/pkg/uuid"
@@ -38,6 +38,7 @@ import (
 	"github.com/absmach/magistrala/users/hasher"
 	clientspg "github.com/absmach/magistrala/users/postgres"
 	ctracing "github.com/absmach/magistrala/users/tracing"
+	"github.com/caarlos0/env/v10"
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
 	chclient "github.com/mainflux/callhome/pkg/client"
@@ -50,26 +51,25 @@ const (
 	envPrefixDB    = "MG_USERS_DB_"
 	envPrefixHTTP  = "MG_USERS_HTTP_"
 	envPrefixGrpc  = "MG_USERS_GRPC_"
+	envPrefixAuth  = "MG_AUTH_GRPC_"
 	defDB          = "users"
 	defSvcHTTPPort = "9002"
 	defSvcGRPCPort = "9192"
 )
 
 type config struct {
-	LogLevel        string  `env:"MG_USERS_LOG_LEVEL"              envDefault:"info"`
-	SecretKey       string  `env:"MG_USERS_SECRET_KEY"             envDefault:"secret"`
-	AdminEmail      string  `env:"MG_USERS_ADMIN_EMAIL"            envDefault:""`
-	AdminPassword   string  `env:"MG_USERS_ADMIN_PASSWORD"         envDefault:""`
-	PassRegexText   string  `env:"MG_USERS_PASS_REGEX"             envDefault:"^.{8,}$"`
-	AccessDuration  string  `env:"MG_USERS_ACCESS_TOKEN_DURATION"  envDefault:"15m"`
-	RefreshDuration string  `env:"MG_USERS_REFRESH_TOKEN_DURATION" envDefault:"24h"`
-	ResetURL        string  `env:"MG_TOKEN_RESET_ENDPOINT"         envDefault:"/reset-request"`
-	JaegerURL       string  `env:"MG_JAEGER_URL"                   envDefault:"http://jaeger:14268/api/traces"`
-	SendTelemetry   bool    `env:"MG_SEND_TELEMETRY"               envDefault:"true"`
-	InstanceID      string  `env:"MG_USERS_INSTANCE_ID"            envDefault:""`
-	ESURL           string  `env:"MG_USERS_ES_URL"                 envDefault:"redis://localhost:6379/0"`
-	TraceRatio      float64 `env:"MG_JAEGER_TRACE_RATIO"           envDefault:"1.0"`
-	PassRegex       *regexp.Regexp
+	LogLevel      string  `env:"MG_USERS_LOG_LEVEL"              envDefault:"info"`
+	SecretKey     string  `env:"MG_USERS_SECRET_KEY"             envDefault:"secret"`
+	AdminEmail    string  `env:"MG_USERS_ADMIN_EMAIL"            envDefault:""`
+	AdminPassword string  `env:"MG_USERS_ADMIN_PASSWORD"         envDefault:""`
+	PassRegexText string  `env:"MG_USERS_PASS_REGEX"             envDefault:"^.{8,}$"`
+	ResetURL      string  `env:"MG_TOKEN_RESET_ENDPOINT"         envDefault:"/reset-request"`
+	JaegerURL     url.URL `env:"MG_JAEGER_URL"                   envDefault:"http://jaeger:14268/api/traces"`
+	SendTelemetry bool    `env:"MG_SEND_TELEMETRY"               envDefault:"true"`
+	InstanceID    string  `env:"MG_USERS_INSTANCE_ID"            envDefault:""`
+	ESURL         string  `env:"MG_USERS_ES_URL"                 envDefault:"redis://localhost:6379/0"`
+	TraceRatio    float64 `env:"MG_JAEGER_TRACE_RATIO"           envDefault:"1.0"`
+	PassRegex     *regexp.Regexp
 }
 
 func main() {
@@ -140,7 +140,7 @@ func main() {
 	}()
 	tracer := tp.Tracer(svcName)
 
-	auth, authHandler, err := authclient.Setup(svcName)
+	authClient, authHandler, err := auth.Setup(envPrefixAuth)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
@@ -149,7 +149,7 @@ func main() {
 	defer authHandler.Close()
 	logger.Info("Successfully connected to auth grpc server " + authHandler.Secure())
 
-	csvc, gsvc, err := newService(ctx, auth, db, dbConfig, tracer, cfg, ec, logger)
+	csvc, gsvc, err := newService(ctx, authClient, db, dbConfig, tracer, cfg, ec, logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to setup service: %s", err))
 		exitCode = 1
@@ -157,7 +157,7 @@ func main() {
 	}
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
-	if err := env.Parse(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
+	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
 		logger.Error(fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err.Error()))
 		exitCode = 1
 		return

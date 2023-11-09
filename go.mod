@@ -6,7 +6,7 @@ require (
 	github.com/0x6flab/namegenerator v1.1.0
 	github.com/authzed/authzed-go v0.10.1
 	github.com/authzed/grpcutil v0.0.0-20230908193239-4286bb1d6403
-	github.com/caarlos0/env/v7 v7.1.0
+	github.com/caarlos0/env/v10 v10.0.0
 	github.com/cenkalti/backoff/v4 v4.2.1
 	github.com/docker/docker v24.0.7+incompatible
 	github.com/eclipse/paho.mqtt.golang v1.4.3
@@ -154,7 +154,6 @@ require (
 	github.com/lestrrat-go/httprc v1.0.4 // indirect
 	github.com/lestrrat-go/iter v1.0.2 // indirect
 	github.com/lestrrat-go/option v1.0.1 // indirect
-	github.com/magefile/mage v1.15.0 // indirect
 	github.com/magiconair/properties v1.8.7 // indirect
 	github.com/mailgun/raymond/v2 v2.0.48 // indirect
 	github.com/mailru/easyjson v0.7.7 // indirect
