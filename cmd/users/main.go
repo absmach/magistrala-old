@@ -16,7 +16,6 @@ import (
 	"github.com/absmach/magistrala"
 	authSvc "github.com/absmach/magistrala/auth"
 	"github.com/absmach/magistrala/internal"
-	authclient "github.com/absmach/magistrala/internal/clients/grpc/auth"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	pgclient "github.com/absmach/magistrala/internal/clients/postgres"
 	"github.com/absmach/magistrala/internal/email"
@@ -29,6 +28,7 @@ import (
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
+	"github.com/absmach/magistrala/pkg/auth"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
 	"github.com/absmach/magistrala/pkg/groups"
@@ -53,6 +53,7 @@ const (
 	envPrefixDB    = "MG_USERS_DB_"
 	envPrefixHTTP  = "MG_USERS_HTTP_"
 	envPrefixGrpc  = "MG_USERS_GRPC_"
+	envPrefixAuth  = "MG_AUTH_GRPC_"
 	defDB          = "users"
 	defSvcHTTPPort = "9002"
 	defSvcGRPCPort = "9192"
@@ -141,7 +142,7 @@ func main() {
 	}()
 	tracer := tp.Tracer(svcName)
 
-	auth, authHandler, err := authclient.Setup(svcName)
+	authClient, authHandler, err := auth.Setup(envPrefixAuth)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
@@ -150,7 +151,7 @@ func main() {
 	defer authHandler.Close()
 	logger.Info("Successfully connected to auth grpc server " + authHandler.Secure())
 
-	csvc, gsvc, err := newService(ctx, auth, db, dbConfig, tracer, cfg, ec, logger)
+	csvc, gsvc, err := newService(ctx, authClient, db, dbConfig, tracer, cfg, ec, logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to setup service: %s", err))
 		exitCode = 1
