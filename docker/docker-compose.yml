@@ -351,11 +351,11 @@ services:
   jaeger:
     image: jaegertracing/all-in-one:1.38.0
     container_name: magistrala-jaeger
+    environment:
+      COLLECTOR_OTLP_ENABLED: ${MG_JAEGER_COLLECTOR_OTLP_ENABLED}
     ports:
-      - ${MG_JAEGER_PORT}:${MG_JAEGER_PORT}/udp
       - ${MG_JAEGER_FRONTEND}:${MG_JAEGER_FRONTEND}
-      - ${MG_JAEGER_COLLECTOR}:${MG_JAEGER_COLLECTOR}
-      - ${MG_JAEGER_CONFIGS}:${MG_JAEGER_CONFIGS}
+      - ${MG_JAEGER_OLTP_HTTP}:${MG_JAEGER_OLTP_HTTP}
     networks:
       - magistrala-base-net
 
