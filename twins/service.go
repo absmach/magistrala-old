@@ -106,7 +106,7 @@ func (ts *twinsService) AddTwin(ctx context.Context, token string, twin Twin, de
 	defer ts.publish(ctx, &id, &err, crudOp["createSucc"], crudOp["createFail"], &b)
 	res, err := ts.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return Twin{}, errors.Wrap(svcerror.ErrAuthentication, err)
+		return Twin{}, errors.Wrap(errors.ErrAuthentication, err)
 	}
 
 	twin.ID, err = ts.idProvider.ID()
@@ -199,7 +199,7 @@ func (ts *twinsService) ViewTwin(ctx context.Context, token, twinID string) (tw 
 
 	_, err = ts.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return Twin{}, errors.Wrap(svcerror.ErrAuthorization, err)
+		return Twin{}, errors.Wrap(errors.ErrAuthorization, err)
 	}
 
 	twin, err := ts.twins.RetrieveByID(ctx, twinID)
@@ -231,7 +231,7 @@ func (ts *twinsService) RemoveTwin(ctx context.Context, token, twinID string) (e
 func (ts *twinsService) ListTwins(ctx context.Context, token string, offset uint64, limit uint64, name string, metadata Metadata) (Page, error) {
 	res, err := ts.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return Page{}, svcerror.ErrAuthentication
+		return Page{}, errors.ErrAuthentication
 	}
 
 	return ts.twins.RetrieveAll(ctx, res.GetId(), offset, limit, name, metadata)
@@ -240,7 +240,7 @@ func (ts *twinsService) ListTwins(ctx context.Context, token string, offset uint
 func (ts *twinsService) ListStates(ctx context.Context, token string, offset uint64, limit uint64, twinID string) (StatesPage, error) {
 	_, err := ts.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return StatesPage{}, svcerror.ErrAuthentication
+		return StatesPage{}, errors.ErrAuthentication
 	}
 
 	return ts.states.RetrieveAll(ctx, offset, limit, twinID)

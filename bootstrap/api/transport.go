@@ -16,7 +16,6 @@ import (
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
 	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
-	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -265,7 +264,7 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	}
 
 	switch {
-	case errors.Contains(err, svcerror.ErrAuthentication),
+	case errors.Contains(err, errors.ErrAuthentication),
 		errors.Contains(err, apiutil.ErrBearerToken),
 		errors.Contains(err, apiutil.ErrBearerKey):
 		w.WriteHeader(http.StatusUnauthorized)
@@ -281,7 +280,7 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 		w.WriteHeader(http.StatusNotFound)
 	case errors.Contains(err, bootstrap.ErrExternalKey),
 		errors.Contains(err, bootstrap.ErrExternalKeySecure),
-		errors.Contains(err, svcerror.ErrAuthorization):
+		errors.Contains(err, errors.ErrAuthorization):
 		w.WriteHeader(http.StatusForbidden)
 	case errors.Contains(err, repoerror.ErrConflict):
 		w.WriteHeader(http.StatusConflict)
