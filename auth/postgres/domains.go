@@ -160,7 +160,7 @@ func (repo domainRepo) ListDomains(ctx context.Context, pm auth.Page) (auth.Doma
 
 	q = `SELECT d.id as id, d.name as name, d.email as email, d.tags as tags, d.alias as alias, d.metadata as metadata, d.created_at as created_at, d.updated_at as updated_at, d.updated_by as updated_by, d.created_by as created_by, d.status as status, pc.relation as relation
 	FROM domains as d
-	JOIN policies_copy pc
+	JOIN policies pc
 	ON pc.object_id = d.id`
 
 	q = fmt.Sprintf("%s %s LIMIT %d OFFSET %d", q, query, pm.Limit, pm.Offset)
@@ -181,7 +181,7 @@ func (repo domainRepo) ListDomains(ctx context.Context, pm auth.Page) (auth.Doma
 		return auth.DomainsPage{}, errors.Wrap(postgres.ErrFailedToRetrieveAll, err)
 	}
 
-	cq := "SELECT COUNT(*) FROM domains d JOIN policies_copy pc ON pc.object_id = d.id"
+	cq := "SELECT COUNT(*) FROM domains d JOIN policies pc ON pc.object_id = d.id"
 	if query != "" {
 		cq = fmt.Sprintf(" %s %s", cq, query)
 	}
@@ -283,7 +283,7 @@ func (repo domainRepo) Delete(ctx context.Context, id string) error {
 
 // SavePolicyCopy
 func (repo domainRepo) SavePolicyCopy(ctx context.Context, pc auth.PolicyCopy) error {
-	q := `INSERT INTO policies_copy (subject_type, subject_id, subject_relation, relation, object_type, object_id)
+	q := `INSERT INTO policies (subject_type, subject_id, subject_relation, relation, object_type, object_id)
 	VALUES (:subject_type, :subject_id, :subject_relation, :relation, :object_type, :object_id)
 	RETURNING subject_type, subject_id, subject_relation, relation, object_type, object_id;`
 
@@ -301,7 +301,7 @@ func (repo domainRepo) SavePolicyCopy(ctx context.Context, pc auth.PolicyCopy) e
 func (repo domainRepo) CheckPolicyCopy(ctx context.Context, pc auth.PolicyCopy) error {
 	q := `
 		SELECT
-			subject_type, subject_id, subject_relation, relation, object_type, object_id FROM policies_copy
+			subject_type, subject_id, subject_relation, relation, object_type, object_id FROM policies
 		WHERE
 			subject_type = :subject_type
 			AND subject_id = :subject_id
@@ -328,7 +328,7 @@ func (repo domainRepo) CheckPolicyCopy(ctx context.Context, pc auth.PolicyCopy) 
 func (repo domainRepo) DeletePolicyCopy(ctx context.Context, pc auth.PolicyCopy) (err error) {
 	q := `
 		DELETE FROM
-			policies_copy
+			policies
 		WHERE
 			subject_type = :subject_type
 			AND subject_id = :subject_id

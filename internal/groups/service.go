@@ -33,7 +33,7 @@ func NewService(g groups.Repository, idp magistrala.IDProvider, auth magistrala.
 	}
 }
 
-func (svc service) CreateGroup(ctx context.Context, token string, kind string, g groups.Group) (gr groups.Group, err error) {
+func (svc service) CreateGroup(ctx context.Context, token, kind string, g groups.Group) (gr groups.Group, err error) {
 	res, err := svc.identify(ctx, token)
 	if err != nil {
 		return groups.Group{}, err
@@ -98,7 +98,7 @@ func (svc service) CreateGroup(ctx context.Context, token string, kind string, g
 	return g, nil
 }
 
-func (svc service) ViewGroup(ctx context.Context, token string, id string) (groups.Group, error) {
+func (svc service) ViewGroup(ctx context.Context, token, id string) (groups.Group, error) {
 	_, err := svc.authorize(ctx, auth.UserType, token, auth.ViewPermission, auth.GroupType, id)
 	if err != nil {
 		return groups.Group{}, err
@@ -107,7 +107,7 @@ func (svc service) ViewGroup(ctx context.Context, token string, id string) (grou
 	return svc.groups.RetrieveByID(ctx, id)
 }
 
-func (svc service) ListGroups(ctx context.Context, token string, memberKind, memberID string, gm groups.Page) (groups.Page, error) {
+func (svc service) ListGroups(ctx context.Context, token, memberKind, memberID string, gm groups.Page) (groups.Page, error) {
 	var ids []string
 	res, err := svc.identify(ctx, token)
 	if err != nil {
@@ -513,7 +513,7 @@ func (svc service) Unassign(ctx context.Context, token, groupID, relation, membe
 	return nil
 }
 
-func (svc service) filterAllowedGroupIDsOfUserID(ctx context.Context, userID string, permission string, groupIDs []string) ([]string, error) {
+func (svc service) filterAllowedGroupIDsOfUserID(ctx context.Context, userID, permission string, groupIDs []string) ([]string, error) {
 	var ids []string
 	allowedIDs, err := svc.listAllGroupsOfUserID(ctx, userID, permission)
 	if err != nil {
@@ -530,7 +530,7 @@ func (svc service) filterAllowedGroupIDsOfUserID(ctx context.Context, userID str
 	return ids, nil
 }
 
-func (svc service) listAllGroupsOfUserID(ctx context.Context, userID string, permission string) ([]string, error) {
+func (svc service) listAllGroupsOfUserID(ctx context.Context, userID, permission string) ([]string, error) {
 	allowedIDs, err := svc.auth.ListAllObjects(ctx, &magistrala.ListObjectsReq{
 		SubjectType: auth.UserType,
 		Subject:     userID,
