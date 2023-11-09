@@ -13,11 +13,11 @@ import (
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/internal"
-	authapi "github.com/absmach/magistrala/internal/clients/grpc/auth"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
+	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/absmach/magistrala/pkg/messaging/brokers"
 	brokerstracing "github.com/absmach/magistrala/pkg/messaging/brokers/tracing"
@@ -36,6 +36,7 @@ import (
 const (
 	svcName        = "ws-adapter"
 	envPrefixHTTP  = "MG_WS_ADAPTER_HTTP_"
+	envPrefixAuthz = "MG_THINGS_AUTH_GRPC_"
 	defSvcHTTPPort = "8190"
 	targetWSPort   = "8191"
 	targetWSHost   = "localhost"
@@ -87,7 +88,7 @@ func main() {
 		Host: targetWSHost,
 	}
 
-	auth, aHandler, err := authapi.SetupAuthz("authz")
+	authClient, aHandler, err := auth.SetupAuthz(envPrefixAuthz)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
@@ -119,7 +120,7 @@ func main() {
 	defer nps.Close()
 	nps = brokerstracing.NewPubSub(targetServerConf, tracer, nps)
 
-	svc := newService(auth, nps, logger, tracer)
+	svc := newService(authClient, nps, logger, tracer)
 
 	hs := httpserver.New(ctx, cancel, svcName, targetServerConf, api.MakeHandler(ctx, svc, logger, cfg.InstanceID), logger)
 
@@ -132,7 +133,7 @@ func main() {
 		g.Go(func() error {
 			return hs.Start()
 		})
-		handler := ws.NewHandler(nps, logger, auth)
+		handler := ws.NewHandler(nps, logger, authClient)
 		return proxyWS(ctx, httpServerConfig, logger, handler)
 	})
 
