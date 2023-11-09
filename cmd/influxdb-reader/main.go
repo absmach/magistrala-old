@@ -12,11 +12,11 @@ import (
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/internal"
-	authclient "github.com/absmach/magistrala/internal/clients/grpc/auth"
 	influxdbclient "github.com/absmach/magistrala/internal/clients/influxdb"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
+	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/absmach/magistrala/readers"
 	"github.com/absmach/magistrala/readers/api"
@@ -30,6 +30,8 @@ import (
 const (
 	svcName        = "influxdb-reader"
 	envPrefixHTTP  = "MG_INFLUX_READER_HTTP_"
+	envPrefixAuth  = "MG_AUTH_GRPC_"
+	envPrefixAuthz = "MG_THINGS_AUTH_GRPC_"
 	envPrefixDB    = "MG_INFLUXDB_"
 	defSvcHTTPPort = "9005"
 )
@@ -65,7 +67,7 @@ func main() {
 		}
 	}
 
-	ac, acHandler, err := authclient.Setup(svcName)
+	ac, acHandler, err := auth.Setup(envPrefixAuth)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
@@ -75,7 +77,7 @@ func main() {
 
 	logger.Info("Successfully connected to auth grpc server " + acHandler.Secure())
 
-	tc, tcHandler, err := authclient.SetupAuthz(svcName)
+	tc, tcHandler, err := auth.SetupAuthz(envPrefixAuthz)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
