@@ -15,6 +15,7 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -114,7 +115,7 @@ func decodeAddRequest(_ context.Context, r *http.Request) (interface{}, error) {
 
 	req := addReq{token: apiutil.ExtractBearerToken(r)}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -130,7 +131,7 @@ func decodeUpdateRequest(_ context.Context, r *http.Request) (interface{}, error
 		id:    bone.GetValue(r, "configID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -146,7 +147,7 @@ func decodeUpdateCertRequest(_ context.Context, r *http.Request) (interface{}, e
 		thingID: bone.GetValue(r, "certID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -162,7 +163,7 @@ func decodeUpdateConnRequest(_ context.Context, r *http.Request) (interface{}, e
 		id:    bone.GetValue(r, "connID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -213,7 +214,7 @@ func decodeStateRequest(_ context.Context, r *http.Request) (interface{}, error)
 		id:    bone.GetValue(r, "thingID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -270,26 +271,26 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	case errors.Contains(err, apiutil.ErrUnsupportedContentType):
 		w.WriteHeader(http.StatusUnsupportedMediaType)
 	case errors.Contains(err, apiutil.ErrInvalidQueryParams),
-		errors.Contains(err, errors.ErrMalformedEntity),
+		errors.Contains(err, repoerror.ErrMalformedEntity),
 		errors.Contains(err, apiutil.ErrMissingID),
 		errors.Contains(err, apiutil.ErrBootstrapState),
 		errors.Contains(err, apiutil.ErrLimitSize):
 		w.WriteHeader(http.StatusBadRequest)
-	case errors.Contains(err, errors.ErrNotFound):
+	case errors.Contains(err, repoerror.ErrNotFound):
 		w.WriteHeader(http.StatusNotFound)
 	case errors.Contains(err, bootstrap.ErrExternalKey),
 		errors.Contains(err, bootstrap.ErrExternalKeySecure),
 		errors.Contains(err, errors.ErrAuthorization):
 		w.WriteHeader(http.StatusForbidden)
-	case errors.Contains(err, errors.ErrConflict):
+	case errors.Contains(err, repoerror.ErrConflict):
 		w.WriteHeader(http.StatusConflict)
 	case errors.Contains(err, bootstrap.ErrThings):
 		w.WriteHeader(http.StatusServiceUnavailable)
 
-	case errors.Contains(err, errors.ErrCreateEntity),
-		errors.Contains(err, errors.ErrUpdateEntity),
-		errors.Contains(err, errors.ErrViewEntity),
-		errors.Contains(err, errors.ErrRemoveEntity):
+	case errors.Contains(err, repoerror.ErrCreateEntity),
+		errors.Contains(err, repoerror.ErrUpdateEntity),
+		errors.Contains(err, repoerror.ErrViewEntity),
+		errors.Contains(err, repoerror.ErrRemoveEntity):
 		w.WriteHeader(http.StatusInternalServerError)
 
 	default:

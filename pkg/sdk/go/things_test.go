@@ -18,6 +18,8 @@ import (
 	mglog "github.com/absmach/magistrala/logger"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	sdk "github.com/absmach/magistrala/pkg/sdk/go"
 	"github.com/absmach/magistrala/things"
 	api "github.com/absmach/magistrala/things/api/http"
@@ -90,8 +92,8 @@ func TestCreateThing(t *testing.T) {
 			client:   sdk.Thing{},
 			response: sdk.Thing{},
 			token:    token,
-			repoErr:  errors.ErrMalformedEntity,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrMalformedEntity, http.StatusBadRequest),
+			repoErr:  repoerror.ErrMalformedEntity,
+			err:      errors.NewSDKErrorWithStatus(repoerror.ErrMalformedEntity, http.StatusBadRequest),
 		},
 		{
 			desc: "register a thing that can't be marshalled",
@@ -558,7 +560,7 @@ func TestListThingsByChannel(t *testing.T) {
 			channelID: testsutil.GenerateUUID(t),
 			page:      sdk.PageMetadata{},
 			response:  []sdk.Thing(nil),
-			err:       errors.NewSDKErrorWithStatus(errors.ErrAuthentication, http.StatusUnauthorized),
+			err:       errors.NewSDKErrorWithStatus(svcerror.ErrAuthentication, http.StatusUnauthorized),
 		},
 		{
 			desc:      "list things with an invalid id",
@@ -566,7 +568,7 @@ func TestListThingsByChannel(t *testing.T) {
 			channelID: mocks.WrongID,
 			page:      sdk.PageMetadata{},
 			response:  []sdk.Thing(nil),
-			err:       errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:       errors.NewSDKErrorWithStatus(repoerror.ErrNotFound, http.StatusNotFound),
 		},
 	}
 
@@ -618,21 +620,21 @@ func TestThing(t *testing.T) {
 			response: sdk.Thing{},
 			token:    invalidToken,
 			thingID:  generateUUID(t),
-			err:      errors.NewSDKErrorWithStatus(errors.ErrAuthentication, http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(svcerror.ErrAuthentication, http.StatusUnauthorized),
 		},
 		{
 			desc:     "view thing with valid token and invalid thing id",
 			response: sdk.Thing{},
 			token:    adminToken,
 			thingID:  mocks.WrongID,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(repoerror.ErrNotFound, http.StatusNotFound),
 		},
 		{
 			desc:     "view thing with an invalid token and invalid thing id",
 			response: sdk.Thing{},
 			token:    invalidToken,
 			thingID:  mocks.WrongID,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrAuthentication, http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(svcerror.ErrAuthentication, http.StatusUnauthorized),
 		},
 	}
 
@@ -692,7 +694,7 @@ func TestUpdateThing(t *testing.T) {
 			thing:    thing1,
 			response: sdk.Thing{},
 			token:    invalidToken,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrAuthentication, http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(svcerror.ErrAuthentication, http.StatusUnauthorized),
 		},
 		{
 			desc:     "update thing name with invalid id",
@@ -770,7 +772,7 @@ func TestUpdateThingTags(t *testing.T) {
 			thing:    thing1,
 			response: sdk.Thing{},
 			token:    invalidToken,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrAuthentication, http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(svcerror.ErrAuthentication, http.StatusUnauthorized),
 		},
 		{
 			desc:     "update thing name with invalid id",
@@ -843,8 +845,8 @@ func TestUpdateThingSecret(t *testing.T) {
 			newSecret: "newPassword",
 			token:     "non-existent",
 			response:  sdk.Thing{},
-			repoErr:   errors.ErrAuthorization,
-			err:       errors.NewSDKErrorWithStatus(errors.ErrAuthentication, http.StatusUnauthorized),
+			repoErr:   svcerror.ErrAuthorization,
+			err:       errors.NewSDKErrorWithStatus(svcerror.ErrAuthentication, http.StatusUnauthorized),
 		},
 		{
 			desc:      "update thing secret with wrong old secret",
@@ -910,7 +912,7 @@ func TestUpdateThingOwner(t *testing.T) {
 			thing:    thing2,
 			response: sdk.Thing{},
 			token:    invalidToken,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrAuthentication, http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(svcerror.ErrAuthentication, http.StatusUnauthorized),
 		},
 		{
 			desc:     "update thing name with invalid id",
@@ -995,7 +997,7 @@ func TestEnableThing(t *testing.T) {
 			thing:    sdk.Thing{},
 			response: sdk.Thing{},
 			repoErr:  sdk.ErrFailedEnable,
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(sdk.ErrFailedEnable, errors.ErrNotFound), http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(sdk.ErrFailedEnable, repoerror.ErrNotFound), http.StatusNotFound),
 		},
 	}
 
@@ -1116,7 +1118,7 @@ func TestDisableThing(t *testing.T) {
 			token:    adminToken,
 			response: sdk.Thing{},
 			repoErr:  sdk.ErrFailedDisable,
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(sdk.ErrFailedDisable, errors.ErrNotFound), http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(sdk.ErrFailedDisable, repoerror.ErrNotFound), http.StatusNotFound),
 		},
 	}
 
@@ -1222,8 +1224,8 @@ func TestIdentify(t *testing.T) {
 			desc:     "identify thing with an invalid token",
 			response: "",
 			secret:   invalidToken,
-			repoErr:  errors.ErrAuthentication,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrAuthentication, http.StatusUnauthorized),
+			repoErr:  svcerror.ErrAuthentication,
+			err:      errors.NewSDKErrorWithStatus(svcerror.ErrAuthentication, http.StatusUnauthorized),
 		},
 	}
 
@@ -1270,15 +1272,15 @@ func TestShareThing(t *testing.T) {
 			channelID: generateUUID(t),
 			thingID:   "thingID",
 			token:     invalidToken,
-			err:       errors.NewSDKErrorWithStatus(errors.Wrap(errors.ErrAuthorization, errors.ErrAuthentication), http.StatusUnauthorized),
+			err:       errors.NewSDKErrorWithStatus(errors.Wrap(svcerror.ErrAuthorization, svcerror.ErrAuthentication), http.StatusUnauthorized),
 		},
 		{
 			desc:      "share thing with valid token for unauthorized user",
 			channelID: generateUUID(t),
 			thingID:   "thingID",
 			token:     userToken,
-			err:       errors.NewSDKErrorWithStatus(errors.ErrAuthorization, http.StatusForbidden),
-			repoErr:   errors.ErrAuthorization,
+			err:       errors.NewSDKErrorWithStatus(svcerror.ErrAuthorization, http.StatusForbidden),
+			repoErr:   svcerror.ErrAuthorization,
 		},
 	}
 

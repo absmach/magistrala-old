@@ -13,6 +13,7 @@ import (
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/pkg/messaging"
 )
 
@@ -66,10 +67,10 @@ func (svc *adapterService) Publish(ctx context.Context, key string, msg *messagi
 	}
 	res, err := svc.auth.Authorize(ctx, ar)
 	if err != nil {
-		return errors.Wrap(errors.ErrAuthorization, err)
+		return errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	if !res.GetAuthorized() {
-		return errors.ErrAuthorization
+		return svcerror.ErrAuthorization
 	}
 	msg.Publisher = res.GetId()
 
@@ -87,10 +88,10 @@ func (svc *adapterService) Subscribe(ctx context.Context, key, chanID, subtopic 
 	}
 	res, err := svc.auth.Authorize(ctx, ar)
 	if err != nil {
-		return errors.Wrap(errors.ErrAuthorization, err)
+		return errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	if !res.GetAuthorized() {
-		return errors.ErrAuthorization
+		return svcerror.ErrAuthorization
 	}
 	subject := fmt.Sprintf("%s.%s", chansPrefix, chanID)
 	if subtopic != "" {
@@ -115,10 +116,10 @@ func (svc *adapterService) Unsubscribe(ctx context.Context, key, chanID, subtopi
 	}
 	res, err := svc.auth.Authorize(ctx, ar)
 	if err != nil {
-		return errors.Wrap(errors.ErrAuthorization, err)
+		return errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	if !res.GetAuthorized() {
-		return errors.ErrAuthorization
+		return svcerror.ErrAuthorization
 	}
 	subject := fmt.Sprintf("%s.%s", chansPrefix, chanID)
 	if subtopic != "" {

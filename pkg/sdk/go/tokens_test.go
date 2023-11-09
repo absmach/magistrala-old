@@ -10,6 +10,7 @@ import (
 
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	sdk "github.com/absmach/magistrala/pkg/sdk/go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -64,7 +65,7 @@ func TestIssueToken(t *testing.T) {
 				},
 			},
 			dbClient: wrongClient,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrAuthentication, http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(svcerror.ErrAuthentication, http.StatusUnauthorized),
 		},
 	}
 	for _, tc := range cases {
@@ -116,7 +117,7 @@ func TestRefreshToken(t *testing.T) {
 		{
 			desc:  "refresh token for a valid access token",
 			token: token,
-			err:   errors.NewSDKErrorWithStatus(errors.ErrAuthentication, http.StatusUnauthorized),
+			err:   errors.NewSDKErrorWithStatus(svcerror.ErrAuthentication, http.StatusUnauthorized),
 		},
 		{
 			desc:  "refresh token for an empty token",
