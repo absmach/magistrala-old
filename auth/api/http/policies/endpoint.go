@@ -16,7 +16,6 @@ func createPolicyEndpoint(svc auth.Service) endpoint.Endpoint {
 		if err := req.validate(); err != nil {
 			return createPolicyRes{}, err
 		}
-		// ToDo:
 		if err := svc.AddPolicies(ctx, []auth.PolicyReq{}); err != nil {
 			return createPolicyRes{}, err
 		}
@@ -31,8 +30,6 @@ func deletePoliciesEndpoint(svc auth.Service) endpoint.Endpoint {
 		if err := req.validate(); err != nil {
 			return deletePoliciesRes{}, err
 		}
-
-		// ToDo:
 		if err := svc.DeletePolicies(ctx, []auth.PolicyReq{}); err != nil {
 			return deletePoliciesRes{}, err
 		}

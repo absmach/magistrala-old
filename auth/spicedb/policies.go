@@ -368,227 +368,34 @@ func (pa *policyAgent) policyPreCondition(pr auth.PolicyReq) ([]*v1.Precondition
 	// 4.) group (channel) -> thing
 
 	switch {
+
 	// 1.) user -> group (both user groups and channels)
 	// Checks :
 	// - USER with ANY RELATION to DOMAIN
 	// - GROUP with DOMAIN RELATION to DOMAIN
 	case pr.SubjectType == auth.UserType && pr.ObjectType == auth.GroupType:
-		preconds := []*v1.Precondition{
-			{
-				Operation: v1.Precondition_OPERATION_MUST_MATCH,
-				Filter: &v1.RelationshipFilter{
-					ResourceType:       auth.DomainType,
-					OptionalResourceId: pr.Domain,
-					OptionalSubjectFilter: &v1.SubjectFilter{
-						SubjectType:       auth.UserType,
-						OptionalSubjectId: pr.Subject,
-					},
-				},
-			},
-		}
-		switch {
-		case pr.ObjectKind == auth.NewGroupKind || pr.ObjectKind == auth.NewChannelKind:
-			preconds = append(preconds,
-				&v1.Precondition{
-					Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
-					Filter: &v1.RelationshipFilter{
-						ResourceType:       auth.GroupType,
-						OptionalResourceId: pr.Object,
-						OptionalRelation:   auth.DomainRelation,
-						OptionalSubjectFilter: &v1.SubjectFilter{
-							SubjectType: auth.DomainType,
-						},
-					},
-				},
-			)
-		default:
-			preconds = append(preconds,
-				&v1.Precondition{
-					Operation: v1.Precondition_OPERATION_MUST_MATCH,
-					Filter: &v1.RelationshipFilter{
-						ResourceType:       auth.GroupType,
-						OptionalResourceId: pr.Object,
-						OptionalRelation:   auth.DomainRelation,
-						OptionalSubjectFilter: &v1.SubjectFilter{
-							SubjectType:       auth.DomainType,
-							OptionalSubjectId: pr.Domain,
-						},
-					},
-				},
-			)
-		}
-		return preconds, nil
+		return userGroupPreConditions(pr)
 
 	// 2.) user -> thing
 	// Checks :
 	// - USER with ANY RELATION to DOMAIN
 	// - THING with DOMAIN RELATION to DOMAIN
 	case pr.SubjectType == auth.UserType && pr.ObjectType == auth.ThingType:
-		preconds := []*v1.Precondition{
-			{
-				Operation: v1.Precondition_OPERATION_MUST_MATCH,
-				Filter: &v1.RelationshipFilter{
-					ResourceType:       auth.DomainType,
-					OptionalResourceId: pr.Domain,
-					OptionalSubjectFilter: &v1.SubjectFilter{
-						SubjectType:       auth.UserType,
-						OptionalSubjectId: pr.Subject,
-					},
-				},
-			},
-		}
-		switch {
-		// For New thing
-		// - THING without DOMAIN RELATION to ANY DOMAIN
-		case pr.ObjectKind == auth.NewThingKind:
-			preconds = append(preconds,
-				&v1.Precondition{
-					Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
-					Filter: &v1.RelationshipFilter{
-						ResourceType:       auth.ThingType,
-						OptionalResourceId: pr.Object,
-						OptionalRelation:   auth.DomainRelation,
-						OptionalSubjectFilter: &v1.SubjectFilter{
-							SubjectType: auth.DomainType,
-						},
-					},
-				},
-			)
-		default:
-			// For existing thing
-			// - THING without DOMAIN RELATION to ANY DOMAIN
-			preconds = append(preconds,
-				&v1.Precondition{
-					Operation: v1.Precondition_OPERATION_MUST_MATCH,
-					Filter: &v1.RelationshipFilter{
-						ResourceType:       auth.ThingType,
-						OptionalResourceId: pr.Object,
-						OptionalRelation:   auth.DomainRelation,
-						OptionalSubjectFilter: &v1.SubjectFilter{
-							SubjectType:       auth.DomainType,
-							OptionalSubjectId: pr.Domain,
-						},
-					},
-				},
-			)
-		}
-		return preconds, nil
+		return userThingPreConditions(pr)
 
 	// 3.) group -> group (both for adding parent_group and channels)
 	// Checks :
 	// - CHILD_GROUP with out PARENT_GROUP RELATION with any GROUP
 	case pr.SubjectType == auth.GroupType && pr.ObjectType == auth.GroupType:
-		// - PARENT_GROUP (subject) with DOMAIN RELATION to DOMAIN
-		precond := []*v1.Precondition{
-			{
-				Operation: v1.Precondition_OPERATION_MUST_MATCH,
-				Filter: &v1.RelationshipFilter{
-					ResourceType:       auth.GroupType,
-					OptionalResourceId: pr.Subject,
-					OptionalRelation:   auth.DomainRelation,
-					OptionalSubjectFilter: &v1.SubjectFilter{
-						SubjectType:       auth.DomainType,
-						OptionalSubjectId: pr.Domain,
-					},
-				},
-			},
-		}
-		if pr.ObjectKind != auth.ChannelsKind {
-			precond = append(precond,
-				&v1.Precondition{
-					Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
-					Filter: &v1.RelationshipFilter{
-						ResourceType:       auth.GroupType,
-						OptionalResourceId: pr.Object,
-						OptionalRelation:   auth.ParentGroupRelation,
-						OptionalSubjectFilter: &v1.SubjectFilter{
-							SubjectType: auth.GroupType,
-						},
-					},
-				},
-			)
-		}
-		switch {
-		// - NEW CHILD_GROUP (object) with out DOMAIN RELATION to ANY DOMAIN
-		case pr.ObjectType == auth.GroupType && pr.ObjectKind == auth.NewGroupKind:
-			precond = append(precond,
-				&v1.Precondition{
-					Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
-					Filter: &v1.RelationshipFilter{
-						ResourceType:       auth.GroupType,
-						OptionalResourceId: pr.Object,
-						OptionalRelation:   auth.DomainRelation,
-						OptionalSubjectFilter: &v1.SubjectFilter{
-							SubjectType: auth.DomainType,
-						},
-					},
-				},
-			)
-		default:
-			// - CHILD_GROUP (object) with DOMAIN RELATION to DOMAIN
-			precond = append(precond,
-				&v1.Precondition{
-					Operation: v1.Precondition_OPERATION_MUST_MATCH,
-					Filter: &v1.RelationshipFilter{
-						ResourceType:       auth.GroupType,
-						OptionalResourceId: pr.Object,
-						OptionalRelation:   auth.DomainRelation,
-						OptionalSubjectFilter: &v1.SubjectFilter{
-							SubjectType:       auth.DomainType,
-							OptionalSubjectId: pr.Domain,
-						},
-					},
-				},
-			)
-		}
-		return precond, nil
+		return groupPreConditions(pr)
+
 	// 4.) group (channel) -> thing
 	// Checks :
 	// - GROUP (channel) with DOMAIN RELATION to DOMAIN
 	// - NO GROUP should not have PARENT_GROUP RELATION with GROUP (channel)
 	// - THING with DOMAIN RELATION to DOMAIN
 	case pr.SubjectType == auth.GroupType && pr.ObjectType == auth.ThingType:
-		if pr.SubjectKind != auth.ChannelsKind {
-			return nil, fmt.Errorf("invalid subject kind")
-		}
-		precond := []*v1.Precondition{
-			{
-				Operation: v1.Precondition_OPERATION_MUST_MATCH,
-				Filter: &v1.RelationshipFilter{
-					ResourceType:       auth.GroupType,
-					OptionalResourceId: pr.Subject,
-					OptionalRelation:   auth.DomainRelation,
-					OptionalSubjectFilter: &v1.SubjectFilter{
-						SubjectType:       auth.DomainType,
-						OptionalSubjectId: pr.Domain,
-					},
-				},
-			},
-			{
-				Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
-				Filter: &v1.RelationshipFilter{
-					ResourceType:     auth.GroupType,
-					OptionalRelation: auth.ParentGroupRelation,
-					OptionalSubjectFilter: &v1.SubjectFilter{
-						SubjectType:       auth.GroupType,
-						OptionalSubjectId: pr.Subject,
-					},
-				},
-			},
-			{
-				Operation: v1.Precondition_OPERATION_MUST_MATCH,
-				Filter: &v1.RelationshipFilter{
-					ResourceType:       auth.ThingType,
-					OptionalResourceId: pr.Object,
-					OptionalRelation:   auth.DomainRelation,
-					OptionalSubjectFilter: &v1.SubjectFilter{
-						SubjectType:       auth.DomainType,
-						OptionalSubjectId: pr.Domain,
-					},
-				},
-			},
-		}
-		return precond, nil
+		return channelThingPreCondition(pr)
 
 	// Check thing and group not belongs to other domain before adding to domain
 	case pr.SubjectType == auth.DomainType && pr.Relation == auth.DomainRelation && (pr.ObjectType == auth.ThingType || pr.ObjectType == auth.GroupType):
@@ -609,4 +416,216 @@ func (pa *policyAgent) policyPreCondition(pr auth.PolicyReq) ([]*v1.Precondition
 
 	}
 	return nil, nil
+}
+
+func userGroupPreConditions(pr auth.PolicyReq) ([]*v1.Precondition, error) {
+	preconds := []*v1.Precondition{
+		{
+			Operation: v1.Precondition_OPERATION_MUST_MATCH,
+			Filter: &v1.RelationshipFilter{
+				ResourceType:       auth.DomainType,
+				OptionalResourceId: pr.Domain,
+				OptionalSubjectFilter: &v1.SubjectFilter{
+					SubjectType:       auth.UserType,
+					OptionalSubjectId: pr.Subject,
+				},
+			},
+		},
+	}
+	switch {
+	case pr.ObjectKind == auth.NewGroupKind || pr.ObjectKind == auth.NewChannelKind:
+		preconds = append(preconds,
+			&v1.Precondition{
+				Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
+				Filter: &v1.RelationshipFilter{
+					ResourceType:       auth.GroupType,
+					OptionalResourceId: pr.Object,
+					OptionalRelation:   auth.DomainRelation,
+					OptionalSubjectFilter: &v1.SubjectFilter{
+						SubjectType: auth.DomainType,
+					},
+				},
+			},
+		)
+	default:
+		preconds = append(preconds,
+			&v1.Precondition{
+				Operation: v1.Precondition_OPERATION_MUST_MATCH,
+				Filter: &v1.RelationshipFilter{
+					ResourceType:       auth.GroupType,
+					OptionalResourceId: pr.Object,
+					OptionalRelation:   auth.DomainRelation,
+					OptionalSubjectFilter: &v1.SubjectFilter{
+						SubjectType:       auth.DomainType,
+						OptionalSubjectId: pr.Domain,
+					},
+				},
+			},
+		)
+	}
+	return preconds, nil
+}
+
+func userThingPreConditions(pr auth.PolicyReq) ([]*v1.Precondition, error) {
+	preconds := []*v1.Precondition{
+		{
+			Operation: v1.Precondition_OPERATION_MUST_MATCH,
+			Filter: &v1.RelationshipFilter{
+				ResourceType:       auth.DomainType,
+				OptionalResourceId: pr.Domain,
+				OptionalSubjectFilter: &v1.SubjectFilter{
+					SubjectType:       auth.UserType,
+					OptionalSubjectId: pr.Subject,
+				},
+			},
+		},
+	}
+	switch {
+	// For New thing
+	// - THING without DOMAIN RELATION to ANY DOMAIN
+	case pr.ObjectKind == auth.NewThingKind:
+		preconds = append(preconds,
+			&v1.Precondition{
+				Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
+				Filter: &v1.RelationshipFilter{
+					ResourceType:       auth.ThingType,
+					OptionalResourceId: pr.Object,
+					OptionalRelation:   auth.DomainRelation,
+					OptionalSubjectFilter: &v1.SubjectFilter{
+						SubjectType: auth.DomainType,
+					},
+				},
+			},
+		)
+	default:
+		// For existing thing
+		// - THING without DOMAIN RELATION to ANY DOMAIN
+		preconds = append(preconds,
+			&v1.Precondition{
+				Operation: v1.Precondition_OPERATION_MUST_MATCH,
+				Filter: &v1.RelationshipFilter{
+					ResourceType:       auth.ThingType,
+					OptionalResourceId: pr.Object,
+					OptionalRelation:   auth.DomainRelation,
+					OptionalSubjectFilter: &v1.SubjectFilter{
+						SubjectType:       auth.DomainType,
+						OptionalSubjectId: pr.Domain,
+					},
+				},
+			},
+		)
+	}
+	return preconds, nil
+}
+
+func groupPreConditions(pr auth.PolicyReq) ([]*v1.Precondition, error) {
+	// - PARENT_GROUP (subject) with DOMAIN RELATION to DOMAIN
+	precond := []*v1.Precondition{
+		{
+			Operation: v1.Precondition_OPERATION_MUST_MATCH,
+			Filter: &v1.RelationshipFilter{
+				ResourceType:       auth.GroupType,
+				OptionalResourceId: pr.Subject,
+				OptionalRelation:   auth.DomainRelation,
+				OptionalSubjectFilter: &v1.SubjectFilter{
+					SubjectType:       auth.DomainType,
+					OptionalSubjectId: pr.Domain,
+				},
+			},
+		},
+	}
+	if pr.ObjectKind != auth.ChannelsKind {
+		precond = append(precond,
+			&v1.Precondition{
+				Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
+				Filter: &v1.RelationshipFilter{
+					ResourceType:       auth.GroupType,
+					OptionalResourceId: pr.Object,
+					OptionalRelation:   auth.ParentGroupRelation,
+					OptionalSubjectFilter: &v1.SubjectFilter{
+						SubjectType: auth.GroupType,
+					},
+				},
+			},
+		)
+	}
+	switch {
+	// - NEW CHILD_GROUP (object) with out DOMAIN RELATION to ANY DOMAIN
+	case pr.ObjectType == auth.GroupType && pr.ObjectKind == auth.NewGroupKind:
+		precond = append(precond,
+			&v1.Precondition{
+				Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
+				Filter: &v1.RelationshipFilter{
+					ResourceType:       auth.GroupType,
+					OptionalResourceId: pr.Object,
+					OptionalRelation:   auth.DomainRelation,
+					OptionalSubjectFilter: &v1.SubjectFilter{
+						SubjectType: auth.DomainType,
+					},
+				},
+			},
+		)
+	default:
+		// - CHILD_GROUP (object) with DOMAIN RELATION to DOMAIN
+		precond = append(precond,
+			&v1.Precondition{
+				Operation: v1.Precondition_OPERATION_MUST_MATCH,
+				Filter: &v1.RelationshipFilter{
+					ResourceType:       auth.GroupType,
+					OptionalResourceId: pr.Object,
+					OptionalRelation:   auth.DomainRelation,
+					OptionalSubjectFilter: &v1.SubjectFilter{
+						SubjectType:       auth.DomainType,
+						OptionalSubjectId: pr.Domain,
+					},
+				},
+			},
+		)
+	}
+	return precond, nil
+}
+
+func channelThingPreCondition(pr auth.PolicyReq) ([]*v1.Precondition, error) {
+	if pr.SubjectKind != auth.ChannelsKind {
+		return nil, fmt.Errorf("invalid subject kind")
+	}
+	precond := []*v1.Precondition{
+		{
+			Operation: v1.Precondition_OPERATION_MUST_MATCH,
+			Filter: &v1.RelationshipFilter{
+				ResourceType:       auth.GroupType,
+				OptionalResourceId: pr.Subject,
+				OptionalRelation:   auth.DomainRelation,
+				OptionalSubjectFilter: &v1.SubjectFilter{
+					SubjectType:       auth.DomainType,
+					OptionalSubjectId: pr.Domain,
+				},
+			},
+		},
+		{
+			Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
+			Filter: &v1.RelationshipFilter{
+				ResourceType:     auth.GroupType,
+				OptionalRelation: auth.ParentGroupRelation,
+				OptionalSubjectFilter: &v1.SubjectFilter{
+					SubjectType:       auth.GroupType,
+					OptionalSubjectId: pr.Subject,
+				},
+			},
+		},
+		{
+			Operation: v1.Precondition_OPERATION_MUST_MATCH,
+			Filter: &v1.RelationshipFilter{
+				ResourceType:       auth.ThingType,
+				OptionalResourceId: pr.Object,
+				OptionalRelation:   auth.DomainRelation,
+				OptionalSubjectFilter: &v1.SubjectFilter{
+					SubjectType:       auth.DomainType,
+					OptionalSubjectId: pr.Domain,
+				},
+			},
+		},
+	}
+	return precond, nil
+
 }

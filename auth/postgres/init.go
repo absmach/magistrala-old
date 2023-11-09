@@ -38,7 +38,7 @@ func Migration() *migrate.MemoryMigrationSource {
                         created_by  VARCHAR(254),
                         status      SMALLINT NOT NULL DEFAULT 0 CHECK (status >= 0)
                     );`,
-					`CREATE TABLE IF NOT EXISTS policies_copy (
+					`CREATE TABLE IF NOT EXISTS policies (
                         subject_type        VARCHAR(254) NOT NULL,
                         subject_id          VARCHAR(254) NOT NULL,
                         subject_relation    VARCHAR(254) NOT NULL,
