@@ -186,7 +186,7 @@ func (svc service) Authorize(ctx context.Context, pr PolicyReq) error {
 		pr.Subject = key.Subject
 	}
 	if err := svc.agent.CheckPolicy(ctx, pr); err != nil {
-		return errors.Wrap(svcerror.ErrAuthorization, err)
+		return errors.Wrap(errors.ErrAuthorization, err)
 	}
 	return nil
 }

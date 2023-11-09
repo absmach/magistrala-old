@@ -7,7 +7,7 @@ import (
 	"context"
 
 	"github.com/absmach/magistrala"
-	svcerror "github.com/absmach/magistrala/pkg/errors/service"
+	"github.com/absmach/magistrala/pkg/errors"
 	"google.golang.org/grpc"
 )
 
@@ -40,7 +40,7 @@ func (repo singleUserRepo) Issue(ctx context.Context, in *magistrala.IssueReq, o
 
 func (repo singleUserRepo) Identify(ctx context.Context, in *magistrala.IdentityReq, opts ...grpc.CallOption) (*magistrala.IdentityRes, error) {
 	if repo.token != in.GetToken() {
-		return nil, svcerror.ErrAuthentication
+		return nil, errors.ErrAuthentication
 	}
 
 	return &magistrala.IdentityRes{Id: repo.id}, nil
@@ -48,7 +48,7 @@ func (repo singleUserRepo) Identify(ctx context.Context, in *magistrala.Identity
 
 func (repo singleUserRepo) Authorize(ctx context.Context, in *magistrala.AuthorizeReq, opts ...grpc.CallOption) (*magistrala.AuthorizeRes, error) {
 	if repo.id != in.Subject {
-		return &magistrala.AuthorizeRes{Authorized: false}, svcerror.ErrAuthorization
+		return &magistrala.AuthorizeRes{Authorized: false}, errors.ErrAuthorization
 	}
 
 	return &magistrala.AuthorizeRes{Authorized: true}, nil
