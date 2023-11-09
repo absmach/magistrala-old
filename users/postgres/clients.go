@@ -11,6 +11,8 @@ import (
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	pgclients "github.com/absmach/magistrala/pkg/clients/postgres"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 )
 
 var _ mgclients.Repository = (*clientRepo)(nil)
@@ -43,24 +45,24 @@ func (repo clientRepo) Save(ctx context.Context, c mgclients.Client) (mgclients.
         RETURNING id, name, tags, identity, metadata, COALESCE(owner_id, '') AS owner_id, status, created_at`
 	dbc, err := pgclients.ToDBClient(c)
 	if err != nil {
-		return mgclients.Client{}, errors.Wrap(errors.ErrCreateEntity, err)
+		return mgclients.Client{}, errors.Wrap(repoerror.ErrCreateEntity, err)
 	}
 
 	row, err := repo.ClientRepository.DB.NamedQueryContext(ctx, q, dbc)
 	if err != nil {
-		return mgclients.Client{}, postgres.HandleError(err, errors.ErrCreateEntity)
+		return mgclients.Client{}, postgres.HandleError(err, repoerror.ErrCreateEntity)
 	}
 
 	defer row.Close()
 	row.Next()
 	dbc = pgclients.DBClient{}
 	if err := row.StructScan(&dbc); err != nil {
-		return mgclients.Client{}, err
+		return mgclients.Client{}, errors.Wrap(repoerror.ErrFailedOpDB, err)
 	}
 
 	client, err := pgclients.ToClient(dbc)
 	if err != nil {
-		return mgclients.Client{}, err
+		return mgclients.Client{}, errors.Wrap(repoerror.ErrFailedOpDB, err)
 	}
 
 	return client, nil
@@ -72,16 +74,16 @@ func (repo clientRepo) IsOwner(ctx context.Context, clientID, ownerID string) er
 	rows, err := repo.ClientRepository.DB.QueryContext(ctx, q, clientID, ownerID)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return errors.ErrAuthorization
+			return svcerror.ErrAuthorization
 		}
-		return errors.Wrap(errors.ErrAuthorization, err)
+		return errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	defer rows.Close()
 	if !rows.Next() {
-		return errors.ErrAuthorization
+		return svcerror.ErrAuthorization
 	}
 	if err := rows.Err(); err != nil {
-		return errors.Wrap(errors.ErrAuthorization, err)
+		return errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	return nil
 }

@@ -10,6 +10,7 @@ import (
 	"github.com/absmach/magistrala/auth"
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/things"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
 	"google.golang.org/grpc/codes"
@@ -56,20 +57,19 @@ func encodeError(err error) error {
 	switch {
 	case errors.Contains(err, nil):
 		return nil
-	case errors.Contains(err, errors.ErrMalformedEntity),
-		err == apiutil.ErrInvalidAuthKey,
+	case err == apiutil.ErrInvalidAuthKey,
 		err == apiutil.ErrMissingID,
 		err == apiutil.ErrMissingMemberType,
 		err == apiutil.ErrMissingPolicySub,
 		err == apiutil.ErrMissingPolicyObj,
 		err == apiutil.ErrMalformedPolicyAct:
 		return status.Error(codes.InvalidArgument, err.Error())
-	case errors.Contains(err, errors.ErrAuthentication),
+	case errors.Contains(err, svcerror.ErrAuthentication),
 		errors.Contains(err, auth.ErrKeyExpired),
 		err == apiutil.ErrMissingEmail,
 		err == apiutil.ErrBearerToken:
 		return status.Error(codes.Unauthenticated, err.Error())
-	case errors.Contains(err, errors.ErrAuthorization):
+	case errors.Contains(err, svcerror.ErrAuthorization):
 		return status.Error(codes.PermissionDenied, err.Error())
 	default:
 		return status.Error(codes.Internal, err.Error())

@@ -11,6 +11,7 @@ import (
 
 	"github.com/absmach/magistrala/consumers/notifiers"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/jackc/pgerrcode"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -41,9 +42,9 @@ func (repo subscriptionsRepo) Save(ctx context.Context, sub notifiers.Subscripti
 	row, err := repo.db.NamedQueryContext(ctx, q, dbSub)
 	if err != nil {
 		if pqErr, ok := err.(*pgconn.PgError); ok && pqErr.Code == pgerrcode.UniqueViolation {
-			return "", errors.Wrap(errors.ErrConflict, err)
+			return "", errors.Wrap(repoerror.ErrConflict, err)
 		}
-		return "", errors.Wrap(errors.ErrCreateEntity, err)
+		return "", errors.Wrap(repoerror.ErrCreateEntity, err)
 	}
 	defer row.Close()
 
@@ -55,9 +56,9 @@ func (repo subscriptionsRepo) Retrieve(ctx context.Context, id string) (notifier
 	sub := dbSubscription{}
 	if err := repo.db.QueryRowxContext(ctx, q, id).StructScan(&sub); err != nil {
 		if err == sql.ErrNoRows {
-			return notifiers.Subscription{}, errors.Wrap(errors.ErrNotFound, err)
+			return notifiers.Subscription{}, errors.Wrap(repoerror.ErrNotFound, err)
 		}
-		return notifiers.Subscription{}, errors.Wrap(errors.ErrViewEntity, err)
+		return notifiers.Subscription{}, errors.Wrap(repoerror.ErrViewEntity, err)
 	}
 
 	return fromDBSub(sub), nil
@@ -90,7 +91,7 @@ func (repo subscriptionsRepo) RetrieveAll(ctx context.Context, pm notifiers.Page
 
 	rows, err := repo.db.NamedQueryContext(ctx, q, args)
 	if err != nil {
-		return notifiers.Page{}, errors.Wrap(errors.ErrViewEntity, err)
+		return notifiers.Page{}, errors.Wrap(repoerror.ErrViewEntity, err)
 	}
 	defer rows.Close()
 
@@ -98,19 +99,19 @@ func (repo subscriptionsRepo) RetrieveAll(ctx context.Context, pm notifiers.Page
 	for rows.Next() {
 		sub := dbSubscription{}
 		if err := rows.StructScan(&sub); err != nil {
-			return notifiers.Page{}, errors.Wrap(errors.ErrViewEntity, err)
+			return notifiers.Page{}, errors.Wrap(repoerror.ErrViewEntity, err)
 		}
 		subs = append(subs, fromDBSub(sub))
 	}
 
 	if len(subs) == 0 {
-		return notifiers.Page{}, errors.ErrNotFound
+		return notifiers.Page{}, repoerror.ErrNotFound
 	}
 
 	cq := fmt.Sprintf(`SELECT COUNT(*) FROM subscriptions %s`, condition)
 	total, err := total(ctx, repo.db, cq, args)
 	if err != nil {
-		return notifiers.Page{}, errors.Wrap(errors.ErrViewEntity, err)
+		return notifiers.Page{}, errors.Wrap(repoerror.ErrViewEntity, err)
 	}
 
 	ret := notifiers.Page{
@@ -126,7 +127,7 @@ func (repo subscriptionsRepo) Remove(ctx context.Context, id string) error {
 	q := `DELETE from subscriptions WHERE id = $1`
 
 	if r := repo.db.QueryRowxContext(ctx, q, id); r.Err() != nil {
-		return errors.Wrap(errors.ErrRemoveEntity, r.Err())
+		return errors.Wrap(repoerror.ErrRemoveEntity, r.Err())
 	}
 	return nil
 }

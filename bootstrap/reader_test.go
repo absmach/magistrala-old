@@ -13,7 +13,7 @@ import (
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/bootstrap"
-	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -39,7 +39,7 @@ func dec(in []byte) ([]byte, error) {
 		return nil, err
 	}
 	if len(in) < aes.BlockSize {
-		return nil, errors.ErrMalformedEntity
+		return nil, repoerror.ErrMalformedEntity
 	}
 	iv := in[:aes.BlockSize]
 	in = in[aes.BlockSize:]

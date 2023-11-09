@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/absmach/magistrala/things"
 	"github.com/go-redis/redis/v8"
 )
@@ -36,12 +37,12 @@ func NewCache(client *redis.Client, duration time.Duration) things.Cache {
 func (tc *thingCache) Save(ctx context.Context, thingKey string, thingID string) error {
 	tkey := fmt.Sprintf("%s:%s", keyPrefix, thingKey)
 	if err := tc.client.Set(ctx, tkey, thingID, tc.keyDuration).Err(); err != nil {
-		return errors.Wrap(errors.ErrCreateEntity, err)
+		return errors.Wrap(repoerror.ErrCreateEntity, err)
 	}
 
 	tid := fmt.Sprintf("%s:%s", idPrefix, thingID)
 	if err := tc.client.Set(ctx, tid, thingKey, tc.keyDuration).Err(); err != nil {
-		return errors.Wrap(errors.ErrCreateEntity, err)
+		return errors.Wrap(repoerror.ErrCreateEntity, err)
 	}
 
 	return nil
@@ -51,10 +52,10 @@ func (tc *thingCache) ID(ctx context.Context, thingKey string) (string, error) {
 	tkey := fmt.Sprintf("%s:%s", keyPrefix, thingKey)
 	thingID, err := tc.client.Get(ctx, tkey).Result()
 	if err != nil {
-		return "", errors.Wrap(errors.ErrNotFound, err)
+		return "", errors.Wrap(repoerror.ErrNotFound, err)
 	}
 	if thingID == "" {
-		return "", errors.ErrNotFound
+		return "", repoerror.ErrNotFound
 	}
 
 	return thingID, nil
@@ -68,12 +69,12 @@ func (tc *thingCache) Remove(ctx context.Context, thingID string) error {
 		return nil
 	}
 	if err != nil {
-		return errors.Wrap(errors.ErrRemoveEntity, err)
+		return errors.Wrap(repoerror.ErrRemoveEntity, err)
 	}
 
 	tkey := fmt.Sprintf("%s:%s", keyPrefix, key)
 	if err := tc.client.Del(ctx, tkey, tid).Err(); err != nil {
-		return errors.Wrap(errors.ErrRemoveEntity, err)
+		return errors.Wrap(repoerror.ErrRemoveEntity, err)
 	}
 
 	return nil
