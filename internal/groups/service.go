@@ -67,7 +67,7 @@ func (svc service) CreateGroup(ctx context.Context, token, kind string, g groups
 	if err != nil {
 		return groups.Group{}, err
 	}
-	// ToDo: Add defer function , if return err is not nil, then delete group
+	// IMPROVEMENT NOTE: Add defer function , if return err is not nil, then delete group
 
 	policies := magistrala.AddPoliciesReq{}
 	policies.AddPoliciesReq = append(policies.AddPoliciesReq, &magistrala.AddPolicyReq{
@@ -176,7 +176,6 @@ func (svc service) ListGroups(ctx context.Context, token, memberKind, memberID s
 		}
 	case auth.UsersKind:
 		if memberID != "" && res.GetUserId() != memberID {
-			// ToDo:  Check user is admin of domain
 			if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, res.GetId(), auth.AdminPermission, auth.DomainType, res.GetDomainId()); err != nil {
 				return groups.Page{}, err
 			}
@@ -211,7 +210,7 @@ func (svc service) ListGroups(ctx context.Context, token, memberKind, memberID s
 	return svc.groups.RetrieveByIDs(ctx, gm, ids...)
 }
 
-// ToDo: remove this function and all its related auxillary function, ListMembers are moved to respective service
+// IMPROVEMENT NOTE: remove this function and all its related auxillary function, ListMembers are moved to respective service
 func (svc service) ListMembers(ctx context.Context, token, groupID, permission, memberKind string) (groups.MembersPage, error) {
 	_, err := svc.authorize(ctx, auth.UserType, token, auth.ViewPermission, auth.GroupType, groupID)
 	if err != nil {

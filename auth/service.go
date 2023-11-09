@@ -614,7 +614,7 @@ func (svc service) UnassignUsers(ctx context.Context, token string, id string, u
 	return nil
 }
 
-// ToDo: Take decision: Only Patform admin or both Patform and domain admins can see others users domain
+// IMPROVEMENT NOTE: Take decision: Only Patform admin or both Patform and domain admins can see others users domain
 func (svc service) ListUserDomains(ctx context.Context, token string, userID string, p Page) (DomainsPage, error) {
 	res, err := svc.Identify(ctx, token)
 	if err != nil {
