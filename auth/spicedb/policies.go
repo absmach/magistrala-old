@@ -17,6 +17,15 @@ import (
 
 const defRetrieveAllLimit = 1000
 
+var (
+	errInvalidSubject   = errors.New("invalid subject kind")
+	errAddPolicies      = errors.New("failed to add policies")
+	errRetrievePolicies = errors.New("failed to retrieve policies")
+	errRemovePolicies   = errors.New("failed to remove the policies")
+	errNoPolicies       = errors.New("no policies provided")
+	errPermission       = errors.New("failed to check permission")
+)
+
 type policyAgent struct {
 	client           *authzed.Client
 	permissionClient v1.PermissionsServiceClient
@@ -40,13 +49,13 @@ func (pa *policyAgent) CheckPolicy(ctx context.Context, pr auth.PolicyReq) error
 
 	resp, err := pa.permissionClient.CheckPermission(ctx, &checkReq)
 	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, fmt.Errorf("failed to check permission: %w", err))
+		return errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errPermission, err))
 	}
 	if resp.Permissionship == v1.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION {
 		return nil
 	}
 	if reason, ok := v1.CheckPermissionResponse_Permissionship_name[int32(resp.Permissionship)]; ok {
-		return errors.Wrap(errors.ErrAuthorization, fmt.Errorf("%s", reason))
+		return errors.Wrap(errors.ErrAuthorization, errors.New(reason))
 	}
 	return errors.ErrAuthorization
 }
@@ -70,11 +79,11 @@ func (pa *policyAgent) AddPolicies(ctx context.Context, prs []auth.PolicyReq) er
 		})
 	}
 	if len(updates) == 0 {
-		return fmt.Errorf("no policies provided")
+		return errNoPolicies
 	}
 	_, err := pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates, OptionalPreconditions: preconds})
 	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, fmt.Errorf("failed to add policies: %w", err))
+		return errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
 	}
 	return nil
 }
@@ -97,7 +106,7 @@ func (pa *policyAgent) AddPolicy(ctx context.Context, pr auth.PolicyReq) error {
 	}
 	_, err = pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates, OptionalPreconditions: precond})
 	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, fmt.Errorf("failed to add policy: %w", err))
+		return errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
 	}
 	return nil
 }
@@ -115,11 +124,11 @@ func (pa *policyAgent) DeletePolicies(ctx context.Context, prs []auth.PolicyReq)
 		})
 	}
 	if len(updates) == 0 {
-		return fmt.Errorf("no policies provided")
+		return errNoPolicies
 	}
 	_, err := pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates})
 	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, fmt.Errorf("failed to delete policy: %w", err))
+		return errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errRemovePolicies, err))
 	}
 	return nil
 }
@@ -140,7 +149,7 @@ func (pa *policyAgent) DeletePolicy(ctx context.Context, pr auth.PolicyReq) erro
 		},
 	}
 	if _, err := pa.permissionClient.DeleteRelationships(ctx, req); err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, fmt.Errorf("failed to remove the policy: %w", err))
+		return errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errRemovePolicies, err))
 	}
 	return nil
 }
@@ -158,7 +167,7 @@ func (pa *policyAgent) RetrieveObjects(ctx context.Context, pr auth.PolicyReq, n
 	}
 	stream, err := pa.permissionClient.LookupResources(ctx, resourceReq)
 	if err != nil {
-		return nil, "", errors.Wrap(errors.ErrMalformedEntity, fmt.Errorf("failed to retrieve policies: %w", err))
+		return nil, "", errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errRetrievePolicies, err))
 	}
 	resources := []*v1.LookupResourcesResponse{}
 	var retErr error
@@ -193,7 +202,7 @@ func (pa *policyAgent) RetrieveAllObjects(ctx context.Context, pr auth.PolicyReq
 	}
 	stream, err := pa.permissionClient.LookupResources(ctx, resourceReq)
 	if err != nil {
-		return nil, errors.Wrap(errors.ErrMalformedEntity, fmt.Errorf("failed to retrieve policies: %w", err))
+		return nil, errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errRetrievePolicies, err))
 	}
 	tuples := []auth.PolicyRes{}
 	for {
@@ -240,7 +249,7 @@ func (pa *policyAgent) RetrieveSubjects(ctx context.Context, pr auth.PolicyReq, 
 	}
 	stream, err := pa.permissionClient.LookupSubjects(ctx, &subjectsReq)
 	if err != nil {
-		return nil, "", errors.Wrap(errors.ErrMalformedEntity, fmt.Errorf("failed to retrieve policies: %w", err))
+		return nil, "", errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errRetrievePolicies, err))
 	}
 	subjects := []*v1.LookupSubjectsResponse{}
 	var retErr error
@@ -587,7 +596,7 @@ func groupPreConditions(pr auth.PolicyReq) ([]*v1.Precondition, error) {
 
 func channelThingPreCondition(pr auth.PolicyReq) ([]*v1.Precondition, error) {
 	if pr.SubjectKind != auth.ChannelsKind {
-		return nil, fmt.Errorf("invalid subject kind")
+		return nil, errInvalidSubject
 	}
 	precond := []*v1.Precondition{
 		{
