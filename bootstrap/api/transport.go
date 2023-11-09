@@ -271,13 +271,10 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	case errors.Contains(err, apiutil.ErrUnsupportedContentType):
 		w.WriteHeader(http.StatusUnsupportedMediaType)
 	case errors.Contains(err, apiutil.ErrInvalidQueryParams),
-		errors.Contains(err, repoerror.ErrMalformedEntity),
 		errors.Contains(err, apiutil.ErrMissingID),
 		errors.Contains(err, apiutil.ErrBootstrapState),
 		errors.Contains(err, apiutil.ErrLimitSize):
 		w.WriteHeader(http.StatusBadRequest)
-	case errors.Contains(err, repoerror.ErrNotFound):
-		w.WriteHeader(http.StatusNotFound)
 	case errors.Contains(err, bootstrap.ErrExternalKey),
 		errors.Contains(err, bootstrap.ErrExternalKeySecure),
 		errors.Contains(err, errors.ErrAuthorization):
@@ -286,12 +283,6 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 		w.WriteHeader(http.StatusConflict)
 	case errors.Contains(err, bootstrap.ErrThings):
 		w.WriteHeader(http.StatusServiceUnavailable)
-
-	case errors.Contains(err, repoerror.ErrCreateEntity),
-		errors.Contains(err, repoerror.ErrUpdateEntity),
-		errors.Contains(err, repoerror.ErrViewEntity),
-		errors.Contains(err, repoerror.ErrRemoveEntity):
-		w.WriteHeader(http.StatusInternalServerError)
 
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
