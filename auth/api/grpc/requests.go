@@ -21,8 +21,9 @@ func (req identityReq) validate() error {
 }
 
 type issueReq struct {
-	id      string
-	keyType auth.KeyType
+	userID   string
+	domainID string // optional
+	keyType  auth.KeyType
 }
 
 func (req issueReq) validate() error {
@@ -36,11 +37,12 @@ func (req issueReq) validate() error {
 }
 
 type refreshReq struct {
-	value string
+	refreshToken string
+	domainID     string // optional
 }
 
 func (req refreshReq) validate() error {
-	if req.value == "" {
+	if req.refreshToken == "" {
 		return apiutil.ErrMissingSecret
 	}
 
@@ -52,7 +54,7 @@ func (req refreshReq) validate() error {
 // 2. object - an entity over which action will be executed
 // 3. action - type of action that will be executed (read/write).
 type authReq struct {
-	Namespace   string
+	Domain      string
 	SubjectType string
 	SubjectKind string
 	Subject     string
@@ -83,12 +85,14 @@ func (req authReq) validate() error {
 }
 
 type policyReq struct {
-	Namespace   string
+	Domain      string
 	SubjectType string
 	Subject     string
+	SubjectKind string
 	Relation    string
 	Permission  string
 	ObjectType  string
+	ObjectKind  string
 	Object      string
 }
 
@@ -108,8 +112,19 @@ func (req policyReq) validate() error {
 	return nil
 }
 
+type policiesReq []policyReq
+
+func (prs policiesReq) validate() error {
+	for _, pr := range prs {
+		if err := pr.validate(); err != nil {
+			return nil
+		}
+	}
+	return nil
+}
+
 type listObjectsReq struct {
-	Namespace     string
+	Domain        string
 	SubjectType   string
 	Subject       string
 	Relation      string
@@ -121,7 +136,7 @@ type listObjectsReq struct {
 }
 
 type countObjectsReq struct {
-	Namespace     string
+	Domain        string
 	SubjectType   string
 	Subject       string
 	Relation      string
@@ -132,7 +147,7 @@ type countObjectsReq struct {
 }
 
 type listSubjectsReq struct {
-	Namespace     string
+	Domain        string
 	SubjectType   string
 	Subject       string
 	Relation      string
@@ -144,7 +159,7 @@ type listSubjectsReq struct {
 }
 
 type countSubjectsReq struct {
-	Namespace     string
+	Domain        string
 	SubjectType   string
 	Subject       string
 	Relation      string
