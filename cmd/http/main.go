@@ -16,11 +16,11 @@ import (
 	adapter "github.com/absmach/magistrala/http"
 	"github.com/absmach/magistrala/http/api"
 	"github.com/absmach/magistrala/internal"
-	authapi "github.com/absmach/magistrala/internal/clients/grpc/auth"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
+	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/absmach/magistrala/pkg/messaging/brokers"
 	brokerstracing "github.com/absmach/magistrala/pkg/messaging/brokers/tracing"
@@ -37,6 +37,7 @@ import (
 const (
 	svcName        = "http_adapter"
 	envPrefix      = "MG_HTTP_ADAPTER_"
+	envPrefixAuthz = "MG_THINGS_AUTH_GRPC_"
 	defSvcHTTPPort = "80"
 	targetHTTPPort = "81"
 	targetHTTPHost = "http://localhost"
@@ -83,7 +84,7 @@ func main() {
 		return
 	}
 
-	auth, aHandler, err := authapi.SetupAuthz("authz")
+	authClient, aHandler, err := auth.SetupAuthz(envPrefixAuthz)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
@@ -115,7 +116,7 @@ func main() {
 	defer pub.Close()
 	pub = brokerstracing.NewPublisher(httpServerConfig, tracer, pub)
 
-	svc := newService(pub, auth, logger, tracer)
+	svc := newService(pub, authClient, logger, tracer)
 	targetServerCfg := server.Config{Port: targetHTTPPort}
 
 	hs := httpserver.New(ctx, cancel, svcName, targetServerCfg, api.MakeHandler(cfg.InstanceID), logger)
