@@ -16,7 +16,14 @@ import (
 	"github.com/absmach/magistrala/pkg/groups"
 )
 
-var errParentUnAuthz = errors.New("failed to authorize parent group")
+var (
+	errParentUnAuthz  = errors.New("failed to authorize parent group")
+	errMemberKind     = errors.New("invalid member kind")
+	errAddPolicies    = errors.New("failed to add policies")
+	errDeletePolicies = errors.New("failed to delete policies")
+	errRetrieveGroups = errors.New("failed to retrieve groups")
+	errGroupIDs       = errors.New("invalid group ids")
+)
 
 type service struct {
 	groups     groups.Repository
@@ -193,7 +200,7 @@ func (svc service) ListGroups(ctx context.Context, token, memberKind, memberID s
 			}
 		}
 	default:
-		return groups.Page{}, fmt.Errorf("invalid member kind")
+		return groups.Page{}, errMemberKind
 	}
 
 	if len(ids) == 0 {
@@ -262,7 +269,7 @@ func (svc service) ListMembers(ctx context.Context, token, groupID, permission, 
 			Members: members,
 		}, nil
 	default:
-		return groups.MembersPage{}, fmt.Errorf("invalid member_kind")
+		return groups.MembersPage{}, errMemberKind
 	}
 }
 
@@ -353,11 +360,11 @@ func (svc service) Assign(ctx context.Context, token, groupID, relation, memberK
 			})
 		}
 	default:
-		return fmt.Errorf("invalid member kind")
+		return errMemberKind
 	}
 
 	if _, err := svc.auth.AddPolicies(ctx, &policies); err != nil {
-		return fmt.Errorf("failed to add policies : %w", err)
+		return errors.Wrap(errAddPolicies, err)
 	}
 
 	return nil
@@ -366,10 +373,10 @@ func (svc service) Assign(ctx context.Context, token, groupID, relation, memberK
 func (svc service) assignParentGroup(ctx context.Context, domain, parentGroupID string, groupIDs []string) (err error) {
 	groups, err := svc.groups.RetrieveByIDs(ctx, groups.Page{PageMeta: groups.PageMeta{Limit: 1<<63 - 1}}, groupIDs...)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve groups: %w", err)
+		return errors.Wrap(errRetrieveGroups, err)
 	}
 	if len(groups.Groups) == 0 {
-		return fmt.Errorf("invalid group ids")
+		return errGroupIDs
 	}
 	var addPolicies magistrala.AddPoliciesReq
 	var deletePolicies magistrala.DeletePoliciesReq
@@ -412,10 +419,10 @@ func (svc service) assignParentGroup(ctx context.Context, domain, parentGroupID 
 func (svc service) unassignParentGroup(ctx context.Context, domain, parentGroupID string, groupIDs []string) error {
 	groups, err := svc.groups.RetrieveByIDs(ctx, groups.Page{PageMeta: groups.PageMeta{Limit: 1<<63 - 1}}, groupIDs...)
 	if err != nil {
-		return fmt.Errorf("failed to retrieve groups: %w", err)
+		return errors.Wrap(errRetrieveGroups, err)
 	}
 	if len(groups.Groups) == 0 {
-		return fmt.Errorf("invalid group ids")
+		return errGroupIDs
 	}
 	var addPolicies magistrala.AddPoliciesReq
 	var deletePolicies magistrala.DeletePoliciesReq
@@ -504,11 +511,11 @@ func (svc service) Unassign(ctx context.Context, token, groupID, relation, membe
 			})
 		}
 	default:
-		return fmt.Errorf("invalid member kind")
+		return errMemberKind
 	}
 
 	if _, err := svc.auth.DeletePolicies(ctx, &policies); err != nil {
-		return fmt.Errorf("failed to delete policies : %w", err)
+		return errors.Wrap(errDeletePolicies, err)
 	}
 	return nil
 }

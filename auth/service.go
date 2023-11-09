@@ -15,11 +15,15 @@ import (
 	"github.com/absmach/magistrala/pkg/errors"
 )
 
-const (
-	recoveryDuration   = 5 * time.Minute
+const recoveryDuration   = 5 * time.Minute
 	invitationDuration = 24 * time.Hour
 
-	refreshToken = "refresh_token"
+var (
+	errRollbackPolicy     = errors.New("failed to rollback policy")
+	errUserID             = errors.New("invalid user id ")
+	errAddBackPolicy      = errors.New("failed to add back policy")
+	errRemoveLocalPolicy  = errors.New("failed to remove from local policy copy")
+	errRemovePolicyEngine = errors.New("failed to remove from policy engine")
 )
 
 var (
@@ -466,7 +470,7 @@ func (svc service) CreateDomain(ctx context.Context, token string, d Domain) (do
 	defer func() {
 		if err != nil {
 			if errRollBack := svc.createDomainPolicyRollback(ctx, key.User, domainID, AdministratorRelation); errRollBack != nil {
-				err = errors.Wrap(err, fmt.Errorf("failed to rollback policy %w", errRollBack))
+				err = errors.Wrap(err, errors.Wrap(errRollbackPolicy, errRollBack))
 			}
 		}
 	}()
@@ -652,7 +656,7 @@ func (svc service) addDomainPolicy(ctx context.Context, userID, domainID, relati
 	defer func() {
 		if err != nil {
 			if errDel := svc.agent.DeletePolicy(ctx, pr); errDel != nil {
-				err = errors.Wrap(err, fmt.Errorf("failed to rollback policy %w", errDel))
+				err = errors.Wrap(err, errors.Wrap(errRollbackPolicy, errDel))
 			}
 		}
 	}()
@@ -689,7 +693,7 @@ func (svc service) createDomainPolicy(ctx context.Context, userID, domainID, rel
 	defer func() {
 		if err != nil {
 			if errDel := svc.agent.DeletePolicies(ctx, prs); errDel != nil {
-				err = errors.Wrap(err, fmt.Errorf("failed to rollback policy %w", errDel))
+				err = errors.Wrap(err, errors.Wrap(errRollbackPolicy, errDel))
 			}
 		}
 	}()
@@ -722,7 +726,7 @@ func (svc service) createDomainPolicyRollback(ctx context.Context, userID, domai
 		},
 	}
 	if errPolicy := svc.agent.DeletePolicies(ctx, prs); errPolicy != nil {
-		err = fmt.Errorf("failed to remove from policy engine %w", errPolicy)
+		err = errors.Wrap(errRemovePolicyEngine, errPolicy)
 	}
 	errPolicyCopy := svc.domains.SavePolicyCopy(ctx, PolicyCopy{
 		SubjectType: UserType,
@@ -732,7 +736,7 @@ func (svc service) createDomainPolicyRollback(ctx context.Context, userID, domai
 		ObjectID:    domainID,
 	})
 	if errPolicyCopy != nil {
-		err = errors.Wrap(err, fmt.Errorf("failed to remove from local policy copy %w", errPolicyCopy))
+		err = errors.Wrap(err, errors.Wrap(errRemoveLocalPolicy, errPolicyCopy))
 	}
 	return err
 }
@@ -752,7 +756,7 @@ func (svc service) removeDomainPolicy(ctx context.Context, userID, domainID, rel
 	defer func() {
 		if err != nil {
 			if errAdd := svc.agent.AddPolicy(ctx, pr); errAdd != nil {
-				err = errors.Wrap(err, fmt.Errorf("failed to add back policy %w", errAdd))
+				err = errors.Wrap(err, errors.Wrap(errAddBackPolicy, errAdd))
 			}
 		}
 	}()
