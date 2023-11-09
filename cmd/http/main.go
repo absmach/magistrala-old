@@ -9,23 +9,24 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/absmach/magistrala"
 	adapter "github.com/absmach/magistrala/http"
 	"github.com/absmach/magistrala/http/api"
 	"github.com/absmach/magistrala/internal"
-	authapi "github.com/absmach/magistrala/internal/clients/grpc/auth"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
-	"github.com/absmach/magistrala/internal/env"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
+	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/absmach/magistrala/pkg/messaging/brokers"
 	brokerstracing "github.com/absmach/magistrala/pkg/messaging/brokers/tracing"
 	"github.com/absmach/magistrala/pkg/messaging/handler"
 	"github.com/absmach/magistrala/pkg/uuid"
+	"github.com/caarlos0/env/v10"
 	chclient "github.com/mainflux/callhome/pkg/client"
 	mproxy "github.com/mainflux/mproxy/pkg/http"
 	"github.com/mainflux/mproxy/pkg/session"
@@ -36,6 +37,7 @@ import (
 const (
 	svcName        = "http_adapter"
 	envPrefix      = "MG_HTTP_ADAPTER_"
+	envPrefixAuthz = "MG_THINGS_AUTH_GRPC_"
 	defSvcHTTPPort = "80"
 	targetHTTPPort = "81"
 	targetHTTPHost = "http://localhost"
@@ -44,7 +46,7 @@ const (
 type config struct {
 	LogLevel      string  `env:"MG_HTTP_ADAPTER_LOG_LEVEL"   envDefault:"info"`
 	BrokerURL     string  `env:"MG_MESSAGE_BROKER_URL"       envDefault:"nats://localhost:4222"`
-	JaegerURL     string  `env:"MG_JAEGER_URL"               envDefault:"http://jaeger:14268/api/traces"`
+	JaegerURL     url.URL `env:"MG_JAEGER_URL"               envDefault:"http://jaeger:14268/api/traces"`
 	SendTelemetry bool    `env:"MG_SEND_TELEMETRY"           envDefault:"true"`
 	InstanceID    string  `env:"MG_HTTP_ADAPTER_INSTANCE_ID" envDefault:""`
 	TraceRatio    float64 `env:"MG_JAEGER_TRACE_RATIO"       envDefault:"1.0"`
@@ -76,13 +78,13 @@ func main() {
 	}
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
-	if err := env.Parse(&httpServerConfig, env.Options{Prefix: envPrefix}); err != nil {
+	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefix}); err != nil {
 		logger.Error(fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
-	auth, aHandler, err := authapi.SetupAuthz("authz")
+	authClient, aHandler, err := auth.SetupAuthz(envPrefixAuthz)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
@@ -114,7 +116,7 @@ func main() {
 	defer pub.Close()
 	pub = brokerstracing.NewPublisher(httpServerConfig, tracer, pub)
 
-	svc := newService(pub, auth, logger, tracer)
+	svc := newService(pub, authClient, logger, tracer)
 	targetServerCfg := server.Config{Port: targetHTTPPort}
 
 	hs := httpserver.New(ctx, cancel, svcName, targetServerCfg, api.MakeHandler(cfg.InstanceID), logger)

@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 
 	"github.com/absmach/magistrala"
@@ -18,17 +19,17 @@ import (
 	bootstrappg "github.com/absmach/magistrala/bootstrap/postgres"
 	"github.com/absmach/magistrala/bootstrap/tracing"
 	"github.com/absmach/magistrala/internal"
-	authclient "github.com/absmach/magistrala/internal/clients/grpc/auth"
 	"github.com/absmach/magistrala/internal/clients/jaeger"
 	pgclient "github.com/absmach/magistrala/internal/clients/postgres"
-	"github.com/absmach/magistrala/internal/env"
 	"github.com/absmach/magistrala/internal/postgres"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
+	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/events/store"
 	mgsdk "github.com/absmach/magistrala/pkg/sdk/go"
 	"github.com/absmach/magistrala/pkg/uuid"
+	"github.com/caarlos0/env/v10"
 	"github.com/jmoiron/sqlx"
 	chclient "github.com/mainflux/callhome/pkg/client"
 	"go.opentelemetry.io/otel/trace"
@@ -39,6 +40,7 @@ const (
 	svcName        = "bootstrap"
 	envPrefixDB    = "MG_BOOTSTRAP_DB_"
 	envPrefixHTTP  = "MG_BOOTSTRAP_HTTP_"
+	envPrefixAuth  = "MG_AUTH_GRPC_"
 	defDB          = "bootstrap"
 	defSvcHTTPPort = "9013"
 
@@ -50,7 +52,7 @@ type config struct {
 	EncKey         string  `env:"MG_BOOTSTRAP_ENCRYPT_KEY"      envDefault:"12345678910111213141516171819202"`
 	ESConsumerName string  `env:"MG_BOOTSTRAP_EVENT_CONSUMER"   envDefault:"bootstrap"`
 	ThingsURL      string  `env:"MG_THINGS_URL"                 envDefault:"http://localhost:9000"`
-	JaegerURL      string  `env:"MG_JAEGER_URL"                 envDefault:"http://jaeger:14268/api/traces"`
+	JaegerURL      url.URL `env:"MG_JAEGER_URL"                 envDefault:"http://jaeger:14268/api/traces"`
 	SendTelemetry  bool    `env:"MG_SEND_TELEMETRY"             envDefault:"true"`
 	InstanceID     string  `env:"MG_BOOTSTRAP_INSTANCE_ID"      envDefault:""`
 	ESURL          string  `env:"MG_BOOTSTRAP_ES_URL"           envDefault:"redis://localhost:6379/0"`
@@ -96,7 +98,7 @@ func main() {
 	defer db.Close()
 
 	// Create new auth grpc client api
-	auth, authHandler, err := authclient.Setup(svcName)
+	authClient, authHandler, err := auth.Setup(envPrefixAuth)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
@@ -119,7 +121,7 @@ func main() {
 	tracer := tp.Tracer(svcName)
 
 	// Create new service
-	svc, err := newService(ctx, auth, db, tracer, logger, cfg, dbConfig)
+	svc, err := newService(ctx, authClient, db, tracer, logger, cfg, dbConfig)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to create %s service: %s", svcName, err))
 		exitCode = 1
@@ -133,7 +135,7 @@ func main() {
 	}
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
-	if err := env.Parse(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
+	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
 		logger.Error(fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
 		exitCode = 1
 		return

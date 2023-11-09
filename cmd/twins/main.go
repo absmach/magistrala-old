@@ -8,18 +8,18 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/internal"
-	authclient "github.com/absmach/magistrala/internal/clients/grpc/auth"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	mongoclient "github.com/absmach/magistrala/internal/clients/mongo"
 	redisclient "github.com/absmach/magistrala/internal/clients/redis"
-	"github.com/absmach/magistrala/internal/env"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
+	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/absmach/magistrala/pkg/messaging/brokers"
 	brokerstracing "github.com/absmach/magistrala/pkg/messaging/brokers/tracing"
@@ -31,6 +31,7 @@ import (
 	"github.com/absmach/magistrala/twins/events"
 	twmongodb "github.com/absmach/magistrala/twins/mongodb"
 	"github.com/absmach/magistrala/twins/tracing"
+	"github.com/caarlos0/env/v10"
 	"github.com/go-redis/redis/v8"
 	chclient "github.com/mainflux/callhome/pkg/client"
 	"go.mongodb.org/mongo-driver/mongo"
@@ -42,6 +43,7 @@ const (
 	svcName        = "twins"
 	envPrefixDB    = "MG_TWINS_DB_"
 	envPrefixHTTP  = "MG_TWINS_HTTP_"
+	envPrefixAuth  = "MG_AUTH_GRPC_"
 	defSvcHTTPPort = "9018"
 )
 
@@ -51,7 +53,7 @@ type config struct {
 	StandaloneToken string  `env:"MG_TWINS_STANDALONE_TOKEN"   envDefault:""`
 	ChannelID       string  `env:"MG_TWINS_CHANNEL_ID"         envDefault:""`
 	BrokerURL       string  `env:"MG_MESSAGE_BROKER_URL"       envDefault:"nats://localhost:4222"`
-	JaegerURL       string  `env:"MG_JAEGER_URL"               envDefault:"http://jaeger:14268/api/traces"`
+	JaegerURL       url.URL `env:"MG_JAEGER_URL"               envDefault:"http://jaeger:14268/api/traces"`
 	SendTelemetry   bool    `env:"MG_SEND_TELEMETRY"           envDefault:"true"`
 	InstanceID      string  `env:"MG_TWINS_INSTANCE_ID"        envDefault:""`
 	ESURL           string  `env:"MG_TWINS_ES_URL"             envDefault:"redis://localhost:6379/0"`
@@ -85,7 +87,7 @@ func main() {
 	}
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
-	if err := env.Parse(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
+	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
 		logger.Error(fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
 		exitCode = 1
 		return
@@ -119,19 +121,19 @@ func main() {
 	}()
 	tracer := tp.Tracer(svcName)
 
-	var auth magistrala.AuthServiceClient
+	var authClient magistrala.AuthServiceClient
 	switch cfg.StandaloneID != "" && cfg.StandaloneToken != "" {
 	case true:
-		auth = localusers.NewAuthService(cfg.StandaloneID, cfg.StandaloneToken)
+		authClient = localusers.NewAuthService(cfg.StandaloneID, cfg.StandaloneToken)
 	default:
-		authServiceClient, authHandler, err := authclient.Setup(svcName)
+		authServiceClient, authHandler, err := auth.Setup(envPrefixAuth)
 		if err != nil {
 			logger.Error(err.Error())
 			exitCode = 1
 			return
 		}
 		defer authHandler.Close()
-		auth = authServiceClient
+		authClient = authServiceClient
 		logger.Info("Successfully connected to auth grpc server " + authHandler.Secure())
 	}
 
@@ -144,7 +146,7 @@ func main() {
 	defer pubSub.Close()
 	pubSub = brokerstracing.NewPubSub(httpServerConfig, tracer, pubSub)
 
-	svc, err := newService(ctx, svcName, pubSub, cfg, auth, tracer, db, cacheClient, logger)
+	svc, err := newService(ctx, svcName, pubSub, cfg, authClient, tracer, db, cacheClient, logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to create %s service: %s", svcName, err))
 		exitCode = 1

@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 
 	"github.com/absmach/magistrala"
@@ -18,18 +19,18 @@ import (
 	"github.com/absmach/magistrala/consumers/notifiers/smtp"
 	"github.com/absmach/magistrala/consumers/notifiers/tracing"
 	"github.com/absmach/magistrala/internal"
-	authclient "github.com/absmach/magistrala/internal/clients/grpc/auth"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	pgclient "github.com/absmach/magistrala/internal/clients/postgres"
 	"github.com/absmach/magistrala/internal/email"
-	"github.com/absmach/magistrala/internal/env"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
+	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/messaging/brokers"
 	brokerstracing "github.com/absmach/magistrala/pkg/messaging/brokers/tracing"
 	"github.com/absmach/magistrala/pkg/ulid"
 	"github.com/absmach/magistrala/pkg/uuid"
+	"github.com/caarlos0/env/v10"
 	"github.com/jmoiron/sqlx"
 	chclient "github.com/mainflux/callhome/pkg/client"
 	"go.opentelemetry.io/otel/trace"
@@ -40,6 +41,7 @@ const (
 	svcName        = "smtp-notifier"
 	envPrefixDB    = "MG_SMTP_NOTIFIER_DB_"
 	envPrefixHTTP  = "MG_SMTP_NOTIFIER_HTTP_"
+	envPrefixAuth  = "MG_AUTH_GRPC_"
 	defDB          = "subscriptions"
 	defSvcHTTPPort = "9015"
 )
@@ -49,7 +51,7 @@ type config struct {
 	ConfigPath    string  `env:"MG_SMTP_NOTIFIER_CONFIG_PATH"  envDefault:"/config.toml"`
 	From          string  `env:"MG_SMTP_NOTIFIER_FROM_ADDR"    envDefault:""`
 	BrokerURL     string  `env:"MG_MESSAGE_BROKER_URL"         envDefault:"nats://localhost:4222"`
-	JaegerURL     string  `env:"MG_JAEGER_URL"                 envDefault:"http://jaeger:14268/api/traces"`
+	JaegerURL     url.URL `env:"MG_JAEGER_URL"                 envDefault:"http://jaeger:14268/api/traces"`
 	SendTelemetry bool    `env:"MG_SEND_TELEMETRY"             envDefault:"true"`
 	InstanceID    string  `env:"MG_SMTP_NOTIFIER_INSTANCE_ID"  envDefault:""`
 	TraceRatio    float64 `env:"MG_JAEGER_TRACE_RATIO"         envDefault:"1.0"`
@@ -97,7 +99,7 @@ func main() {
 	}
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
-	if err := env.Parse(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
+	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
 		logger.Error(fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
 		exitCode = 1
 		return
@@ -125,7 +127,7 @@ func main() {
 	defer pubSub.Close()
 	pubSub = brokerstracing.NewPubSub(httpServerConfig, tracer, pubSub)
 
-	auth, authHandler, err := authclient.Setup(svcName)
+	authClient, authHandler, err := auth.Setup(envPrefixAuth)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
@@ -135,7 +137,7 @@ func main() {
 
 	logger.Info("Successfully connected to auth grpc server " + authHandler.Secure())
 
-	svc, err := newService(db, tracer, auth, cfg, ec, logger)
+	svc, err := newService(db, tracer, authClient, cfg, ec, logger)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1

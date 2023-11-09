@@ -12,16 +12,16 @@ import (
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/internal"
-	authclient "github.com/absmach/magistrala/internal/clients/grpc/auth"
 	mongoclient "github.com/absmach/magistrala/internal/clients/mongo"
-	"github.com/absmach/magistrala/internal/env"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
+	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/absmach/magistrala/readers"
 	"github.com/absmach/magistrala/readers/api"
 	"github.com/absmach/magistrala/readers/mongodb"
+	"github.com/caarlos0/env/v10"
 	chclient "github.com/mainflux/callhome/pkg/client"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/sync/errgroup"
@@ -31,6 +31,8 @@ const (
 	svcName        = "mongodb-reader"
 	envPrefixDB    = "MG_MONGO_"
 	envPrefixHTTP  = "MG_MONGO_READER_HTTP_"
+	envPrefixAuth  = "MG_AUTH_GRPC_"
+	envPrefixAuthz = "MG_THINGS_AUTH_GRPC_"
 	defSvcHTTPPort = "9007"
 )
 
@@ -74,7 +76,7 @@ func main() {
 
 	repo := newService(db, logger)
 
-	ac, acHandler, err := authclient.Setup(svcName)
+	ac, acHandler, err := auth.Setup(envPrefixAuth)
 	if err != nil {
 		logger.Fatal(err.Error())
 		exitCode = 1
@@ -84,7 +86,7 @@ func main() {
 
 	logger.Info("Successfully connected to auth grpc server " + acHandler.Secure())
 
-	tc, tcHandler, err := authclient.SetupAuthz(svcName)
+	tc, tcHandler, err := auth.SetupAuthz(envPrefixAuthz)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
@@ -95,7 +97,7 @@ func main() {
 	logger.Info("Successfully connected to things grpc server " + tcHandler.Secure())
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
-	if err := env.Parse(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
+	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
 		logger.Error(fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
 		exitCode = 1
 		return
