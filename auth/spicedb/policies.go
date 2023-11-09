@@ -104,13 +104,7 @@ func (pa *policyAgent) AddPolicy(ctx context.Context, pr auth.PolicyReq) error {
 
 func (pa *policyAgent) DeletePolicies(ctx context.Context, prs []auth.PolicyReq) error {
 	updates := []*v1.RelationshipUpdate{}
-	var preconds []*v1.Precondition
 	for _, pr := range prs {
-		precond, err := pa.policyPreCondition(pr)
-		if err != nil {
-			return err
-		}
-		preconds = append(preconds, precond...)
 		updates = append(updates, &v1.RelationshipUpdate{
 			Operation: v1.RelationshipUpdate_OPERATION_DELETE,
 			Relationship: &v1.Relationship{
@@ -123,7 +117,7 @@ func (pa *policyAgent) DeletePolicies(ctx context.Context, prs []auth.PolicyReq)
 	if len(updates) == 0 {
 		return fmt.Errorf("no policies provided")
 	}
-	_, err := pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates, OptionalPreconditions: preconds})
+	_, err := pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates})
 	if err != nil {
 		return errors.Wrap(errors.ErrMalformedEntity, fmt.Errorf("failed to delete policy: %w", err))
 	}
@@ -131,12 +125,7 @@ func (pa *policyAgent) DeletePolicies(ctx context.Context, prs []auth.PolicyReq)
 }
 
 func (pa *policyAgent) DeletePolicy(ctx context.Context, pr auth.PolicyReq) error {
-	precond, err := pa.policyPreCondition(pr)
-	if err != nil {
-		return err
-	}
 	req := &v1.DeleteRelationshipsRequest{
-		OptionalPreconditions: precond,
 		RelationshipFilter: &v1.RelationshipFilter{
 			ResourceType:       pr.ObjectType,
 			OptionalResourceId: pr.Object,
@@ -150,8 +139,7 @@ func (pa *policyAgent) DeletePolicy(ctx context.Context, pr auth.PolicyReq) erro
 			},
 		},
 	}
-	_, err = pa.permissionClient.DeleteRelationships(ctx, req)
-	if err != nil {
+	if _, err := pa.permissionClient.DeleteRelationships(ctx, req); err != nil {
 		return errors.Wrap(errors.ErrMalformedEntity, fmt.Errorf("failed to remove the policy: %w", err))
 	}
 	return nil

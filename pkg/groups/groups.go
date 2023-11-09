@@ -83,9 +83,9 @@ type Repository interface {
 	// ChangeStatus changes groups status to active or inactive
 	ChangeStatus(ctx context.Context, group Group) (Group, error)
 
-	// Assign(ctx context.Context, groupID, memberKind string, ids ...string) error
+	AssignParentGroup(ctx context.Context, parentGroupID string, groupIDs ...string) error
 
-	// Unassign(ctx context.Context, groupID string, ids ...string) error
+	UnassignParentGroup(ctx context.Context, parentGroupID string, groupIDs ...string) error
 }
 
 type Service interface {
