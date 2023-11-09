@@ -29,12 +29,12 @@ func MetricsMiddleware(svc groups.Service, counter metrics.Counter, latency metr
 }
 
 // CreateGroup instruments CreateGroup method with metrics.
-func (ms *metricsMiddleware) CreateGroup(ctx context.Context, token string, g groups.Group) (groups.Group, error) {
+func (ms *metricsMiddleware) CreateGroup(ctx context.Context, token string, kind string, g groups.Group) (groups.Group, error) {
 	defer func(begin time.Time) {
 		ms.counter.With("method", "create_group").Add(1)
 		ms.latency.With("method", "create_group").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return ms.svc.CreateGroup(ctx, token, g)
+	return ms.svc.CreateGroup(ctx, token, kind, g)
 }
 
 // UpdateGroup instruments UpdateGroup method with metrics.

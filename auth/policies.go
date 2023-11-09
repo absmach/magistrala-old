@@ -9,46 +9,59 @@ import (
 )
 
 const (
-	TokenKind    = "token"
-	GroupsKind   = "groups"
-	ChannelsKind = "channels"
-	ThingsKind   = "things"
-	UsersKind    = "users"
+	TokenKind      = "token"
+	GroupsKind     = "groups"
+	NewGroupKind   = "new_group"
+	ChannelsKind   = "channels"
+	NewChannelKind = "new_channel"
+	ThingsKind     = "things"
+	NewThingKind   = "new_thing"
+	UsersKind      = "users"
+	DomainsKind    = "domains"
+	PlatformKind   = "platform"
 
-	GroupType   = "group"
-	ChannelType = "channel"
-	ThingType   = "thing"
-	UserType    = "user"
+	GroupType    = "group"
+	ThingType    = "thing"
+	UserType     = "user"
+	DomainType   = "domain"
+	PlatformType = "platform"
 
-	OwnerRelation       = "owner"
-	AdminRelation       = "admin"
-	EditorRelation      = "editor"
-	ViewerRelation      = "viewer"
-	ParentGroupRelation = "parent_group"
-	RoleGroupRelation   = "role_group"
-	GroupRelation       = "group"
+	// OwnerRelation       = "owner"
+	AdministratorRelation = "administrator"
+	EditorRelation        = "editor"
+	ViewerRelation        = "viewer"
+	MemberRelation        = "member"
+	DomainRelation        = "domain"
+	ParentGroupRelation   = "parent_group"
+	RoleGroupRelation     = "role_group"
+	GroupRelation         = "group"
+	PlatformRelation      = "platform"
 
-	AdministratorPermission = "administrator"
-	DeletePermission        = "delete"
-	EditPermission          = "edit"
-	ViewPermission          = "view"
-	SharePermission         = "share"
-	PublishPermission       = "publish"
-	SubscribePermission     = "subscribe"
+	AdminPermission      = "admin"
+	DeletePermission     = "delete"
+	EditPermission       = "edit"
+	ViewPermission       = "view"
+	MembershipPermission = "membership"
+	SharePermission      = "share"
+	PublishPermission    = "publish"
+	SubscribePermission  = "subscribe"
+
+	MagistralaObject = "magistrala"
 )
 
 // PolicyReq represents an argument struct for making a policy related
 // function calls.
 type PolicyReq struct {
-	Namespace       string `json:",omitempty"`
+	Domain          string `json:"domain,omitempty"`
 	Subject         string `json:"subject"`
 	SubjectType     string `json:"subject_type"`
 	SubjectKind     string `json:"subject_kind"`
-	SubjectRelation string `json:",omitempty"`
+	SubjectRelation string `json:"subject_relation,omitempty"`
 	Object          string `json:"object"`
+	ObjectKind      string `json:"object_kind"`
 	ObjectType      string `json:"object_type"`
-	Relation        string `json:"relation"`
-	Permission      string `json:",omitempty"`
+	Relation        string `json:"relation,omitempty"`
+	Permission      string `json:"permission,omitempty"`
 }
 
 func (pr PolicyReq) String() string {
@@ -92,14 +105,14 @@ type Authz interface {
 
 	// AddPolicies adds new policies for given subjects. This method is
 	// only allowed to use as an admin.
-	AddPolicies(ctx context.Context, token, object string, subjectIDs, relations []string) error
+	AddPolicies(ctx context.Context, prs []PolicyReq) error
 
 	// DeletePolicy removes a policy.
 	DeletePolicy(ctx context.Context, pr PolicyReq) error
 
 	// DeletePolicies deletes policies for given subjects. This method is
 	// only allowed to use as an admin.
-	DeletePolicies(ctx context.Context, token, object string, subjectIDs, relations []string) error
+	DeletePolicies(ctx context.Context, prs []PolicyReq) error
 
 	// ListObjects lists policies based on the given PolicyReq structure.
 	ListObjects(ctx context.Context, pr PolicyReq, nextPageToken string, limit int32) (PolicyPage, error)

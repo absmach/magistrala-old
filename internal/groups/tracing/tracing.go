@@ -24,11 +24,11 @@ func New(gsvc groups.Service, tracer trace.Tracer) groups.Service {
 }
 
 // CreateGroup traces the "CreateGroup" operation of the wrapped groups.Service.
-func (tm *tracingMiddleware) CreateGroup(ctx context.Context, token string, g groups.Group) (groups.Group, error) {
+func (tm *tracingMiddleware) CreateGroup(ctx context.Context, token string, kind string, g groups.Group) (groups.Group, error) {
 	ctx, span := tm.tracer.Start(ctx, "svc_create_group")
 	defer span.End()
 
-	return tm.gsvc.CreateGroup(ctx, token, g)
+	return tm.gsvc.CreateGroup(ctx, token, kind, g)
 }
 
 // ViewGroup traces the "ViewGroup" operation of the wrapped groups.Service.
