@@ -43,7 +43,7 @@ func TestAddPolicyCopy(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		err := repo.SavePolicyCopy(context.Background(), tc.pc)
+		err := repo.SavePolicy(context.Background(), tc.pc)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.err, err))
 	}
 }
@@ -69,7 +69,7 @@ func TestDeletePolicyCopy(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		err := repo.DeletePolicyCopy(context.Background(), tc.pc)
+		err := repo.DeletePolicy(context.Background(), tc.pc)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.err, err))
 	}
 }
