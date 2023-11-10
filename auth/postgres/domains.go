@@ -21,9 +21,7 @@ import (
 
 var _ auth.DomainsRepository = (*domainRepo)(nil)
 
-var (
-	errRollbackTx = errors.New("failed to rollback transaction")
-)
+var errRollbackTx = errors.New("failed to rollback transaction")
 
 type domainRepo struct {
 	db postgres.Database
@@ -39,9 +37,9 @@ func NewDomainRepository(db postgres.Database) auth.DomainsRepository {
 
 // Save
 func (repo domainRepo) Save(ctx context.Context, d auth.Domain) (ad auth.Domain, err error) {
-	q := `INSERT INTO domains (id, name, email, tags, alias, metadata, created_at, updated_at, updated_by, created_by, status)
-	VALUES (:id, :name, :email, :tags, :alias, :metadata, :created_at, :updated_at, :updated_by, :created_by, :status)
-	RETURNING id, name, email, tags, alias, metadata, created_at, updated_at, updated_by, created_by, status;`
+	q := `INSERT INTO domains (id, name, tags, alias, metadata, created_at, updated_at, updated_by, created_by, status)
+	VALUES (:id, :name, :tags, :alias, :metadata, :created_at, :updated_at, :updated_by, :created_by, :status)
+	RETURNING id, name, tags, alias, metadata, created_at, updated_at, updated_by, created_by, status;`
 
 	dbd, err := toDBDomains(d)
 	if err != nil {
@@ -70,7 +68,7 @@ func (repo domainRepo) Save(ctx context.Context, d auth.Domain) (ad auth.Domain,
 
 // RetrieveByID retrieves Domain by its unique ID.
 func (repo domainRepo) RetrieveByID(ctx context.Context, id string) (auth.Domain, error) {
-	q := `SELECT d.id as id, d.name as name, d.email as email, d.tags as tags,  d.alias as alias, d.metadata as metadata, d.created_at as created_at, d.updated_at as updated_at, d.updated_by as updated_by, d.created_by as created_by, d.status as status
+	q := `SELECT d.id as id, d.name as name, d.tags as tags,  d.alias as alias, d.metadata as metadata, d.created_at as created_at, d.updated_at as updated_at, d.updated_by as updated_by, d.created_by as created_by, d.status as status
         FROM domains d WHERE d.id = :id`
 
 	dbdp := dbDomainsPage{
@@ -109,7 +107,7 @@ func (repo domainRepo) RetrieveAllByIDs(ctx context.Context, pm auth.Page) (auth
 		return auth.DomainsPage{}, nil
 	}
 
-	q = `SELECT d.id as id, d.name as name, d.email as email, d.tags as tags, d.alias as alias, d.metadata as metadata, d.created_at as created_at, d.updated_at as updated_at, d.updated_by as updated_by, d.created_by as created_by, d.status as status
+	q = `SELECT d.id as id, d.name as name, d.tags as tags, d.alias as alias, d.metadata as metadata, d.created_at as created_at, d.updated_at as updated_at, d.updated_by as updated_by, d.created_by as created_by, d.status as status
 	FROM domains d`
 	q = fmt.Sprintf("%s %s  LIMIT %d OFFSET %d;", q, query, pm.Limit, pm.Offset)
 
@@ -157,7 +155,7 @@ func (repo domainRepo) ListDomains(ctx context.Context, pm auth.Page) (auth.Doma
 		return auth.DomainsPage{}, nil
 	}
 
-	q = `SELECT d.id as id, d.name as name, d.email as email, d.tags as tags, d.alias as alias, d.metadata as metadata, d.created_at as created_at, d.updated_at as updated_at, d.updated_by as updated_by, d.created_by as created_by, d.status as status, pc.relation as relation
+	q = `SELECT d.id as id, d.name as name, d.tags as tags, d.alias as alias, d.metadata as metadata, d.created_at as created_at, d.updated_at as updated_at, d.updated_by as updated_by, d.created_by as created_by, d.status as status, pc.relation as relation
 	FROM domains as d
 	JOIN policies pc
 	ON pc.object_id = d.id`
@@ -207,10 +205,6 @@ func (repo domainRepo) Update(ctx context.Context, id string, userID string, dr 
 		query = append(query, "name = :name, ")
 		d.Name = *dr.Name
 	}
-	if dr.Email != nil && *dr.Email != "" {
-		query = append(query, "email = :email, ")
-		d.Email = *dr.Email
-	}
 	if dr.Metadata != nil {
 		query = append(query, "metadata = :metadata, ")
 		d.Metadata = *dr.Metadata
@@ -235,7 +229,7 @@ func (repo domainRepo) Update(ctx context.Context, id string, userID string, dr 
 	}
 	q := fmt.Sprintf(`UPDATE domains SET %s  updated_at = :updated_at, updated_by = :updated_by
         WHERE id = :id %s
-        RETURNING id, name, email, tags, alias, metadata, created_at, updated_at, updated_by, created_by, status;`,
+        RETURNING id, name, tags, alias, metadata, created_at, updated_at, updated_by, created_by, status;`,
 		upq, ws)
 
 	dbd, err := toDBDomains(d)
@@ -262,7 +256,7 @@ func (repo domainRepo) Update(ctx context.Context, id string, userID string, dr 
 	return domain, nil
 }
 
-// Delete
+// Delete delete domain from database.
 func (repo domainRepo) Delete(ctx context.Context, id string) error {
 	q := fmt.Sprintf(`
 		DELETE FROM
@@ -280,7 +274,7 @@ func (repo domainRepo) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// SavePolicy save policy in domains database
+// SavePolicy save policy in domains database.
 func (repo domainRepo) SavePolicy(ctx context.Context, pc auth.PolicyCopy) error {
 	q := `INSERT INTO policies (subject_type, subject_id, subject_relation, relation, object_type, object_id)
 	VALUES (:subject_type, :subject_id, :subject_relation, :relation, :object_type, :object_id)
@@ -296,7 +290,7 @@ func (repo domainRepo) SavePolicy(ctx context.Context, pc auth.PolicyCopy) error
 	return nil
 }
 
-// CheckPolicy check policy in domains database
+// CheckPolicy check policy in domains database.
 func (repo domainRepo) CheckPolicy(ctx context.Context, pc auth.PolicyCopy) error {
 	q := `
 		SELECT
@@ -323,7 +317,7 @@ func (repo domainRepo) CheckPolicy(ctx context.Context, pc auth.PolicyCopy) erro
 	return nil
 }
 
-// DeletePolicy delete policy from domains database
+// DeletePolicy delete policy from domains database.
 func (repo domainRepo) DeletePolicy(ctx context.Context, pc auth.PolicyCopy) (err error) {
 	q := `
 		DELETE FROM
@@ -366,7 +360,6 @@ func (repo domainRepo) processRows(rows *sqlx.Rows) ([]auth.Domain, error) {
 type dbDomain struct {
 	ID         string           `db:"id"`
 	Name       string           `db:"name"`
-	Email      string           `db:"email"`
 	Metadata   []byte           `db:"metadata,omitempty"`
 	Tags       pgtype.TextArray `db:"tags,omitempty"`
 	Alias      *string          `db:"alias,omitempty"`
@@ -412,7 +405,6 @@ func toDBDomains(d auth.Domain) (dbDomain, error) {
 	return dbDomain{
 		ID:         d.ID,
 		Name:       d.Name,
-		Email:      d.Email,
 		Metadata:   data,
 		Tags:       tags,
 		Alias:      alias,
@@ -452,7 +444,6 @@ func toDomain(d dbDomain) (auth.Domain, error) {
 	return auth.Domain{
 		ID:         d.ID,
 		Name:       d.Name,
-		Email:      d.Email,
 		Metadata:   metadata,
 		Tags:       tags,
 		Alias:      alias,
@@ -472,7 +463,6 @@ type dbDomainsPage struct {
 	Order      string         `db:"order"`
 	Dir        string         `db:"dir"`
 	Name       string         `db:"name"`
-	Email      string         `db:"email"`
 	Permission string         `db:"permission"`
 	ID         string         `db:"id"`
 	IDs        []string       `db:"ids"`
@@ -494,7 +484,6 @@ func toDBClientsPage(pm auth.Page) (dbDomainsPage, error) {
 		Order:      pm.Order,
 		Dir:        pm.Dir,
 		Name:       pm.Name,
-		Email:      pm.Email,
 		Permission: pm.Permission,
 		ID:         pm.ID,
 		IDs:        pm.IDs,
@@ -519,10 +508,6 @@ func buildPageQuery(pm auth.Page) (string, error) {
 
 	if pm.Status != clients.AllStatus {
 		query = append(query, "d.status = :status")
-	}
-
-	if pm.Email != "" {
-		query = append(query, "d.email = :email")
 	}
 
 	if pm.Name != "" {

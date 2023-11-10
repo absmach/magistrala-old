@@ -177,12 +177,12 @@ func (pa *policyAgent) RetrieveObjects(ctx context.Context, pr auth.PolicyReq, n
 		case nil:
 			resources = append(resources, resp)
 		case io.EOF:
-			if len(resources) > 0 {
+			if len(resources) > 0 && resources[len(resources)-1].AfterResultCursor != nil {
 				token = resources[len(resources)-1].AfterResultCursor.Token
 			}
 			return objectsToAuthPolicies(resources), token, nil
 		default:
-			if len(resources) > 0 {
+			if len(resources) > 0 && resources[len(resources)-1].AfterResultCursor != nil {
 				token = resources[len(resources)-1].AfterResultCursor.Token
 			}
 			return objectsToAuthPolicies(resources), token, errors.Wrap(errors.ErrViewEntity, err)
@@ -256,12 +256,12 @@ func (pa *policyAgent) RetrieveSubjects(ctx context.Context, pr auth.PolicyReq, 
 		case nil:
 			subjects = append(subjects, resp)
 		case io.EOF:
-			if len(subjects) > 0 {
+			if len(subjects) > 0 && subjects[len(subjects)-1].AfterResultCursor != nil {
 				token = subjects[len(subjects)-1].AfterResultCursor.Token
 			}
 			return subjectsToAuthPolicies(subjects), token, nil
 		default:
-			if len(subjects) > 0 {
+			if len(subjects) > 0 && subjects[len(subjects)-1].AfterResultCursor != nil {
 				token = subjects[len(subjects)-1].AfterResultCursor.Token
 			}
 			return subjectsToAuthPolicies(subjects), token, errors.Wrap(errors.ErrViewEntity, err)

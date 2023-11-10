@@ -20,7 +20,6 @@ func createDomainEndpoint(svc auth.Service) endpoint.Endpoint {
 
 		d := auth.Domain{
 			Name:     req.Name,
-			Email:    req.Email,
 			Metadata: req.Metadata,
 			Tags:     req.Tags,
 			Alias:    req.Alias,
@@ -63,7 +62,6 @@ func updateDomainEndpoint(svc auth.Service) endpoint.Endpoint {
 		}
 		d := auth.DomainReq{
 			Name:     req.Name,
-			Email:    req.Email,
 			Metadata: &metadata,
 			Tags:     req.Tags,
 			Alias:    req.Alias,
