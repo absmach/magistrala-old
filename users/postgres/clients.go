@@ -67,9 +67,8 @@ func (repo clientRepo) Save(ctx context.Context, c mgclients.Client) (mgclients.
 }
 
 func (repo clientRepo) CheckSuperAdmin(ctx context.Context, adminID string) error {
-	q := "SELECT 1 FROM clients WHERE id = $1 AND role = 1"
-
-	rows, err := repo.ClientRepository.DB.QueryContext(ctx, q, adminID)
+	q := "SELECT 1 FROM clients WHERE id = $1 AND role = $2"
+	rows, err := repo.ClientRepository.DB.QueryContext(ctx, q, adminID, mgclients.AdminRole)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return errors.ErrAuthorization
