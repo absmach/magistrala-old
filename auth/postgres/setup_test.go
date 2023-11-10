@@ -18,6 +18,7 @@ import (
 	"github.com/absmach/magistrala/internal/postgres"
 	"github.com/jmoiron/sqlx"
 	dockertest "github.com/ory/dockertest/v3"
+	"github.com/ory/dockertest/v3/docker"
 	"go.opentelemetry.io/otel"
 )
 
@@ -38,7 +39,15 @@ func TestMain(m *testing.M) {
 		"POSTGRES_PASSWORD=test",
 		"POSTGRES_DB=test",
 	}
-	container, err := pool.Run("postgres", "13.3-alpine", cfg)
+	// container, err := pool.Run("postgres", "", cfg)
+	container, err := pool.RunWithOptions(&dockertest.RunOptions{
+		Repository: "postgres",
+		Tag:        "13.3-alpine",
+		Env:        cfg,
+	}, func(config *docker.HostConfig) {
+		// set AutoRemove to true so that stopped container goes away by itself
+		config.AutoRemove = false
+	})
 	if err != nil {
 		log.Fatalf("Could not start container: %s", err)
 	}
@@ -79,9 +88,9 @@ func TestMain(m *testing.M) {
 
 	// Defers will not be run when using os.Exit
 	db.Close()
-	if err := pool.Purge(container); err != nil {
-		log.Fatalf("Could not purge container: %s", err)
-	}
+	// if err := pool.Purge(container); err != nil {
+	// 	log.Fatalf("Could not purge container: %s", err)
+	// }
 
 	os.Exit(code)
 }
