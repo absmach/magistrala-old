@@ -170,28 +170,24 @@ func (pa *policyAgent) RetrieveObjects(ctx context.Context, pr auth.PolicyReq, n
 		return nil, "", errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errRetrievePolicies, err))
 	}
 	resources := []*v1.LookupResourcesResponse{}
-	var retErr error
-loop:
+	var token string
 	for {
 		resp, err := stream.Recv()
 		switch err {
 		case nil:
 			resources = append(resources, resp)
 		case io.EOF:
-			break loop
+			if len(resources) > 0 {
+				token = resources[len(resources)-1].AfterResultCursor.Token
+			}
+			return objectsToAuthPolicies(resources), token, nil
 		default:
-			retErr = err
-			break loop
+			if len(resources) > 0 {
+				token = resources[len(resources)-1].AfterResultCursor.Token
+			}
+			return objectsToAuthPolicies(resources), token, errors.Wrap(errors.ErrViewEntity, err)
 		}
 	}
-	var token string
-	if len(resources) > 0 {
-		token = resources[len(resources)-1].AfterResultCursor.Token
-	}
-	if retErr != nil {
-		retErr = errors.Wrap(errors.ErrViewEntity, retErr)
-	}
-	return objectsToAuthPolicies(resources), token, retErr
 }
 
 func (pa *policyAgent) RetrieveAllObjects(ctx context.Context, pr auth.PolicyReq) ([]auth.PolicyRes, error) {
@@ -252,8 +248,7 @@ func (pa *policyAgent) RetrieveSubjects(ctx context.Context, pr auth.PolicyReq, 
 		return nil, "", errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errRetrievePolicies, err))
 	}
 	subjects := []*v1.LookupSubjectsResponse{}
-	var retErr error
-loop:
+	var token string
 	for {
 		resp, err := stream.Recv()
 
@@ -261,16 +256,17 @@ loop:
 		case nil:
 			subjects = append(subjects, resp)
 		case io.EOF:
-			break loop
+			if len(subjects) > 0 {
+				token = subjects[len(subjects)-1].AfterResultCursor.Token
+			}
+			return subjectsToAuthPolicies(subjects), token, nil
 		default:
-			retErr = err
-			break loop
+			if len(subjects) > 0 {
+				token = subjects[len(subjects)-1].AfterResultCursor.Token
+			}
+			return subjectsToAuthPolicies(subjects), token, errors.Wrap(errors.ErrViewEntity, err)
 		}
 	}
-	if retErr != nil {
-		retErr = errors.Wrap(errors.ErrViewEntity, retErr)
-	}
-	return subjectsToAuthPolicies(subjects), "", retErr
 }
 
 func (pa *policyAgent) RetrieveAllSubjects(ctx context.Context, pr auth.PolicyReq) ([]auth.PolicyRes, error) {
@@ -335,7 +331,6 @@ func (pa *policyAgent) Watch(continueToken string) {
 	if err != nil {
 		pa.logger.Error(fmt.Sprintf("got error while watching: %s", err.Error()))
 	}
-loop:
 	for {
 		watchResp, err := stream.Recv()
 		switch err {
@@ -343,10 +338,10 @@ loop:
 			pa.publishToStream(watchResp)
 		case io.EOF:
 			pa.logger.Info("got EOF while watch streaming")
-			break loop
+			return
 		default:
 			pa.logger.Error(fmt.Sprintf("got error while watch streaming : %s", err.Error()))
-			break loop
+			return
 		}
 	}
 }
@@ -377,7 +372,6 @@ func (pa *policyAgent) policyPreCondition(pr auth.PolicyReq) ([]*v1.Precondition
 	// 4.) group (channel) -> thing
 
 	switch {
-
 	// 1.) user -> group (both user groups and channels)
 	// Checks :
 	// - USER with ANY RELATION to DOMAIN
@@ -422,7 +416,6 @@ func (pa *policyAgent) policyPreCondition(pr auth.PolicyReq) ([]*v1.Precondition
 			},
 		}
 		return preconds, nil
-
 	}
 	return nil, nil
 }
@@ -636,5 +629,4 @@ func channelThingPreCondition(pr auth.PolicyReq) ([]*v1.Precondition, error) {
 		},
 	}
 	return precond, nil
-
 }

@@ -93,11 +93,11 @@ type DomainsRepository interface {
 	// Delete
 	Delete(ctx context.Context, id string) error
 
-	// SavePolicyCopy
-	SavePolicyCopy(ctx context.Context, pc PolicyCopy) error
+	// SavePolicy save policy in domains database
+	SavePolicy(ctx context.Context, pc PolicyCopy) error
 
-	// DeletePolicyCopy
-	DeletePolicyCopy(ctx context.Context, pc PolicyCopy) error
+	// DeletePolicy delete policy from domains database
+	DeletePolicy(ctx context.Context, pc PolicyCopy) error
 
 	//ListDomains
 	ListDomains(ctx context.Context, pm Page) (DomainsPage, error)
