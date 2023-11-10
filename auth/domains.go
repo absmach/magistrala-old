@@ -12,7 +12,6 @@ import (
 
 type DomainReq struct {
 	Name     *string           `json:"name,omitempty"`
-	Email    *string           `json:"email,omitempty"`
 	Metadata *clients.Metadata `json:"metadata,omitempty"`
 	Tags     *[]string         `json:"tags,omitempty"`
 	Alias    *string           `json:"alias,omitempty"`
@@ -21,7 +20,6 @@ type DomainReq struct {
 type Domain struct {
 	ID         string           `json:"id"`
 	Name       string           `json:"name"`
-	Email      string           `json:"email"`
 	Metadata   clients.Metadata `json:"metadata,omitempty"`
 	Tags       []string         `json:"tags,omitempty"`
 	Alias      string           `json:"alias,omitempty"`
@@ -38,7 +36,6 @@ type Page struct {
 	Offset     uint64           `json:"offset"`
 	Limit      uint64           `json:"limit"`
 	Name       string           `json:"name,omitempty"`
-	Email      string           `json:"email,omitempty"`
 	Order      string           `json:"-"`
 	Dir        string           `json:"-"`
 	Metadata   clients.Metadata `json:"metadata,omitempty"`
@@ -77,7 +74,6 @@ type Domains interface {
 }
 
 type DomainsRepository interface {
-
 	// Save creates db insert transaction for the given domain.
 	Save(ctx context.Context, d Domain) (Domain, error)
 
@@ -99,6 +95,6 @@ type DomainsRepository interface {
 	// DeletePolicy delete policy from domains database
 	DeletePolicy(ctx context.Context, pc PolicyCopy) error
 
-	//ListDomains
+	// ListDomains list all the domains
 	ListDomains(ctx context.Context, pm Page) (DomainsPage, error)
 }
