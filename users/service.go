@@ -172,16 +172,23 @@ func (svc service) ViewProfile(ctx context.Context, token string) (mgclients.Cli
 }
 
 func (svc service) ListClients(ctx context.Context, token string, pm mgclients.Page) (mgclients.ClientsPage, error) {
-	_, err := svc.Identify(ctx, token)
+	userID, err := svc.Identify(ctx, token)
 	if err != nil {
 		return mgclients.ClientsPage{}, err
 	}
-
-	clients, err := svc.clients.RetrieveAll(ctx, pm)
-	if err != nil {
-		return mgclients.ClientsPage{}, err
+	if err := svc.checkSuperAdmin(ctx, userID); err == nil {
+		return svc.clients.RetrieveAll(ctx, pm)
 	}
-	return clients, nil
+	role := mgclients.UserRole
+	p := mgclients.Page{
+		Status:   mgclients.EnabledStatus,
+		Offset:   pm.Offset,
+		Limit:    pm.Limit,
+		Name:     pm.Name,
+		Identity: pm.Identity,
+		Role:     &role,
+	}
+	return svc.clients.RetrieveAllBasicInfo(ctx, p)
 }
 
 func (svc service) UpdateClient(ctx context.Context, token string, cli mgclients.Client) (mgclients.Client, error) {
