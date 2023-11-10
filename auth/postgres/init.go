@@ -28,7 +28,6 @@ func Migration() *migrate.MemoryMigrationSource {
 					`CREATE TABLE IF NOT EXISTS domains (
                         id          VARCHAR(36) PRIMARY KEY,
                         name        VARCHAR(254),
-                        email       VARCHAR(254) NOT NULL,
                         tags        TEXT[],
                         metadata    JSONB,
                         alias       VARCHAR(254) NULL UNIQUE,
