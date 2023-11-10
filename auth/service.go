@@ -656,7 +656,7 @@ func (svc service) addDomainPolicy(ctx context.Context, userID, domainID, relati
 			}
 		}
 	}()
-	return svc.domains.SavePolicyCopy(ctx, PolicyCopy{
+	return svc.domains.SavePolicy(ctx, PolicyCopy{
 		SubjectType: UserType,
 		SubjectID:   userID,
 		Relation:    relation,
@@ -693,7 +693,7 @@ func (svc service) createDomainPolicy(ctx context.Context, userID, domainID, rel
 			}
 		}
 	}()
-	return svc.domains.SavePolicyCopy(ctx, PolicyCopy{
+	return svc.domains.SavePolicy(ctx, PolicyCopy{
 		SubjectType: UserType,
 		SubjectID:   userID,
 		Relation:    relation,
@@ -724,7 +724,7 @@ func (svc service) createDomainPolicyRollback(ctx context.Context, userID, domai
 	if errPolicy := svc.agent.DeletePolicies(ctx, prs); errPolicy != nil {
 		err = errors.Wrap(errRemovePolicyEngine, errPolicy)
 	}
-	errPolicyCopy := svc.domains.SavePolicyCopy(ctx, PolicyCopy{
+	errPolicyCopy := svc.domains.DeletePolicy(ctx, PolicyCopy{
 		SubjectType: UserType,
 		SubjectID:   userID,
 		Relation:    relation,
@@ -757,7 +757,7 @@ func (svc service) removeDomainPolicy(ctx context.Context, userID, domainID, rel
 		}
 	}()
 
-	return svc.domains.DeletePolicyCopy(ctx, PolicyCopy{
+	return svc.domains.DeletePolicy(ctx, PolicyCopy{
 		SubjectType: UserType,
 		SubjectID:   userID,
 		Relation:    relation,

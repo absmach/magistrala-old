@@ -39,7 +39,6 @@ func NewDomainRepository(db postgres.Database) auth.DomainsRepository {
 
 // Save
 func (repo domainRepo) Save(ctx context.Context, d auth.Domain) (ad auth.Domain, err error) {
-
 	q := `INSERT INTO domains (id, name, email, tags, alias, metadata, created_at, updated_at, updated_by, created_by, status)
 	VALUES (:id, :name, :email, :tags, :alias, :metadata, :created_at, :updated_at, :updated_by, :created_by, :status)
 	RETURNING id, name, email, tags, alias, metadata, created_at, updated_at, updated_by, created_by, status;`
@@ -281,8 +280,8 @@ func (repo domainRepo) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// SavePolicyCopy
-func (repo domainRepo) SavePolicyCopy(ctx context.Context, pc auth.PolicyCopy) error {
+// SavePolicy save policy in domains database
+func (repo domainRepo) SavePolicy(ctx context.Context, pc auth.PolicyCopy) error {
 	q := `INSERT INTO policies (subject_type, subject_id, subject_relation, relation, object_type, object_id)
 	VALUES (:subject_type, :subject_id, :subject_relation, :relation, :object_type, :object_id)
 	RETURNING subject_type, subject_id, subject_relation, relation, object_type, object_id;`
@@ -297,8 +296,8 @@ func (repo domainRepo) SavePolicyCopy(ctx context.Context, pc auth.PolicyCopy) e
 	return nil
 }
 
-// CheckPolicyCopy
-func (repo domainRepo) CheckPolicyCopy(ctx context.Context, pc auth.PolicyCopy) error {
+// CheckPolicy check policy in domains database
+func (repo domainRepo) CheckPolicy(ctx context.Context, pc auth.PolicyCopy) error {
 	q := `
 		SELECT
 			subject_type, subject_id, subject_relation, relation, object_type, object_id FROM policies
@@ -324,8 +323,8 @@ func (repo domainRepo) CheckPolicyCopy(ctx context.Context, pc auth.PolicyCopy) 
 	return nil
 }
 
-// DeletePolicyCopy
-func (repo domainRepo) DeletePolicyCopy(ctx context.Context, pc auth.PolicyCopy) (err error) {
+// DeletePolicy delete policy from domains database
+func (repo domainRepo) DeletePolicy(ctx context.Context, pc auth.PolicyCopy) (err error) {
 	q := `
 		DELETE FROM
 			policies
