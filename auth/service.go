@@ -164,7 +164,7 @@ func (svc service) Identify(ctx context.Context, token string) (string, error) {
 	}
 
 	switch key.Type {
-	case RecoveryKey, AccessKey:
+	case RecoveryKey, AccessKey, InvitationKey:
 		return key.Subject, nil
 	case APIKey:
 		_, err := svc.keys.Retrieve(ctx, key.Issuer, key.ID)
@@ -316,6 +316,7 @@ func (svc service) CountSubjects(ctx context.Context, pr PolicyReq) (int, error)
 }
 
 func (svc service) tmpKey(duration time.Duration, key Key) (Token, error) {
+	key.ExpiresAt = time.Now().Add(duration)
 	value, err := svc.tokenizer.Issue(key)
 	if err != nil {
 		return Token{}, errors.Wrap(errIssueTmp, err)
