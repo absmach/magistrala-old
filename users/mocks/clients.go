@@ -146,7 +146,7 @@ func (m *Repository) RetrieveBySecret(ctx context.Context, key string) (mgclient
 	return ret.Get(0).(mgclients.Client), ret.Error(1)
 }
 
-func (m *Repository) IsSuperAdmin(ctx context.Context, userID string) error {
+func (m *Repository) CheckSuperAdmin(ctx context.Context, userID string) error {
 	ret := m.Called(ctx, userID)
 
 	if userID == WrongID {

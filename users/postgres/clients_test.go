@@ -223,7 +223,7 @@ func TestIsPlatformAdmin(t *testing.T) {
 	for _, tc := range cases {
 		_, err := repo.Save(context.Background(), tc.client)
 		require.Nil(t, err, fmt.Sprintf("%s: save client unexpected error: %s", tc.desc, err))
-		err = repo.IsSuperAdmin(context.Background(), tc.client.ID)
+		err = repo.CheckSuperAdmin(context.Background(), tc.client.ID)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.err, err))
 	}
 }
