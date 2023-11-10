@@ -146,11 +146,11 @@ func (m *Repository) RetrieveBySecret(ctx context.Context, key string) (mgclient
 	return ret.Get(0).(mgclients.Client), ret.Error(1)
 }
 
-func (m *Repository) IsOwner(ctx context.Context, clientID string, ownerID string) error {
-	ret := m.Called(ctx, clientID, ownerID)
+func (m *Repository) CheckSuperAdmin(ctx context.Context, userID string) error {
+	ret := m.Called(ctx, userID)
 
-	if clientID == WrongID {
-		return errors.ErrNotFound
+	if userID == WrongID {
+		return errors.ErrAuthorization
 	}
 
 	return ret.Error(0)
