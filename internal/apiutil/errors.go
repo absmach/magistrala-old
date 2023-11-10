@@ -152,4 +152,10 @@ var (
 
 	// ErrUnsupportedContentType indicates unacceptable or lack of Content-Type.
 	ErrUnsupportedContentType = errors.New("unsupported content type")
+
+	// ErrCommitTx indicates failed to commit transaction
+	ErrCommitTx = errors.New("failed to commit transaction")
+
+	// ErrRollbackTx indicates failed to rollback transaction
+	ErrRollbackTx = errors.New("failed to rollback transaction")
 )
