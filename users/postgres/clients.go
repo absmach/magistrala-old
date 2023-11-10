@@ -26,7 +26,7 @@ type Repository interface {
 	// operation failure.
 	Save(ctx context.Context, client mgclients.Client) (mgclients.Client, error)
 
-	IsSuperAdmin(ctx context.Context, adminID string) error
+	CheckSuperAdmin(ctx context.Context, adminID string) error
 }
 
 // NewRepository instantiates a PostgreSQL
@@ -66,8 +66,8 @@ func (repo clientRepo) Save(ctx context.Context, c mgclients.Client) (mgclients.
 	return client, nil
 }
 
-func (repo clientRepo) IsSuperAdmin(ctx context.Context, adminID string) error {
-	q := "SELECT * FROM clients WHERE id = $1 AND role = 1"
+func (repo clientRepo) CheckSuperAdmin(ctx context.Context, adminID string) error {
+	q := "SELECT 1 FROM clients WHERE id = $1 AND role = 1"
 
 	rows, err := repo.ClientRepository.DB.QueryContext(ctx, q, adminID)
 	if err != nil {
