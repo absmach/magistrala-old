@@ -11,7 +11,8 @@ import (
 	"github.com/absmach/magistrala"
 	authmocks "github.com/absmach/magistrala/auth/mocks"
 	"github.com/absmach/magistrala/internal/testsutil"
-	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/twins"
 	"github.com/absmach/magistrala/twins/mocks"
 	"github.com/mainflux/senml"
@@ -54,7 +55,7 @@ func TestAddTwin(t *testing.T) {
 			desc:  "add twin with wrong credentials",
 			twin:  twin,
 			token: authmocks.InvalidValue,
-			err:   errors.ErrAuthentication,
+			err:   svcerror.ErrAuthentication,
 		},
 	}
 
@@ -96,13 +97,13 @@ func TestUpdateTwin(t *testing.T) {
 			desc:  "update twin with wrong credentials",
 			twin:  saved,
 			token: authmocks.InvalidValue,
-			err:   errors.ErrAuthentication,
+			err:   svcerror.ErrAuthentication,
 		},
 		{
 			desc:  "update non-existing twin",
 			twin:  other,
 			token: token,
-			err:   errors.ErrNotFound,
+			err:   repoerror.ErrNotFound,
 		},
 	}
 
@@ -139,13 +140,13 @@ func TestViewTwin(t *testing.T) {
 			desc:  "view twin with wrong credentials",
 			id:    saved.ID,
 			token: authmocks.InvalidValue,
-			err:   errors.ErrAuthentication,
+			err:   svcerror.ErrAuthentication,
 		},
 		{
 			desc:  "view non-existing twin",
 			id:    wrongID,
 			token: token,
-			err:   errors.ErrNotFound,
+			err:   repoerror.ErrNotFound,
 		},
 	}
 
@@ -211,7 +212,7 @@ func TestListTwins(t *testing.T) {
 			token:  authmocks.InvalidValue,
 			limit:  0,
 			offset: n,
-			err:    errors.ErrAuthentication,
+			err:    svcerror.ErrAuthentication,
 		},
 	}
 
@@ -242,7 +243,7 @@ func TestRemoveTwin(t *testing.T) {
 			desc:  "remove twin with wrong credentials",
 			id:    saved.ID,
 			token: authmocks.InvalidValue,
-			err:   errors.ErrAuthentication,
+			err:   svcerror.ErrAuthentication,
 		},
 		{
 			desc:  "remove existing twin",
@@ -321,7 +322,7 @@ func TestSaveStates(t *testing.T) {
 			recs: recs[30:50],
 			size: 0,
 			attr: attrSansTwin,
-			err:  errors.ErrNotFound,
+			err:  repoerror.ErrNotFound,
 		},
 		{
 			desc: "use empty senml record",
@@ -431,7 +432,7 @@ func TestListStates(t *testing.T) {
 			offset: 0,
 			limit:  10,
 			size:   0,
-			err:    errors.ErrAuthentication,
+			err:    svcerror.ErrAuthentication,
 		},
 		{
 			desc:   "get a list with id of non-existent twin",

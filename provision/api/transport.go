@@ -12,6 +12,8 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/provision"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
@@ -98,16 +100,16 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	}
 
 	switch {
-	case errors.Contains(err, errors.ErrAuthentication),
+	case errors.Contains(err, svcerror.ErrAuthentication),
 		errors.Contains(err, apiutil.ErrBearerToken):
 		w.WriteHeader(http.StatusUnauthorized)
 	case errors.Contains(err, apiutil.ErrUnsupportedContentType):
 		w.WriteHeader(http.StatusUnsupportedMediaType)
-	case errors.Contains(err, errors.ErrMalformedEntity),
+	case errors.Contains(err, repoerror.ErrMalformedEntity),
 		errors.Contains(err, apiutil.ErrMissingID),
 		errors.Contains(err, apiutil.ErrBearerKey):
 		w.WriteHeader(http.StatusBadRequest)
-	case errors.Contains(err, errors.ErrConflict):
+	case errors.Contains(err, repoerror.ErrConflict):
 		w.WriteHeader(http.StatusConflict)
 	default:
 		w.WriteHeader(http.StatusInternalServerError)

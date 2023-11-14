@@ -14,6 +14,7 @@ import (
 	gapi "github.com/absmach/magistrala/internal/groups/api"
 	"github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/absmach/magistrala/pkg/groups"
 	"github.com/go-chi/chi/v5"
 	kithttp "github.com/go-kit/kit/transport/http"
@@ -182,7 +183,7 @@ func decodeAssignUsersRequest(_ context.Context, r *http.Request) (interface{}, 
 		groupID: chi.URLParam(r, "groupID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -198,7 +199,7 @@ func decodeUnassignUsersRequest(_ context.Context, r *http.Request) (interface{}
 		groupID: chi.URLParam(r, "groupID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -214,7 +215,7 @@ func decodeAssignUserGroupsRequest(_ context.Context, r *http.Request) (interfac
 		groupID: chi.URLParam(r, "groupID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -230,7 +231,7 @@ func decodeUnassignUserGroupsRequest(_ context.Context, r *http.Request) (interf
 		groupID: chi.URLParam(r, "groupID"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -265,7 +266,7 @@ func decodeConnectRequest(_ context.Context, r *http.Request) (interface{}, erro
 		token: apiutil.ExtractBearerToken(r),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(errors.ErrMalformedEntity, err))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(repoerror.ErrMalformedEntity, err))
 	}
 
 	return req, nil
@@ -280,7 +281,7 @@ func decodeDisconnectRequest(_ context.Context, r *http.Request) (interface{}, e
 		token: apiutil.ExtractBearerToken(r),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(errors.ErrMalformedEntity, err))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(repoerror.ErrMalformedEntity, err))
 	}
 
 	return req, nil
