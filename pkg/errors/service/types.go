@@ -1,8 +1,9 @@
+// Copyright (c) Magistrala
+// SPDX-License-Identifier: Apache-2.0
+
 package service
 
-import (
-	"github.com/absmach/magistrala/pkg/errors"
-)
+import "github.com/absmach/magistrala/pkg/errors"
 
 // Wrapper for Service errors
 var (
