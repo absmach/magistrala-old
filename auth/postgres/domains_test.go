@@ -15,12 +15,12 @@ func TestAddPolicyCopy(t *testing.T) {
 	repo := postgres.NewDomainRepository(database)
 	cases := []struct {
 		desc string
-		pc   auth.PolicyCopy
+		pc   auth.Policy
 		err  error
 	}{
 		{
 			desc: "add a  policy copy",
-			pc: auth.PolicyCopy{
+			pc: auth.Policy{
 				SubjectType: "unknown",
 				SubjectID:   "unknown",
 				Relation:    "unknown",
@@ -31,7 +31,7 @@ func TestAddPolicyCopy(t *testing.T) {
 		},
 		{
 			desc: "add again same policy copy",
-			pc: auth.PolicyCopy{
+			pc: auth.Policy{
 				SubjectType: "unknown",
 				SubjectID:   "unknown",
 				Relation:    "unknown",
@@ -43,7 +43,7 @@ func TestAddPolicyCopy(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		err := repo.SavePolicy(context.Background(), tc.pc)
+		err := repo.SavePolicies(context.Background(), tc.pc)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.err, err))
 	}
 }
@@ -52,12 +52,12 @@ func TestDeletePolicyCopy(t *testing.T) {
 	repo := postgres.NewDomainRepository(database)
 	cases := []struct {
 		desc string
-		pc   auth.PolicyCopy
+		pc   auth.Policy
 		err  error
 	}{
 		{
 			desc: "delete a  policy copy",
-			pc: auth.PolicyCopy{
+			pc: auth.Policy{
 				SubjectType: "unknown",
 				SubjectID:   "unknown",
 				Relation:    "unknown",
@@ -69,7 +69,7 @@ func TestDeletePolicyCopy(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		err := repo.DeletePolicy(context.Background(), tc.pc)
+		err := repo.DeletePolicies(context.Background(), tc.pc)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.err, err))
 	}
 }

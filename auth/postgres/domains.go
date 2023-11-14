@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/absmach/magistrala/auth"
+	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/internal/postgres"
 	"github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
@@ -274,13 +275,13 @@ func (repo domainRepo) Delete(ctx context.Context, id string) error {
 	return nil
 }
 
-// SavePolicy save policy in domains database.
-func (repo domainRepo) SavePolicy(ctx context.Context, pc auth.PolicyCopy) error {
+// SavePolicies save policies in domains database.
+func (repo domainRepo) SavePolicies(ctx context.Context, pcs ...auth.Policy) error {
 	q := `INSERT INTO policies (subject_type, subject_id, subject_relation, relation, object_type, object_id)
 	VALUES (:subject_type, :subject_id, :subject_relation, :relation, :object_type, :object_id)
 	RETURNING subject_type, subject_id, subject_relation, relation, object_type, object_id;`
 
-	dbpc := toDBPolicyCopy(pc)
+	dbpc := toDBPolicies(pcs...)
 	row, err := repo.db.NamedQueryContext(ctx, q, dbpc)
 	if err != nil {
 		return postgres.HandleError(err, errors.ErrCreateEntity)
@@ -291,7 +292,7 @@ func (repo domainRepo) SavePolicy(ctx context.Context, pc auth.PolicyCopy) error
 }
 
 // CheckPolicy check policy in domains database.
-func (repo domainRepo) CheckPolicy(ctx context.Context, pc auth.PolicyCopy) error {
+func (repo domainRepo) CheckPolicy(ctx context.Context, pc auth.Policy) error {
 	q := `
 		SELECT
 			subject_type, subject_id, subject_relation, relation, object_type, object_id FROM policies
@@ -304,7 +305,7 @@ func (repo domainRepo) CheckPolicy(ctx context.Context, pc auth.PolicyCopy) erro
 			AND object_id = :object_id
 		LIMIT 1
 	`
-	dbpc := toDBPolicyCopy(pc)
+	dbpc := toDBPolicy(pc)
 	row, err := repo.db.NamedQueryContext(ctx, q, dbpc)
 	if err != nil {
 		return postgres.HandleError(err, errors.ErrCreateEntity)
@@ -317,28 +318,41 @@ func (repo domainRepo) CheckPolicy(ctx context.Context, pc auth.PolicyCopy) erro
 	return nil
 }
 
-// DeletePolicy delete policy from domains database.
-func (repo domainRepo) DeletePolicy(ctx context.Context, pc auth.PolicyCopy) (err error) {
-	q := `
-		DELETE FROM
-			policies
-		WHERE
-			subject_type = :subject_type
-			AND subject_id = :subject_id
-			AND subject_relation = :subject_relation
-			AND relation = :relation
-			AND object_type = :object_type
-			AND object_id = :object_id
-		;`
-
-	dbpc := toDBPolicyCopy(pc)
-	row, err := repo.db.NamedQueryContext(ctx, q, dbpc)
+// DeletePolicies delete policies from domains database.
+func (repo domainRepo) DeletePolicies(ctx context.Context, pcs ...auth.Policy) (err error) {
+	tx, err := repo.db.BeginTxx(ctx, nil)
 	if err != nil {
-		return postgres.HandleError(err, errors.ErrRemoveEntity)
+		return err
 	}
-	defer row.Close()
+	defer func() {
+		if err != nil {
+			if errRollback := tx.Rollback(); errRollback != nil {
+				err = errors.Wrap(apiutil.ErrRollbackTx, errRollback)
+			}
+		}
+	}()
 
-	return nil
+	for _, pc := range pcs {
+		q := `
+			DELETE FROM
+				policies
+			WHERE
+				subject_type = :subject_type
+				AND subject_id = :subject_id
+				AND subject_relation = :subject_relation
+				AND relation = :relation
+				AND object_type = :object_type
+				AND object_id = :object_id
+			;`
+
+		dbpc := toDBPolicy(pc)
+		row, err := tx.NamedQuery(q, dbpc)
+		if err != nil {
+			return postgres.HandleError(err, errors.ErrRemoveEntity)
+		}
+		defer row.Close()
+	}
+	return tx.Commit()
 }
 
 func (repo domainRepo) processRows(rows *sqlx.Rows) ([]auth.Domain, error) {
@@ -389,10 +403,6 @@ func toDBDomains(d auth.Domain) (dbDomain, error) {
 		alias = &d.Alias
 	}
 
-	// var relation *string
-	// if d.Relation != "" {
-	// 	relation = &d.Relation
-	// }
 	var updatedBy *string
 	if d.UpdatedBy != "" {
 		updatedBy = &d.UpdatedBy
@@ -541,7 +551,7 @@ func buildPageQuery(pm auth.Page) (string, error) {
 	return emq, nil
 }
 
-type dbPolicyCopy struct {
+type dbPolicy struct {
 	SubjectType     string `db:"subject_type,omitempty"`
 	SubjectID       string `db:"subject_id,omitempty"`
 	SubjectRelation string `db:"subject_relation,omitempty"`
@@ -550,8 +560,23 @@ type dbPolicyCopy struct {
 	ObjectID        string `db:"object_id,omitempty"`
 }
 
-func toDBPolicyCopy(pc auth.PolicyCopy) dbPolicyCopy {
-	return dbPolicyCopy{
+func toDBPolicies(pcs ...auth.Policy) []dbPolicy {
+	var dbpcs []dbPolicy
+	for _, pc := range pcs {
+		dbpcs = append(dbpcs, dbPolicy{
+			SubjectType:     pc.SubjectType,
+			SubjectID:       pc.SubjectID,
+			SubjectRelation: pc.SubjectRelation,
+			Relation:        pc.Relation,
+			ObjectType:      pc.ObjectType,
+			ObjectID:        pc.ObjectID,
+		})
+	}
+	return dbpcs
+}
+
+func toDBPolicy(pc auth.Policy) dbPolicy {
+	return dbPolicy{
 		SubjectType:     pc.SubjectType,
 		SubjectID:       pc.SubjectID,
 		SubjectRelation: pc.SubjectRelation,
