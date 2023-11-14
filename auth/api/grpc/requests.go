@@ -65,21 +65,17 @@ type authReq struct {
 }
 
 func (req authReq) validate() error {
-	if req.Subject == "" {
+	if req.Subject == "" || req.SubjectType == "" {
 		return apiutil.ErrMissingPolicySub
 	}
 
-	if req.Object == "" {
+	if req.Object == "" || req.ObjectType == "" {
 		return apiutil.ErrMissingPolicyObj
 	}
 
-	// if req.SubjectKind == "" {
-	// 	return apiutil.ErrMissingPolicySub
-	// }
-
-	// if req.Permission == "" {
-	// 	return apiutil.ErrMalformedPolicyAct
-	// }
+	if req.Permission == "" {
+		return apiutil.ErrMalformedPolicyPer
+	}
 
 	return nil
 }
@@ -97,16 +93,16 @@ type policyReq struct {
 }
 
 func (req policyReq) validate() error {
-	if req.Subject == "" {
+	if req.Subject == "" || req.SubjectType == "" {
 		return apiutil.ErrMissingPolicySub
 	}
 
-	if req.Object == "" {
+	if req.Object == "" || req.ObjectType == "" {
 		return apiutil.ErrMissingPolicyObj
 	}
 
 	if req.Relation == "" && req.Permission == "" {
-		return apiutil.ErrMalformedPolicyAct
+		return apiutil.ErrMalformedPolicyRel
 	}
 
 	return nil
