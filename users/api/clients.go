@@ -97,7 +97,7 @@ func clientsHandler(svc users.Service, r *chi.Mux, logger mglog.Logger) http.Han
 			opts...,
 		), "password_reset").ServeHTTP)
 
-		r.Patch("/{id}/owner", otelhttp.NewHandler(kithttp.NewServer(
+		r.Patch("/{id}/role", otelhttp.NewHandler(kithttp.NewServer(
 			updateClientRoleEndpoint(svc),
 			decodeUpdateClientRole,
 			api.EncodeResponse,
