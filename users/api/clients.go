@@ -380,8 +380,14 @@ func decodeCredentials(_ context.Context, r *http.Request) (interface{}, error) 
 }
 
 func decodeRefreshToken(_ context.Context, r *http.Request) (interface{}, error) {
+	if !strings.Contains(r.Header.Get("Content-Type"), api.ContentType) {
+		return nil, errors.Wrap(apiutil.ErrValidation, apiutil.ErrUnsupportedContentType)
+	}
 	req := tokenReq{RefreshToken: apiutil.ExtractBearerToken(r)}
 
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+	}
 	return req, nil
 }
 
