@@ -12,6 +12,7 @@ import (
 	"github.com/absmach/magistrala/internal/testsutil"
 	"github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/absmach/magistrala/things/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -80,7 +81,7 @@ func TestClientsSave(t *testing.T) {
 				Metadata: clients.Metadata{},
 				Status:   clients.EnabledStatus,
 			},
-			err: errors.ErrCreateEntity,
+			err: repoerror.ErrCreateEntity,
 		},
 		{
 			desc: "add client with invalid client name",
@@ -94,7 +95,7 @@ func TestClientsSave(t *testing.T) {
 				Metadata: clients.Metadata{},
 				Status:   clients.EnabledStatus,
 			},
-			err: errors.ErrCreateEntity,
+			err: repoerror.ErrCreateEntity,
 		},
 		{
 			desc: "add client with invalid client owner",
@@ -108,7 +109,7 @@ func TestClientsSave(t *testing.T) {
 				Metadata: clients.Metadata{},
 				Status:   clients.EnabledStatus,
 			},
-			err: errors.ErrCreateEntity,
+			err: repoerror.ErrCreateEntity,
 		},
 		{
 			desc: "add client with invalid client identity",
@@ -122,7 +123,7 @@ func TestClientsSave(t *testing.T) {
 				Metadata: clients.Metadata{},
 				Status:   clients.EnabledStatus,
 			},
-			err: errors.ErrCreateEntity,
+			err: repoerror.ErrCreateEntity,
 		},
 		{
 			desc: "add client with a missing client identity",
@@ -184,7 +185,7 @@ func TestClientsRetrieveBySecret(t *testing.T) {
 		err    error
 	}{
 		"retrieve existing client":     {client.Credentials.Secret, nil},
-		"retrieve non-existing client": {"non-exsistent", errors.ErrNotFound},
+		"retrieve non-existing client": {"non-exsistent", repoerror.ErrNotFound},
 	}
 
 	for desc, tc := range cases {

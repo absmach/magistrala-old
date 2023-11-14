@@ -14,6 +14,7 @@ import (
 	mglog "github.com/absmach/magistrala/logger"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/absmach/magistrala/users"
 	"github.com/go-chi/chi/v5"
 	kithttp "github.com/go-kit/kit/transport/http"
@@ -261,7 +262,7 @@ func decodeUpdateClient(_ context.Context, r *http.Request) (interface{}, error)
 		id:    chi.URLParam(r, "id"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -277,7 +278,7 @@ func decodeUpdateClientTags(_ context.Context, r *http.Request) (interface{}, er
 		id:    chi.URLParam(r, "id"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -293,7 +294,7 @@ func decodeUpdateClientIdentity(_ context.Context, r *http.Request) (interface{}
 		id:    chi.URLParam(r, "id"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -308,7 +309,7 @@ func decodeUpdateClientSecret(_ context.Context, r *http.Request) (interface{}, 
 		token: apiutil.ExtractBearerToken(r),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -321,7 +322,7 @@ func decodePasswordResetRequest(_ context.Context, r *http.Request) (interface{}
 
 	var req passwResetReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	req.Host = r.Header.Get("Referer")
@@ -335,7 +336,7 @@ func decodePasswordReset(_ context.Context, r *http.Request) (interface{}, error
 
 	var req resetTokenReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -351,7 +352,7 @@ func decodeUpdateClientOwner(_ context.Context, r *http.Request) (interface{}, e
 		id:    chi.URLParam(r, "id"),
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -364,7 +365,7 @@ func decodeCredentials(_ context.Context, r *http.Request) (interface{}, error) 
 
 	req := loginClientReq{}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 
 	return req, nil
@@ -383,7 +384,7 @@ func decodeCreateClientReq(_ context.Context, r *http.Request) (interface{}, err
 
 	var c mgclients.Client
 	if err := json.NewDecoder(r.Body).Decode(&c); err != nil {
-		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, repoerror.ErrMalformedEntity))
 	}
 	req := createClientReq{
 		client: c,

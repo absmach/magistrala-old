@@ -13,6 +13,7 @@ import (
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/opcua"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
@@ -104,7 +105,7 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 
 	switch {
 	case errors.Contains(err, apiutil.ErrInvalidQueryParams),
-		errors.Contains(err, errors.ErrMalformedEntity),
+		errors.Contains(err, repoerror.ErrMalformedEntity),
 		err == apiutil.ErrMissingID:
 		w.WriteHeader(http.StatusBadRequest)
 

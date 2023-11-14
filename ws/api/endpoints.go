@@ -11,7 +11,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/absmach/magistrala/ws"
 	"github.com/go-zoo/bone"
 )
@@ -63,7 +63,7 @@ func decodeRequest(r *http.Request) (connReq, error) {
 	channelParts := channelPartRegExp.FindStringSubmatch(r.RequestURI)
 	if len(channelParts) < 2 {
 		logger.Warn("Empty channel id or malformed url")
-		return connReq{}, errors.ErrMalformedEntity
+		return connReq{}, repoerror.ErrMalformedEntity
 	}
 
 	subtopic, err := parseSubTopic(channelParts[2])
@@ -115,7 +115,7 @@ func encodeError(w http.ResponseWriter, err error) {
 		statusCode = http.StatusBadRequest
 	case errUnauthorizedAccess:
 		statusCode = http.StatusForbidden
-	case errMalformedSubtopic, errors.ErrMalformedEntity:
+	case errMalformedSubtopic, repoerror.ErrMalformedEntity:
 		statusCode = http.StatusBadRequest
 	default:
 		statusCode = http.StatusNotFound
