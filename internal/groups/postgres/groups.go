@@ -43,7 +43,7 @@ func (repo groupRepository) Save(ctx context.Context, g mggroups.Group) (mggroup
 	}
 	row, err := repo.db.NamedQueryContext(ctx, q, dbg)
 	if err != nil {
-		return mggroups.Group{}, postgres.HandleError(err, repoerror.ErrCreateEntity)
+		return mggroups.Group{}, postgres.HandleError(repoerror.ErrCreateEntity, err)
 	}
 
 	defer row.Close()
@@ -83,7 +83,7 @@ func (repo groupRepository) Update(ctx context.Context, g mggroups.Group) (mggro
 
 	row, err := repo.db.NamedQueryContext(ctx, q, dbu)
 	if err != nil {
-		return mggroups.Group{}, postgres.HandleError(err, repoerror.ErrUpdateEntity)
+		return mggroups.Group{}, postgres.HandleError(repoerror.ErrUpdateEntity, err)
 	}
 
 	defer row.Close()
@@ -107,7 +107,7 @@ func (repo groupRepository) ChangeStatus(ctx context.Context, group mggroups.Gro
 	}
 	row, err := repo.db.NamedQueryContext(ctx, qc, dbg)
 	if err != nil {
-		return mggroups.Group{}, postgres.HandleError(err, repoerror.ErrUpdateEntity)
+		return mggroups.Group{}, postgres.HandleError(repoerror.ErrUpdateEntity, err)
 	}
 
 	defer row.Close()

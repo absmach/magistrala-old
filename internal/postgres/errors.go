@@ -17,7 +17,7 @@ const (
 	errInvalid    = "22P02" // invalid_text_representation
 )
 
-func HandleError(err, wrapper error) error {
+func HandleError(wrapper, err error) error {
 	pqErr, ok := err.(*pgconn.PgError)
 	if ok {
 		switch pqErr.Code {
