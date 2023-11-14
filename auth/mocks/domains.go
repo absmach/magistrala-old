@@ -45,13 +45,13 @@ func (m *DomainsRepo) Delete(ctx context.Context, id string) error {
 
 	return ret.Error(0)
 }
-func (m *DomainsRepo) SavePolicy(ctx context.Context, pc auth.PolicyCopy) error {
-	ret := m.Called(ctx, pc)
+func (m *DomainsRepo) SavePolicies(ctx context.Context, pcs ...auth.Policy) error {
+	ret := m.Called(ctx, pcs)
 
 	return ret.Error(0)
 }
-func (m *DomainsRepo) DeletePolicy(ctx context.Context, pc auth.PolicyCopy) error {
-	ret := m.Called(ctx, pc)
+func (m *DomainsRepo) DeletePolicies(ctx context.Context, pcs ...auth.Policy) error {
+	ret := m.Called(ctx, pcs)
 
 	return ret.Error(0)
 }

@@ -53,7 +53,7 @@ type DomainsPage struct {
 	Domains []Domain `json:"domains,omitempty"`
 }
 
-type PolicyCopy struct {
+type Policy struct {
 	SubjectType     string `json:"subject_type,omitempty"`
 	SubjectID       string `json:"subject_id,omitempty"`
 	SubjectRelation string `json:"subject_relation,omitempty"`
@@ -89,11 +89,11 @@ type DomainsRepository interface {
 	// Delete
 	Delete(ctx context.Context, id string) error
 
-	// SavePolicy save policy in domains database
-	SavePolicy(ctx context.Context, pc PolicyCopy) error
+	// SavePolicies save policies in domains database
+	SavePolicies(ctx context.Context, pcs ...Policy) error
 
-	// DeletePolicy delete policy from domains database
-	DeletePolicy(ctx context.Context, pc PolicyCopy) error
+	// DeletePolicies delete policies from domains database
+	DeletePolicies(ctx context.Context, pcs ...Policy) error
 
 	// ListDomains list all the domains
 	ListDomains(ctx context.Context, pm Page) (DomainsPage, error)
