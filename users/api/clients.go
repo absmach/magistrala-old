@@ -459,7 +459,7 @@ func decodeListMembersByDomain(_ context.Context, r *http.Request) (interface{},
 		return nil, err
 	}
 	// For domains default permission in membership, In "queryPageParams" default is view,
-	// So overwriting the permission given by queryPageParams function with default membership permission.
+	// so overwriting the permission given by queryPageParams function with default membership permission.
 	p, err := apiutil.ReadStringQuery(r, api.PermissionKey, auth.MembershipPermission)
 	if err != nil {
 		return mgclients.Page{}, errors.Wrap(apiutil.ErrValidation, err)
