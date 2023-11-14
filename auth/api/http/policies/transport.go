@@ -47,12 +47,12 @@ func MakeHandler(svc auth.Service, mux *bone.Mux, logger logger.Logger) *bone.Mu
 
 func decodePoliciesRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	if !strings.Contains(r.Header.Get("Content-Type"), contentType) {
-		return nil, repoerror.ErrUnsupportedContentType
+		return nil, errors.ErrUnsupportedContentType
 	}
 
 	req := policiesReq{token: apiutil.ExtractBearerToken(r)}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(repoerror.ErrMalformedEntity, err)
+		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	return req, nil
@@ -87,13 +87,13 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	case errors.Contains(err, svcerror.ErrAuthentication),
 		err == apiutil.ErrBearerToken:
 		w.WriteHeader(http.StatusUnauthorized)
-	case errors.Contains(err, repoerror.ErrNotFound):
+	case errors.Contains(err, errors.ErrNotFound):
 		w.WriteHeader(http.StatusNotFound)
-	case errors.Contains(err, repoerror.ErrConflict):
+	case errors.Contains(err, errors.ErrConflict):
 		w.WriteHeader(http.StatusConflict)
 	case errors.Contains(err, svcerror.ErrAuthorization):
 		w.WriteHeader(http.StatusForbidden)
-	case errors.Contains(err, repoerror.ErrUnsupportedContentType):
+	case errors.Contains(err, errors.ErrUnsupportedContentType):
 		w.WriteHeader(http.StatusUnsupportedMediaType)
 	default:
 		w.WriteHeader(http.StatusInternalServerError)

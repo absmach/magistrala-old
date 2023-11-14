@@ -36,8 +36,6 @@ var (
 	// ErrLogin indicates wrong login credentials.
 	ErrLogin = errors.New("invalid user id or secret")
 
-	ErrUnsupportedContentType = errors.New("invalid content type")
-
 	//ErrUniqueID indicates an error in generating a unique ID
 	ErrUniqueID = errors.New("failed to generate unique identifier")
 

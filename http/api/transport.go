@@ -11,7 +11,6 @@ import (
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/pkg/errors"
-	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
@@ -99,7 +98,7 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 			case codes.Internal:
 				w.WriteHeader(http.StatusInternalServerError)
 			case codes.NotFound:
-				err = repoerror.ErrNotFound
+				err = errors.ErrNotFound
 				w.WriteHeader(http.StatusNotFound)
 			default:
 				w.WriteHeader(http.StatusInternalServerError)
