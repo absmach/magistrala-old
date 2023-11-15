@@ -15,13 +15,13 @@ import (
 	"github.com/absmach/magistrala/pkg/errors"
 )
 
-const recoveryDuration   = 5 * time.Minute
+const (
+	recoveryDuration   = 5 * time.Minute
 	invitationDuration = 24 * time.Hour
+)
 
 var (
 	errRollbackPolicy     = errors.New("failed to rollback policy")
-	errUserID             = errors.New("invalid user id ")
-	errAddBackPolicy      = errors.New("failed to add back policy")
 	errRemoveLocalPolicy  = errors.New("failed to remove from local policy copy")
 	errRemovePolicyEngine = errors.New("failed to remove from policy engine")
 )
