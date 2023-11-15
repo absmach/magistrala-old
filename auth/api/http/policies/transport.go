@@ -1,7 +1,7 @@
-// Copyright (c) Abstract Machines
+// Copyright (c) Magistrala
 // SPDX-License-Identifier: Apache-2.0
 
-package keys
+package policies
 
 import (
 	"context"
@@ -26,23 +26,16 @@ func MakeHandler(svc auth.Service, mux *chi.Mux, logger logger.Logger) *chi.Mux 
 		kithttp.ServerErrorEncoder(apiutil.LoggingErrorEncoder(logger, encodeError)),
 	}
 
-	mux.Post("/keys", kithttp.NewServer(
-		issueEndpoint(svc),
-		decodeIssue,
+	mux.Post("/policies", kithttp.NewServer(
+		(createPolicyEndpoint(svc)),
+		decodePoliciesRequest,
 		encodeResponse,
 		opts...,
 	).ServeHTTP)
 
-	mux.Get("/keys/{id}", kithttp.NewServer(
-		(retrieveEndpoint(svc)),
-		decodeKeyReq,
-		encodeResponse,
-		opts...,
-	).ServeHTTP)
-
-	mux.Delete("/keys/{id}", kithttp.NewServer(
-		(revokeEndpoint(svc)),
-		decodeKeyReq,
+	mux.Post("/policies/delete", kithttp.NewServer(
+		(deletePoliciesEndpoint(svc)),
+		decodePoliciesRequest,
 		encodeResponse,
 		opts...,
 	).ServeHTTP)
@@ -50,24 +43,16 @@ func MakeHandler(svc auth.Service, mux *chi.Mux, logger logger.Logger) *chi.Mux 
 	return mux
 }
 
-func decodeIssue(_ context.Context, r *http.Request) (interface{}, error) {
+func decodePoliciesRequest(_ context.Context, r *http.Request) (interface{}, error) {
 	if !strings.Contains(r.Header.Get("Content-Type"), contentType) {
 		return nil, errors.ErrUnsupportedContentType
 	}
 
-	req := issueKeyReq{token: apiutil.ExtractBearerToken(r)}
+	req := policiesReq{token: apiutil.ExtractBearerToken(r)}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
-	return req, nil
-}
-
-func decodeKeyReq(_ context.Context, r *http.Request) (interface{}, error) {
-	req := keyReq{
-		token: apiutil.ExtractBearerToken(r),
-		id:    chi.URLParam(r, "id"),
-	}
 	return req, nil
 }
 
@@ -92,8 +77,10 @@ func encodeResponse(_ context.Context, w http.ResponseWriter, response interface
 func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	switch {
 	case errors.Contains(err, errors.ErrMalformedEntity),
-		err == apiutil.ErrMissingID,
-		err == apiutil.ErrInvalidAPIKey:
+		err == apiutil.ErrEmptyList,
+		err == apiutil.ErrMissingPolicyObj,
+		err == apiutil.ErrMissingPolicySub,
+		err == apiutil.ErrMalformedPolicy:
 		w.WriteHeader(http.StatusBadRequest)
 	case errors.Contains(err, errors.ErrAuthentication),
 		err == apiutil.ErrBearerToken:
@@ -102,6 +89,8 @@ func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 		w.WriteHeader(http.StatusNotFound)
 	case errors.Contains(err, errors.ErrConflict):
 		w.WriteHeader(http.StatusConflict)
+	case errors.Contains(err, errors.ErrAuthorization):
+		w.WriteHeader(http.StatusForbidden)
 	case errors.Contains(err, errors.ErrUnsupportedContentType):
 		w.WriteHeader(http.StatusUnsupportedMediaType)
 	default:
