@@ -64,7 +64,7 @@ func (pa *policyAgent) AddPolicies(ctx context.Context, prs []auth.PolicyReq) er
 	updates := []*v1.RelationshipUpdate{}
 	var preconds []*v1.Precondition
 	for _, pr := range prs {
-		precond, err := pa.policyPreCondition(pr)
+		precond, err := pa.addPolicyPreCondition(pr)
 		if err != nil {
 			return err
 		}
@@ -89,7 +89,7 @@ func (pa *policyAgent) AddPolicies(ctx context.Context, prs []auth.PolicyReq) er
 }
 
 func (pa *policyAgent) AddPolicy(ctx context.Context, pr auth.PolicyReq) error {
-	precond, err := pa.policyPreCondition(pr)
+	precond, err := pa.addPolicyPreCondition(pr)
 	if err != nil {
 		return err
 	}
@@ -364,7 +364,7 @@ func (pa *policyAgent) publishToStream(resp *v1.WatchResponse) {
 	}
 }
 
-func (pa *policyAgent) policyPreCondition(pr auth.PolicyReq) ([]*v1.Precondition, error) {
+func (pa *policyAgent) addPolicyPreCondition(pr auth.PolicyReq) ([]*v1.Precondition, error) {
 	// Checks are required for following  ( -> means adding)
 	// 1.) user -> group (both user groups and channels)
 	// 2.) user -> thing
@@ -433,6 +433,17 @@ func userGroupPreConditions(pr auth.PolicyReq) ([]*v1.Precondition, error) {
 				},
 			},
 		},
+		{
+			Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
+			Filter: &v1.RelationshipFilter{
+				ResourceType:       auth.GroupType,
+				OptionalResourceId: pr.Object,
+				OptionalSubjectFilter: &v1.SubjectFilter{
+					SubjectType:       auth.UserType,
+					OptionalSubjectId: pr.Subject,
+				},
+			},
+		},
 	}
 	switch {
 	case pr.ObjectKind == auth.NewGroupKind || pr.ObjectKind == auth.NewChannelKind:
@@ -475,6 +486,17 @@ func userThingPreConditions(pr auth.PolicyReq) ([]*v1.Precondition, error) {
 			Filter: &v1.RelationshipFilter{
 				ResourceType:       auth.DomainType,
 				OptionalResourceId: pr.Domain,
+				OptionalSubjectFilter: &v1.SubjectFilter{
+					SubjectType:       auth.UserType,
+					OptionalSubjectId: pr.Subject,
+				},
+			},
+		},
+		{
+			Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
+			Filter: &v1.RelationshipFilter{
+				ResourceType:       auth.ThingType,
+				OptionalResourceId: pr.Object,
 				OptionalSubjectFilter: &v1.SubjectFilter{
 					SubjectType:       auth.UserType,
 					OptionalSubjectId: pr.Subject,
