@@ -66,7 +66,7 @@ func (pa *policyAgent) AddPolicies(ctx context.Context, prs []auth.PolicyReq) er
 	updates := []*v1.RelationshipUpdate{}
 	var preconds []*v1.Precondition
 	for _, pr := range prs {
-		precond, err := pa.addPolicyPreCondition(ctx, pr)
+		precond, err := pa.addPolicyPreCondition(pr)
 		if err != nil {
 			return err
 		}
@@ -91,7 +91,7 @@ func (pa *policyAgent) AddPolicies(ctx context.Context, prs []auth.PolicyReq) er
 }
 
 func (pa *policyAgent) AddPolicy(ctx context.Context, pr auth.PolicyReq) error {
-	precond, err := pa.addPolicyPreCondition(ctx, pr)
+	precond, err := pa.addPolicyPreCondition(pr)
 	if err != nil {
 		return err
 	}
@@ -366,7 +366,7 @@ func (pa *policyAgent) publishToStream(resp *v1.WatchResponse) {
 	}
 }
 
-func (pa *policyAgent) addPolicyPreCondition(ctx context.Context, pr auth.PolicyReq) ([]*v1.Precondition, error) {
+func (pa *policyAgent) addPolicyPreCondition(pr auth.PolicyReq) ([]*v1.Precondition, error) {
 	// Checks are required for following  ( -> means adding)
 	// 1.) user -> group (both user groups and channels)
 	// 2.) user -> thing
@@ -446,7 +446,18 @@ func (pa *policyAgent) userGroupPreConditions(ctx context.Context, pr auth.Polic
 					OptionalSubjectId: pr.Subject,
 				},
 			},
-		})
+		},
+		{
+			Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
+			Filter: &v1.RelationshipFilter{
+				ResourceType:       auth.GroupType,
+				OptionalResourceId: pr.Object,
+				OptionalSubjectFilter: &v1.SubjectFilter{
+					SubjectType:       auth.UserType,
+					OptionalSubjectId: pr.Subject,
+				},
+			},
+		},
 	}
 	switch {
 	case pr.ObjectKind == auth.NewGroupKind || pr.ObjectKind == auth.NewChannelKind:
@@ -506,7 +517,18 @@ func (pa *policyAgent) userThingPreConditions(ctx context.Context, pr auth.Polic
 					OptionalSubjectId: pr.Subject,
 				},
 			},
-		})
+		},
+		{
+			Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
+			Filter: &v1.RelationshipFilter{
+				ResourceType:       auth.ThingType,
+				OptionalResourceId: pr.Object,
+				OptionalSubjectFilter: &v1.SubjectFilter{
+					SubjectType:       auth.UserType,
+					OptionalSubjectId: pr.Subject,
+				},
+			},
+		},
 	}
 	switch {
 	// For New thing
