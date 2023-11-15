@@ -49,7 +49,6 @@ func NewService(crepo postgres.Repository, auth magistrala.AuthServiceClient, em
 }
 
 func (svc service) RegisterClient(ctx context.Context, token string, cli mgclients.Client) (rc mgclients.Client, err error) {
-	// We don't check the error or user id currently since we can register client with empty token
 	if !svc.selfRegister {
 		userID, err := svc.Identify(ctx, token)
 		if err != nil {
