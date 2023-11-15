@@ -16,13 +16,13 @@ import (
 
 // MakeHandler returns a HTTP handler for API endpoints.
 func MakeHandler(svc auth.Service, logger logger.Logger, instanceID string) http.Handler {
-	r := chi.NewRouter()
+	mux := chi.NewRouter()
 
-	r = keys.MakeHandler(svc, r, logger)
-	r = policies.MakeHandler(svc, r, logger)
+	mux = keys.MakeHandler(svc, mux, logger)
+	mux = policies.MakeHandler(svc, mux, logger)
 
-	r.Get("/health", magistrala.Health("auth", instanceID))
-	r.Handle("/metrics", promhttp.Handler())
+	mux.Get("/health", magistrala.Health("auth", instanceID))
+	mux.Handle("/metrics", promhttp.Handler())
 
-	return r
+	return mux
 }
