@@ -141,9 +141,7 @@ func (sdk mgSDK) EnableDomain(domainID, token string) errors.SDKError {
 }
 
 func (sdk mgSDK) DisableDomain(domainID, token string) errors.SDKError {
-	fmt.Println(token)
 	return sdk.changeDomainStatus(token, domainID, disableEndpoint)
-
 }
 func (sdk mgSDK) changeDomainStatus(token, id, status string) errors.SDKError {
 	url := fmt.Sprintf("%s/%s/%s/%s", sdk.domainsURL, domainsEndpoint, id, status)
