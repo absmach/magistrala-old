@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/url"
 	"os"
 
 	"github.com/absmach/magistrala"
@@ -17,16 +18,16 @@ import (
 	certspg "github.com/absmach/magistrala/certs/postgres"
 	"github.com/absmach/magistrala/certs/tracing"
 	"github.com/absmach/magistrala/internal"
-	authclient "github.com/absmach/magistrala/internal/clients/grpc/auth"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	pgclient "github.com/absmach/magistrala/internal/clients/postgres"
-	"github.com/absmach/magistrala/internal/env"
 	"github.com/absmach/magistrala/internal/postgres"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
+	"github.com/absmach/magistrala/pkg/auth"
 	mgsdk "github.com/absmach/magistrala/pkg/sdk/go"
 	"github.com/absmach/magistrala/pkg/uuid"
+	"github.com/caarlos0/env/v10"
 	"github.com/jmoiron/sqlx"
 	chclient "github.com/mainflux/callhome/pkg/client"
 	"go.opentelemetry.io/otel/trace"
@@ -37,6 +38,7 @@ const (
 	svcName        = "certs"
 	envPrefixDB    = "MG_CERTS_DB_"
 	envPrefixHTTP  = "MG_CERTS_HTTP_"
+	envPrefixAuth  = "MG_AUTH_GRPC_"
 	defDB          = "certs"
 	defSvcHTTPPort = "9019"
 )
@@ -45,7 +47,7 @@ type config struct {
 	LogLevel      string  `env:"MG_CERTS_LOG_LEVEL"        envDefault:"info"`
 	CertsURL      string  `env:"MG_SDK_CERTS_URL"          envDefault:"http://localhost"`
 	ThingsURL     string  `env:"MG_THINGS_URL"             envDefault:"http://things:9000"`
-	JaegerURL     string  `env:"MG_JAEGER_URL"             envDefault:"http://jaeger:14268/api/traces"`
+	JaegerURL     url.URL `env:"MG_JAEGER_URL"             envDefault:"http://jaeger:14268/api/traces"`
 	SendTelemetry bool    `env:"MG_SEND_TELEMETRY"         envDefault:"true"`
 	InstanceID    string  `env:"MG_CERTS_INSTANCE_ID"      envDefault:""`
 	TraceRatio    float64 `env:"MG_JAEGER_TRACE_RATIO"     envDefault:"1.0"`
@@ -111,7 +113,7 @@ func main() {
 	}
 	defer db.Close()
 
-	auth, authHandler, err := authclient.Setup(svcName)
+	authClient, authHandler, err := auth.Setup(envPrefixAuth)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
@@ -134,10 +136,10 @@ func main() {
 	}()
 	tracer := tp.Tracer(svcName)
 
-	svc := newService(auth, db, tracer, logger, cfg, dbConfig, pkiclient)
+	svc := newService(authClient, db, tracer, logger, cfg, dbConfig, pkiclient)
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
-	if err := env.Parse(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
+	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
 		logger.Error(fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
 		exitCode = 1
 		return
