@@ -384,13 +384,13 @@ var cmdUsers = []cobra.Command{
 				Limit:  Limit,
 			}
 
-			users, err := sdk.ListUserThings(args[0], pm, args[1])
+			tp, err := sdk.ListUserThings(args[0], pm, args[1])
 			if err != nil {
 				logError(err)
 				return
 			}
 
-			logJSON(users)
+			logJSON(tp)
 		},
 	},
 
