@@ -15,13 +15,13 @@ import (
 	"time"
 
 	"github.com/absmach/magistrala"
-	authapi "github.com/absmach/magistrala/internal/clients/grpc/auth"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	"github.com/absmach/magistrala/internal/server"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/mqtt"
 	"github.com/absmach/magistrala/mqtt/events"
 	mqtttracing "github.com/absmach/magistrala/mqtt/tracing"
+	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/errors"
 	"github.com/absmach/magistrala/pkg/messaging/brokers"
 	brokerstracing "github.com/absmach/magistrala/pkg/messaging/brokers/tracing"
@@ -37,7 +37,10 @@ import (
 	"golang.org/x/sync/errgroup"
 )
 
-const svcName = "mqtt"
+const (
+	svcName        = "mqtt"
+	envPrefixAuthz = "MG_THINGS_AUTH_GRPC_"
+)
 
 type config struct {
 	LogLevel              string        `env:"MG_MQTT_ADAPTER_LOG_LEVEL"                    envDefault:"info"`
@@ -157,7 +160,7 @@ func main() {
 		return
 	}
 
-	auth, aHandler, err := authapi.SetupAuthz("authz")
+	authClient, aHandler, err := auth.SetupAuthz(envPrefixAuthz)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
@@ -167,7 +170,7 @@ func main() {
 
 	logger.Info("Successfully connected to things grpc server " + aHandler.Secure())
 
-	h := mqtt.NewHandler(np, es, logger, auth)
+	h := mqtt.NewHandler(np, es, logger, authClient)
 	h = handler.NewTracing(tracer, h)
 
 	if cfg.SendTelemetry {
