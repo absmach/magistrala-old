@@ -310,7 +310,7 @@ blocks:
     dependencies:
       - Lint and Test Bootstrap
     run:
-      when: "change_in(['bootstrap', 'cmd/bootstrap'])"
+      when: "change_in(['/bootstrap/', '/cmd/bootstrap'])"
     task:
       jobs:
         - name: Build Bootstrap
