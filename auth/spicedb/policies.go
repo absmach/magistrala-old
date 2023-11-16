@@ -57,7 +57,7 @@ func (pa *policyAgent) CheckPolicy(ctx context.Context, pr auth.PolicyReq) error
 		return nil
 	}
 	if reason, ok := v1.CheckPermissionResponse_Permissionship_name[int32(resp.Permissionship)]; ok {
-		return errors.Wrap(errors.ErrAuthorization, errors.New(reason))
+		return errors.Wrap(svcerror.ErrAuthorization, errors.New(reason))
 	}
 	return svcerror.ErrAuthorization
 }
@@ -85,7 +85,7 @@ func (pa *policyAgent) AddPolicies(ctx context.Context, prs []auth.PolicyReq) er
 	}
 	_, err := pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates, OptionalPreconditions: preconds})
 	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
+		return errors.Wrap(repoerror.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
 	}
 	return nil
 }

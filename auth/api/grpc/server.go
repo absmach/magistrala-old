@@ -10,7 +10,6 @@ import (
 	"github.com/absmach/magistrala/auth"
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/pkg/errors"
-	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
 	"google.golang.org/grpc/codes"
@@ -440,7 +439,7 @@ func encodeError(err error) error {
 	switch {
 	case errors.Contains(err, nil):
 		return nil
-	case errors.Contains(err, repoerror.ErrMalformedEntity),
+	case errors.Contains(err, errors.ErrMalformedEntity),
 		err == apiutil.ErrInvalidAuthKey,
 		err == apiutil.ErrMissingID,
 		err == apiutil.ErrMissingMemberType,

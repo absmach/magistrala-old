@@ -14,7 +14,6 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
-	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/go-zoo/bone"
@@ -58,7 +57,7 @@ func decodeIssue(_ context.Context, r *http.Request) (interface{}, error) {
 
 	req := issueKeyReq{token: apiutil.ExtractBearerToken(r)}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		return nil, errors.Wrap(repoerror.ErrMalformedEntity, err)
+		return nil, errors.Wrap(errors.ErrMalformedEntity, err)
 	}
 
 	return req, nil
@@ -92,7 +91,7 @@ func encodeResponse(_ context.Context, w http.ResponseWriter, response interface
 
 func encodeError(_ context.Context, err error, w http.ResponseWriter) {
 	switch {
-	case errors.Contains(err, repoerror.ErrMalformedEntity),
+	case errors.Contains(err, errors.ErrMalformedEntity),
 		err == apiutil.ErrMissingID,
 		err == apiutil.ErrInvalidAPIKey:
 		w.WriteHeader(http.StatusBadRequest)
