@@ -14,39 +14,54 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
+	"github.com/go-chi/chi"
 	kithttp "github.com/go-kit/kit/transport/http"
-	"github.com/go-zoo/bone"
 )
 
 const contentType = "application/json"
 
 // MakeHandler returns a HTTP handler for API endpoints.
-func MakeHandler(svc auth.Service, mux *bone.Mux, logger logger.Logger) *bone.Mux {
+func MakeHandler(svc auth.Service, mux *chi.Mux, logger logger.Logger) *chi.Mux {
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(apiutil.LoggingErrorEncoder(logger, encodeError)),
 	}
-	mux.Post("/keys", kithttp.NewServer(
+	mux.Route("/keys", func(r chi.Router) {
+		r.Post("/", issueEndpointHandler(svc, opts))
+
+		r.Route("/{id}", func(r chi.Router) {
+			r.Get("/", retrieveEndpointHandler(svc, opts))
+			r.Delete("/", revokeEndpointHandler(svc, opts))
+		})
+
+	})
+	return mux
+}
+
+func issueEndpointHandler(svc auth.Service, opts []kithttp.ServerOption) http.HandlerFunc {
+	return kithttp.NewServer(
 		issueEndpoint(svc),
 		decodeIssue,
 		encodeResponse,
 		opts...,
-	))
+	).ServeHTTP
+}
 
-	mux.Get("/keys/:id", kithttp.NewServer(
+func retrieveEndpointHandler(svc auth.Service, opts []kithttp.ServerOption) http.HandlerFunc {
+	return kithttp.NewServer(
 		(retrieveEndpoint(svc)),
 		decodeKeyReq,
 		encodeResponse,
 		opts...,
-	))
+	).ServeHTTP
+}
 
-	mux.Delete("/keys/:id", kithttp.NewServer(
+func revokeEndpointHandler(svc auth.Service, opts []kithttp.ServerOption) http.HandlerFunc {
+	return kithttp.NewServer(
 		(revokeEndpoint(svc)),
 		decodeKeyReq,
 		encodeResponse,
 		opts...,
-	))
-
-	return mux
+	).ServeHTTP
 }
 
 func decodeIssue(_ context.Context, r *http.Request) (interface{}, error) {
@@ -65,7 +80,7 @@ func decodeIssue(_ context.Context, r *http.Request) (interface{}, error) {
 func decodeKeyReq(_ context.Context, r *http.Request) (interface{}, error) {
 	req := keyReq{
 		token: apiutil.ExtractBearerToken(r),
-		id:    bone.GetValue(r, "id"),
+		id:    chi.URLParam(r, "id"),
 	}
 	return req, nil
 }
