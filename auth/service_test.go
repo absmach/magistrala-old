@@ -13,6 +13,8 @@ import (
 	"github.com/absmach/magistrala/auth/jwt"
 	"github.com/absmach/magistrala/auth/mocks"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -92,7 +94,7 @@ func TestIssue(t *testing.T) {
 				IssuedAt: time.Now(),
 			},
 			token: "invalid",
-			err:   errors.ErrAuthentication,
+			err:   svcerror.ErrAuthentication,
 		},
 		{
 			desc: "issue API key with no time",
@@ -163,7 +165,7 @@ func TestRevoke(t *testing.T) {
 			desc: "revoke with empty login key",
 			// id:    newKey.ID,
 			token: "",
-			err:   errors.ErrAuthentication,
+			err:   svcerror.ErrAuthentication,
 		},
 	}
 
@@ -209,25 +211,25 @@ func TestRetrieve(t *testing.T) {
 			desc:  "retrieve non-existing login key",
 			id:    "invalid",
 			token: userToken.AccessToken,
-			err:   errors.ErrNotFound,
+			err:   repoerror.ErrNotFound,
 		},
 		{
 			desc: "retrieve with wrong login key",
 			// id:    apiKey.ID,
 			token: "wrong",
-			err:   errors.ErrAuthentication,
+			err:   svcerror.ErrAuthentication,
 		},
 		{
 			desc: "retrieve with API token",
 			// id:    apiKey.ID,
 			token: apiToken.AccessToken,
-			err:   errors.ErrAuthentication,
+			err:   svcerror.ErrAuthentication,
 		},
 		{
 			desc: "retrieve with reset token",
 			// id:    apiKey.ID,
 			token: resetToken.AccessToken,
-			err:   errors.ErrAuthentication,
+			err:   svcerror.ErrAuthentication,
 		},
 	}
 
@@ -290,13 +292,13 @@ func TestIdentify(t *testing.T) {
 			desc: "identify expired key",
 			key:  invalidSecret.AccessToken,
 			idt:  "",
-			err:  errors.ErrAuthentication,
+			err:  svcerror.ErrAuthentication,
 		},
 		{
 			desc: "identify invalid key",
 			key:  "invalid",
 			idt:  "",
-			err:  errors.ErrAuthentication,
+			err:  svcerror.ErrAuthentication,
 		},
 	}
 

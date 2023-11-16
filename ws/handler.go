@@ -14,6 +14,7 @@ import (
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/mainflux/mproxy/pkg/session"
 )
@@ -176,7 +177,7 @@ func (h *handler) Publish(ctx context.Context, topic *string, payload *[]byte) e
 		return err
 	}
 	if !res.GetAuthorized() {
-		return errors.ErrAuthorization
+		return svcerror.ErrAuthorization
 	}
 
 	msg := messaging.Message{
@@ -248,7 +249,7 @@ func (h *handler) authAccess(ctx context.Context, password, topic, action string
 		return err
 	}
 	if !res.GetAuthorized() {
-		return errors.ErrAuthorization
+		return svcerror.ErrAuthorization
 	}
 
 	return nil

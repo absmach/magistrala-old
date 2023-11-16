@@ -16,6 +16,8 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	sdk "github.com/absmach/magistrala/pkg/sdk/go"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -129,7 +131,7 @@ func TestIssueCert(t *testing.T) {
 			thingID:  thingID,
 			duration: "10h",
 			token:    wrongValue,
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(apiutil.ErrValidation, errors.ErrAuthentication), http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(apiutil.ErrValidation, svcerror.ErrAuthentication), http.StatusUnauthorized),
 		},
 		{
 			desc:     "create new empty cert",
@@ -184,7 +186,7 @@ func TestViewCert(t *testing.T) {
 			desc:     "get non-existent cert",
 			certID:   "43",
 			token:    token,
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(apiutil.ErrValidation, errors.ErrNotFound), http.StatusInternalServerError),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(apiutil.ErrValidation, repoerror.ErrNotFound), http.StatusInternalServerError),
 			response: sdk.Subscription{},
 		},
 		{
@@ -240,7 +242,7 @@ func TestViewCertByThing(t *testing.T) {
 			desc:     "get non-existent cert",
 			thingID:  "43",
 			token:    token,
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(apiutil.ErrValidation, errors.ErrNotFound), http.StatusInternalServerError),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(apiutil.ErrValidation, repoerror.ErrNotFound), http.StatusInternalServerError),
 			response: sdk.Subscription{},
 		},
 		{
@@ -288,13 +290,13 @@ func TestRevokeCert(t *testing.T) {
 			desc:    "revoke cert with invalid token",
 			thingID: thingID,
 			token:   wrongValue,
-			err:     errors.NewSDKErrorWithStatus(errors.ErrAuthentication, http.StatusUnauthorized),
+			err:     errors.NewSDKErrorWithStatus(svcerror.ErrAuthentication, http.StatusUnauthorized),
 		},
 		{
 			desc:    "revoke non-existing cert",
 			thingID: "2",
 			token:   token,
-			err:     errors.NewSDKErrorWithStatus(errors.Wrap(certs.ErrFailedCertRevocation, errors.ErrNotFound), http.StatusInternalServerError),
+			err:     errors.NewSDKErrorWithStatus(errors.Wrap(certs.ErrFailedCertRevocation, repoerror.ErrNotFound), http.StatusInternalServerError),
 		},
 		{
 			desc:    "revoke cert with invalid id",
@@ -318,7 +320,7 @@ func TestRevokeCert(t *testing.T) {
 			desc:    "revoke deleted cert",
 			thingID: thingID,
 			token:   token,
-			err:     errors.NewSDKErrorWithStatus(errors.Wrap(certs.ErrFailedToRemoveCertFromDB, errors.ErrNotFound), http.StatusInternalServerError),
+			err:     errors.NewSDKErrorWithStatus(errors.Wrap(certs.ErrFailedToRemoveCertFromDB, repoerror.ErrNotFound), http.StatusInternalServerError),
 		},
 	}
 

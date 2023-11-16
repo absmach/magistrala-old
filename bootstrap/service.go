@@ -12,6 +12,8 @@ import (
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	mgsdk "github.com/absmach/magistrala/pkg/sdk/go"
 )
 
@@ -122,7 +124,7 @@ func New(auth magistrala.AuthServiceClient, configs ConfigRepository, sdk mgsdk.
 func (bs bootstrapService) Add(ctx context.Context, token string, cfg Config) (Config, error) {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return Config{}, err
+		return Config{}, errors.Wrap(errors.ErrAuthentication, err)
 	}
 
 	toConnect := bs.toIDList(cfg.Channels)
@@ -169,7 +171,7 @@ func (bs bootstrapService) Add(ctx context.Context, token string, cfg Config) (C
 func (bs bootstrapService) View(ctx context.Context, token, id string) (Config, error) {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return Config{}, err
+		return Config{}, errors.Wrap(errors.ErrAuthentication, err)
 	}
 
 	return bs.configs.RetrieveByID(ctx, owner, id)
@@ -178,7 +180,7 @@ func (bs bootstrapService) View(ctx context.Context, token, id string) (Config, 
 func (bs bootstrapService) Update(ctx context.Context, token string, cfg Config) error {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return err
+		return errors.Wrap(errors.ErrAuthentication, err)
 	}
 
 	cfg.Owner = owner
@@ -189,7 +191,7 @@ func (bs bootstrapService) Update(ctx context.Context, token string, cfg Config)
 func (bs bootstrapService) UpdateCert(ctx context.Context, token, thingID, clientCert, clientKey, caCert string) (Config, error) {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return Config{}, err
+		return Config{}, errors.Wrap(errors.ErrAuthentication, err)
 	}
 	cfg, err := bs.configs.UpdateCert(ctx, owner, thingID, clientCert, clientKey, caCert)
 	if err != nil {
@@ -201,7 +203,7 @@ func (bs bootstrapService) UpdateCert(ctx context.Context, token, thingID, clien
 func (bs bootstrapService) UpdateConnections(ctx context.Context, token, id string, connections []string) error {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return err
+		return errors.Wrap(errors.ErrAuthentication, err)
 	}
 
 	cfg, err := bs.configs.RetrieveByID(ctx, owner, id)
@@ -232,7 +234,7 @@ func (bs bootstrapService) UpdateConnections(ctx context.Context, token, id stri
 
 	for _, c := range disconnect {
 		if err := bs.sdk.DisconnectThing(id, c, token); err != nil {
-			if errors.Contains(err, errors.ErrNotFound) {
+			if errors.Contains(err, repoerror.ErrNotFound) {
 				continue
 			}
 			return ErrThings
@@ -255,7 +257,7 @@ func (bs bootstrapService) UpdateConnections(ctx context.Context, token, id stri
 func (bs bootstrapService) List(ctx context.Context, token string, filter Filter, offset, limit uint64) (ConfigsPage, error) {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return ConfigsPage{}, err
+		return ConfigsPage{}, errors.Wrap(errors.ErrAuthentication, err)
 	}
 
 	return bs.configs.RetrieveAll(ctx, owner, filter, offset, limit), nil
@@ -264,7 +266,7 @@ func (bs bootstrapService) List(ctx context.Context, token string, filter Filter
 func (bs bootstrapService) Remove(ctx context.Context, token, id string) error {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return err
+		return errors.Wrap(errors.ErrAuthentication, err)
 	}
 	if err := bs.configs.Remove(ctx, owner, id); err != nil {
 		return errors.Wrap(errRemoveBootstrap, err)
@@ -294,7 +296,7 @@ func (bs bootstrapService) Bootstrap(ctx context.Context, externalKey, externalI
 func (bs bootstrapService) ChangeState(ctx context.Context, token, id string, state State) error {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return err
+		return errors.Wrap(errors.ErrAuthentication, err)
 	}
 
 	cfg, err := bs.configs.RetrieveByID(ctx, owner, id)
@@ -320,7 +322,7 @@ func (bs bootstrapService) ChangeState(ctx context.Context, token, id string, st
 	case Inactive:
 		for _, c := range cfg.Channels {
 			if err := bs.sdk.DisconnectThing(cfg.ThingID, c.ID, token); err != nil {
-				if errors.Contains(err, errors.ErrNotFound) {
+				if errors.Contains(err, repoerror.ErrNotFound) {
 					continue
 				}
 				return ErrThings
@@ -367,7 +369,7 @@ func (bs bootstrapService) identify(ctx context.Context, token string) (string, 
 
 	res, err := bs.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return "", errors.ErrAuthentication
+		return "", svcerror.ErrAuthentication
 	}
 
 	return res.GetId(), nil
@@ -417,7 +419,7 @@ func (bs bootstrapService) connectionChannels(channels, existing []string, token
 	for id := range add {
 		ch, err := bs.sdk.Channel(id, token)
 		if err != nil {
-			return nil, errors.Wrap(errors.ErrMalformedEntity, err)
+			return nil, errors.Wrap(repoerror.ErrMalformedEntity, err)
 		}
 
 		ret = append(ret, Channel{

@@ -11,7 +11,7 @@ import (
 	"testing"
 
 	mglog "github.com/absmach/magistrala/logger"
-	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/absmach/magistrala/twins"
 	"github.com/absmach/magistrala/twins/mocks"
@@ -75,7 +75,7 @@ func TestTwinsSave(t *testing.T) {
 				Owner: email,
 				Name:  invalidName,
 			},
-			err: errors.ErrMalformedEntity,
+			err: repoerror.ErrMalformedEntity,
 		},
 	}
 
@@ -123,7 +123,7 @@ func TestTwinsUpdate(t *testing.T) {
 			twin: twins.Twin{
 				ID: nonexistentTwinID,
 			},
-			err: errors.ErrNotFound,
+			err: repoerror.ErrNotFound,
 		},
 		{
 			desc: "update twin with invalid name",
@@ -132,7 +132,7 @@ func TestTwinsUpdate(t *testing.T) {
 				Owner: email,
 				Name:  invalidName,
 			},
-			err: errors.ErrMalformedEntity,
+			err: repoerror.ErrMalformedEntity,
 		},
 	}
 
@@ -176,7 +176,7 @@ func TestTwinsRetrieveByID(t *testing.T) {
 		{
 			desc: "retrieve a non-existing twin",
 			id:   nonexistentTwinID,
-			err:  errors.ErrNotFound,
+			err:  repoerror.ErrNotFound,
 		},
 	}
 
@@ -377,7 +377,7 @@ func TestTwinsRemove(t *testing.T) {
 		{
 			desc: "remove a non-existing twin",
 			id:   nonexistentTwinID,
-			err:  errors.ErrNotFound,
+			err:  repoerror.ErrNotFound,
 		},
 	}
 

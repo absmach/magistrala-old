@@ -11,6 +11,7 @@ import (
 
 	"github.com/absmach/magistrala/auth"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/lestrrat-go/jwx/v2/jwa"
 	"github.com/lestrrat-go/jwx/v2/jwt"
 )
@@ -58,7 +59,7 @@ func (repo *tokenizer) Issue(key auth.Key) (string, error) {
 	}
 	tkn, err := builder.Build()
 	if err != nil {
-		return "", errors.Wrap(errors.ErrAuthentication, err)
+		return "", errors.Wrap(svcerror.ErrAuthentication, err)
 	}
 	signedTkn, err := jwt.Sign(tkn, jwt.WithKey(jwa.HS512, repo.secret))
 	if err != nil {
@@ -78,7 +79,7 @@ func (repo *tokenizer) Parse(token string) (auth.Key, error) {
 			return auth.Key{}, ErrExpiry
 		}
 
-		return auth.Key{}, errors.Wrap(errors.ErrAuthentication, err)
+		return auth.Key{}, errors.Wrap(svcerror.ErrAuthentication, err)
 	}
 	validator := jwt.ValidatorFunc(func(_ context.Context, t jwt.Token) jwt.ValidationError {
 		if t.Issuer() != issuerName {
@@ -101,11 +102,11 @@ func (repo *tokenizer) Parse(token string) (auth.Key, error) {
 
 	tType, ok := tkn.Get(tokenType)
 	if !ok {
-		return auth.Key{}, errors.Wrap(errors.ErrAuthentication, err)
+		return auth.Key{}, errors.Wrap(svcerror.ErrAuthentication, err)
 	}
 	ktype, err := strconv.ParseInt(fmt.Sprintf("%v", tType), 10, 64)
 	if err != nil {
-		return auth.Key{}, errors.Wrap(errors.ErrAuthentication, err)
+		return auth.Key{}, errors.Wrap(svcerror.ErrAuthentication, err)
 	}
 
 	key.ID = tkn.JwtID()
