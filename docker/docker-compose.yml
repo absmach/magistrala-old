@@ -79,7 +79,7 @@ services:
     environment:
       POSTGRES_USER: ${MG_AUTH_DB_USER}
       POSTGRES_PASSWORD: ${MG_AUTH_DB_PASS}
-      POSTGRES_DB: ${MG_AUTH_DB}
+      POSTGRES_DB: ${MG_AUTH_DB_NAME}
     networks:
       - magistrala-base-net
     volumes:
