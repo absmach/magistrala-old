@@ -1039,14 +1039,14 @@ type SDK interface {
 	//  fmt.Println(err)
 	EnableDomain(domainID, token string) errors.SDKError
 
-	// DisableDomain changes the status of the domain to disable.
+	// DisableDomain changes the status of the domain to disabled.
 	//
 	// example:
 	//  err := sdk.DisableDomain("domainID", "token")
 	//  fmt.Println(err)
 	DisableDomain(domainID, token string) errors.SDKError
 
-	// AddUserToDomain add user to a domain.
+	// AddUserToDomain adds a user to a domain.
 	//
 	// example:
 	// req := sdk.UsersRelationRequest{
@@ -1057,7 +1057,7 @@ type SDK interface {
 	// fmt.Println(err)
 	AddUserToDomain(domainID string, req UsersRelationRequest, token string) errors.SDKError
 
-	// RemoveUserFromDomain remove user from a domain.
+	// RemoveUserFromDomain removes a user from a domain.
 	//
 	// example:
 	// req := sdk.UsersRelationRequest{

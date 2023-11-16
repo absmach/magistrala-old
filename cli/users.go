@@ -397,7 +397,7 @@ var cmdUsers = []cobra.Command{
 	{
 		Use:   "domains <user_id> <user_auth_token>",
 		Short: "List domains",
-		Long: "List domains of user\n" +
+		Long: "List user's domains\n" +
 			"Usage:\n" +
 			"\tmagistrala-cli users domains <user_id> <user_auth_token>\n",
 		Run: func(cmd *cobra.Command, args []string) {

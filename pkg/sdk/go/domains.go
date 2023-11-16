@@ -1,3 +1,6 @@
+// Copyright (c) Magistrala
+// SPDX-License-Identifier: Apache-2.0
+
 package sdk
 
 import (
@@ -26,8 +29,8 @@ type Domain struct {
 	UpdatedAt  time.Time `json:"updated_at,omitempty"`
 }
 
-func (sdk mgSDK) CreateDomain(d Domain, token string) (Domain, errors.SDKError) {
-	data, err := json.Marshal(d)
+func (sdk mgSDK) CreateDomain(domain Domain, token string) (Domain, errors.SDKError) {
+	data, err := json.Marshal(domain)
 	if err != nil {
 		return Domain{}, errors.NewSDKError(err)
 	}
@@ -39,31 +42,31 @@ func (sdk mgSDK) CreateDomain(d Domain, token string) (Domain, errors.SDKError) 
 		return Domain{}, sdkerr
 	}
 
-	do := Domain{}
-	if err := json.Unmarshal(body, &do); err != nil {
+	var d Domain
+	if err := json.Unmarshal(body, &d); err != nil {
 		return Domain{}, errors.NewSDKError(err)
 	}
-	return do, nil
+	return d, nil
 }
 
-func (sdk mgSDK) UpdateDomain(d Domain, token string) (Domain, errors.SDKError) {
-	data, err := json.Marshal(d)
+func (sdk mgSDK) UpdateDomain(domain Domain, token string) (Domain, errors.SDKError) {
+	data, err := json.Marshal(domain)
 	if err != nil {
 		return Domain{}, errors.NewSDKError(err)
 	}
 
-	url := fmt.Sprintf("%s/%s/%s", sdk.domainsURL, domainsEndpoint, d.ID)
+	url := fmt.Sprintf("%s/%s/%s", sdk.domainsURL, domainsEndpoint, domain.ID)
 
 	_, body, sdkerr := sdk.processRequest(http.MethodPatch, url, token, data, nil, http.StatusOK)
 	if sdkerr != nil {
 		return Domain{}, sdkerr
 	}
 
-	do := Domain{}
-	if err := json.Unmarshal(body, &do); err != nil {
+	var d Domain
+	if err := json.Unmarshal(body, &d); err != nil {
 		return Domain{}, errors.NewSDKError(err)
 	}
-	return do, nil
+	return d, nil
 }
 
 func (sdk mgSDK) Domain(domainID, token string) (Domain, errors.SDKError) {
@@ -110,7 +113,7 @@ func (sdk mgSDK) ListDomainUsers(domainID string, pm PageMetadata, token string)
 	if sdkerr != nil {
 		return UsersPage{}, sdkerr
 	}
-	up := UsersPage{}
+	var up UsersPage
 	if err := json.Unmarshal(body, &up); err != nil {
 		return UsersPage{}, errors.NewSDKError(err)
 	}
@@ -127,7 +130,7 @@ func (sdk mgSDK) ListUserDomains(userID string, pm PageMetadata, token string) (
 	if sdkerr != nil {
 		return DomainsPage{}, sdkerr
 	}
-	dp := DomainsPage{}
+	var dp DomainsPage
 	if err := json.Unmarshal(body, &dp); err != nil {
 		return DomainsPage{}, errors.NewSDKError(err)
 	}
@@ -137,12 +140,12 @@ func (sdk mgSDK) ListUserDomains(userID string, pm PageMetadata, token string) (
 
 func (sdk mgSDK) EnableDomain(domainID, token string) errors.SDKError {
 	return sdk.changeDomainStatus(token, domainID, enableEndpoint)
-
 }
 
 func (sdk mgSDK) DisableDomain(domainID, token string) errors.SDKError {
 	return sdk.changeDomainStatus(token, domainID, disableEndpoint)
 }
+
 func (sdk mgSDK) changeDomainStatus(token, id, status string) errors.SDKError {
 	url := fmt.Sprintf("%s/%s/%s/%s", sdk.domainsURL, domainsEndpoint, id, status)
 	_, _, sdkerr := sdk.processRequest(http.MethodPost, url, token, nil, nil, http.StatusOK)
