@@ -64,7 +64,7 @@ func (pa *policyAgent) AddPolicies(ctx context.Context, prs []auth.PolicyReq) er
 	updates := []*v1.RelationshipUpdate{}
 	var preconds []*v1.Precondition
 	for _, pr := range prs {
-		precond, err := pa.policyPreCondition(pr)
+		precond, err := pa.addPolicyPreCondition(ctx, pr)
 		if err != nil {
 			return err
 		}
@@ -89,7 +89,7 @@ func (pa *policyAgent) AddPolicies(ctx context.Context, prs []auth.PolicyReq) er
 }
 
 func (pa *policyAgent) AddPolicy(ctx context.Context, pr auth.PolicyReq) error {
-	precond, err := pa.policyPreCondition(pr)
+	precond, err := pa.addPolicyPreCondition(ctx, pr)
 	if err != nil {
 		return err
 	}
@@ -364,7 +364,7 @@ func (pa *policyAgent) publishToStream(resp *v1.WatchResponse) {
 	}
 }
 
-func (pa *policyAgent) policyPreCondition(pr auth.PolicyReq) ([]*v1.Precondition, error) {
+func (pa *policyAgent) addPolicyPreCondition(ctx context.Context, pr auth.PolicyReq) ([]*v1.Precondition, error) {
 	// Checks are required for following  ( -> means adding)
 	// 1.) user -> group (both user groups and channels)
 	// 2.) user -> thing
@@ -377,20 +377,20 @@ func (pa *policyAgent) policyPreCondition(pr auth.PolicyReq) ([]*v1.Precondition
 	// - USER with ANY RELATION to DOMAIN
 	// - GROUP with DOMAIN RELATION to DOMAIN
 	case pr.SubjectType == auth.UserType && pr.ObjectType == auth.GroupType:
-		return userGroupPreConditions(pr)
+		return pa.userGroupPreConditions(ctx, pr)
 
 	// 2.) user -> thing
 	// Checks :
 	// - USER with ANY RELATION to DOMAIN
 	// - THING with DOMAIN RELATION to DOMAIN
 	case pr.SubjectType == auth.UserType && pr.ObjectType == auth.ThingType:
-		return userThingPreConditions(pr)
+		return pa.userThingPreConditions(ctx, pr)
 
 	// 3.) group -> group (both for adding parent_group and channels)
 	// Checks :
 	// - CHILD_GROUP with out PARENT_GROUP RELATION with any GROUP
 	case pr.SubjectType == auth.GroupType && pr.ObjectType == auth.GroupType:
-		return groupPreConditions(pr)
+		return pa.groupPreConditions(ctx, pr)
 
 	// 4.) group (channel) -> thing
 	// Checks :
@@ -398,7 +398,7 @@ func (pa *policyAgent) policyPreCondition(pr auth.PolicyReq) ([]*v1.Precondition
 	// - NO GROUP should not have PARENT_GROUP RELATION with GROUP (channel)
 	// - THING with DOMAIN RELATION to DOMAIN
 	case pr.SubjectType == auth.GroupType && pr.ObjectType == auth.ThingType:
-		return channelThingPreCondition(pr)
+		return pa.channelThingPreCondition(ctx, pr)
 
 	// Check thing and group not belongs to other domain before adding to domain
 	case pr.SubjectType == auth.DomainType && pr.Relation == auth.DomainRelation && (pr.ObjectType == auth.ThingType || pr.ObjectType == auth.GroupType):
@@ -420,9 +420,21 @@ func (pa *policyAgent) policyPreCondition(pr auth.PolicyReq) ([]*v1.Precondition
 	return nil, nil
 }
 
-func userGroupPreConditions(pr auth.PolicyReq) ([]*v1.Precondition, error) {
-	preconds := []*v1.Precondition{
-		{
+func (pa *policyAgent) userGroupPreConditions(ctx context.Context, pr auth.PolicyReq) ([]*v1.Precondition, error) {
+	var preconds []*v1.Precondition
+	isSuperAdmin := false
+	if err := pa.CheckPolicy(ctx, auth.PolicyReq{
+		Subject:     pr.Subject,
+		SubjectType: pr.SubjectType,
+		Permission:  auth.AdminPermission,
+		Object:      auth.MagistralaObject,
+		ObjectType:  auth.PlatformType,
+	}); err == nil {
+		isSuperAdmin = true
+	}
+
+	if !isSuperAdmin {
+		preconds = append(preconds, &v1.Precondition{
 			Operation: v1.Precondition_OPERATION_MUST_MATCH,
 			Filter: &v1.RelationshipFilter{
 				ResourceType:       auth.DomainType,
@@ -432,7 +444,7 @@ func userGroupPreConditions(pr auth.PolicyReq) ([]*v1.Precondition, error) {
 					OptionalSubjectId: pr.Subject,
 				},
 			},
-		},
+		})
 	}
 	switch {
 	case pr.ObjectKind == auth.NewGroupKind || pr.ObjectKind == auth.NewChannelKind:
@@ -468,9 +480,21 @@ func userGroupPreConditions(pr auth.PolicyReq) ([]*v1.Precondition, error) {
 	return preconds, nil
 }
 
-func userThingPreConditions(pr auth.PolicyReq) ([]*v1.Precondition, error) {
-	preconds := []*v1.Precondition{
-		{
+func (pa *policyAgent) userThingPreConditions(ctx context.Context, pr auth.PolicyReq) ([]*v1.Precondition, error) {
+	var preconds []*v1.Precondition
+	isSuperAdmin := false
+	if err := pa.CheckPolicy(ctx, auth.PolicyReq{
+		Subject:     pr.Subject,
+		SubjectType: pr.SubjectType,
+		Permission:  auth.AdminPermission,
+		Object:      auth.MagistralaObject,
+		ObjectType:  auth.PlatformType,
+	}); err == nil {
+		isSuperAdmin = true
+	}
+
+	if !isSuperAdmin {
+		preconds = append(preconds, &v1.Precondition{
 			Operation: v1.Precondition_OPERATION_MUST_MATCH,
 			Filter: &v1.RelationshipFilter{
 				ResourceType:       auth.DomainType,
@@ -480,7 +504,7 @@ func userThingPreConditions(pr auth.PolicyReq) ([]*v1.Precondition, error) {
 					OptionalSubjectId: pr.Subject,
 				},
 			},
-		},
+		})
 	}
 	switch {
 	// For New thing
@@ -520,7 +544,7 @@ func userThingPreConditions(pr auth.PolicyReq) ([]*v1.Precondition, error) {
 	return preconds, nil
 }
 
-func groupPreConditions(pr auth.PolicyReq) ([]*v1.Precondition, error) {
+func (pa *policyAgent) groupPreConditions(ctx context.Context, pr auth.PolicyReq) ([]*v1.Precondition, error) {
 	// - PARENT_GROUP (subject) with DOMAIN RELATION to DOMAIN
 	precond := []*v1.Precondition{
 		{
@@ -587,7 +611,7 @@ func groupPreConditions(pr auth.PolicyReq) ([]*v1.Precondition, error) {
 	return precond, nil
 }
 
-func channelThingPreCondition(pr auth.PolicyReq) ([]*v1.Precondition, error) {
+func (pa *policyAgent) channelThingPreCondition(ctx context.Context, pr auth.PolicyReq) ([]*v1.Precondition, error) {
 	if pr.SubjectKind != auth.ChannelsKind {
 		return nil, errInvalidSubject
 	}
