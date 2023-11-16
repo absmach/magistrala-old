@@ -7,6 +7,7 @@ import (
 	"context"
 
 	mgclients "github.com/absmach/magistrala/pkg/clients"
+	"github.com/absmach/magistrala/pkg/errors"
 	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/absmach/magistrala/users/postgres"
 	"github.com/stretchr/testify/mock"

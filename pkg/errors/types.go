@@ -44,4 +44,10 @@ var (
 	ErrLogin = New("invalid user id or secret")
 
 	ErrUnsupportedContentType = New("invalid content type")
+
+	//ErrUniqueID indicates an error in generating a unique ID
+	ErrUniqueID = New("failed to generate unique identifier")
+
+	//ErrFailedOpDB indicates a failure in a database operation
+	ErrFailedOpDB = New("operation on db element failed")
 )
