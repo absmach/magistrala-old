@@ -1,3 +1,6 @@
+// Copyright (c) Magistrala
+// SPDX-License-Identifier: Apache-2.0
+
 package cli
 
 import (
@@ -222,7 +225,7 @@ func NewDomainsCmd() *cobra.Command {
 	cmd := cobra.Command{
 		Use:   "domains [create | get | update | enable | disable | enable | users | assign | unassign]",
 		Short: "Domains management",
-		Long:  `Domains management: create, update, retrieve domains , assign / unassign users to domains and list users of domain"`,
+		Long:  `Domains management: create, update, retrieve domains , assign/unassign users to domains and list users of domain"`,
 	}
 
 	for i := range cmdDomains {
