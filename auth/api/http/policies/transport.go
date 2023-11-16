@@ -25,22 +25,33 @@ func MakeHandler(svc auth.Service, mux *chi.Mux, logger logger.Logger) *chi.Mux 
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(apiutil.LoggingErrorEncoder(logger, encodeError)),
 	}
+	mux.Route("/policies", func(r chi.Router) {
+		r.Post("/", createPolicyEndpointHandler(svc, opts))
 
-	mux.Post("/policies", kithttp.NewServer(
+		r.Route("/delete", func(r chi.Router) {
+			r.Post("/", deletePoliciesEndpointHandler(svc, opts))
+		})
+	})
+
+	return mux
+}
+
+func createPolicyEndpointHandler(svc auth.Service, opts []kithttp.ServerOption) http.HandlerFunc {
+	return kithttp.NewServer(
 		(createPolicyEndpoint(svc)),
 		decodePoliciesRequest,
 		encodeResponse,
 		opts...,
-	).ServeHTTP)
+	).ServeHTTP
+}
 
-	mux.Post("/policies/delete", kithttp.NewServer(
+func deletePoliciesEndpointHandler(svc auth.Service, opts []kithttp.ServerOption) http.HandlerFunc {
+	return kithttp.NewServer(
 		(deletePoliciesEndpoint(svc)),
 		decodePoliciesRequest,
 		encodeResponse,
 		opts...,
-	).ServeHTTP)
-
-	return mux
+	).ServeHTTP
 }
 
 func decodePoliciesRequest(_ context.Context, r *http.Request) (interface{}, error) {
