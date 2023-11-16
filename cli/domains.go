@@ -73,11 +73,11 @@ var cmdDomains = []cobra.Command{
 	},
 
 	{
-		Use:   "list users <domain_id>  <token>",
+		Use:   "users <domain_id>  <token>",
 		Short: "List Domain users",
 		Long:  "List Domain users",
 		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) != 3 {
+			if len(args) != 2 {
 				logUsage(cmd.Use)
 				return
 			}
@@ -93,13 +93,12 @@ var cmdDomains = []cobra.Command{
 				Status:   Status,
 			}
 
-			l, err := sdk.ListDomainUsers(args[1], pageMetadata, args[2])
+			l, err := sdk.ListDomainUsers(args[0], pageMetadata, args[1])
 			if err != nil {
 				logError(err)
 				return
 			}
 			logJSON(l)
-
 		},
 	},
 
@@ -221,9 +220,9 @@ var cmdDomains = []cobra.Command{
 // NewDomainsCmd returns domains command.
 func NewDomainsCmd() *cobra.Command {
 	cmd := cobra.Command{
-		Use:   "domains [create | get | update | enable | disable | enable | assign | unassign]",
+		Use:   "domains [create | get | update | enable | disable | enable | users | assign | unassign]",
 		Short: "Domains management",
-		Long:  `Domains management: create, update, retrieve domains and assign / unassign users to domains"`,
+		Long:  `Domains management: create, update, retrieve domains , assign / unassign users to domains and list users of domain"`,
 	}
 
 	for i := range cmdDomains {
