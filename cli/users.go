@@ -357,13 +357,13 @@ var cmdUsers = []cobra.Command{
 				Limit:  Limit,
 			}
 
-			users, err := sdk.ListUserChannels(args[0], pm, args[1])
+			cp, err := sdk.ListUserChannels(args[0], pm, args[1])
 			if err != nil {
 				logError(err)
 				return
 			}
 
-			logJSON(users)
+			logJSON(cp)
 		},
 	},
 
@@ -393,6 +393,34 @@ var cmdUsers = []cobra.Command{
 			logJSON(users)
 		},
 	},
+
+	{
+		Use:   "domains <user_id> <user_auth_token>",
+		Short: "List domains",
+		Long: "List domains of user\n" +
+			"Usage:\n" +
+			"\tmagistrala-cli users domains <user_id> <user_auth_token>\n",
+		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) != 2 {
+				logUsage(cmd.Use)
+				return
+			}
+
+			pm := mgxsdk.PageMetadata{
+				Offset: Offset,
+				Limit:  Limit,
+			}
+
+			dp, err := sdk.ListUserDomains(args[0], pm, args[1])
+			if err != nil {
+				logError(err)
+				return
+			}
+
+			logJSON(dp)
+		},
+	},
+
 	{
 		Use:   "groups <user_id> <user_auth_token>",
 		Short: "List groups",
