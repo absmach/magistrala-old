@@ -8,7 +8,6 @@ import (
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/auth"
-	"github.com/absmach/magistrala/internal/apiutil"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
 	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
@@ -82,7 +81,7 @@ func (svc service) CreateThings(ctx context.Context, token string, cls ...mgclie
 			c.Credentials.Secret = key
 		}
 		if c.Status != mgclients.DisabledStatus && c.Status != mgclients.EnabledStatus {
-			return []mgclients.Client{}, apiutil.ErrInvalidStatus
+			return []mgclients.Client{}, errors.ErrInvalidStatus
 		}
 		c.CreatedAt = time.Now()
 		clients = append(clients, c)

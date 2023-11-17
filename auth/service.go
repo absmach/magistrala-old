@@ -10,7 +10,6 @@ import (
 	"time"
 
 	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
 )
@@ -459,7 +458,7 @@ func (svc service) CreateDomain(ctx context.Context, token string, d Domain) (do
 	d.ID = domainID
 
 	if d.Status != clients.DisabledStatus && d.Status != clients.EnabledStatus {
-		return Domain{}, apiutil.ErrInvalidStatus
+		return Domain{}, errors.ErrInvalidStatus
 	}
 
 	d.CreatedAt = time.Now()
