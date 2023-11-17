@@ -126,7 +126,14 @@ func main() {
 	case true:
 		authClient = localusers.NewAuthService(cfg.StandaloneID, cfg.StandaloneToken)
 	default:
-		authServiceClient, authHandler, err := auth.Setup(envPrefixAuth)
+		authConfig := auth.Config{}
+		if err := env.ParseWithOptions(&cfg, env.Options{Prefix: envPrefixAuth}); err != nil {
+			logger.Error(fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
+			exitCode = 1
+			return
+		}
+
+		authServiceClient, authHandler, err := auth.Setup(authConfig)
 		if err != nil {
 			logger.Error(err.Error())
 			exitCode = 1

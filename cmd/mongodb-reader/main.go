@@ -76,7 +76,14 @@ func main() {
 
 	repo := newService(db, logger)
 
-	ac, acHandler, err := auth.Setup(envPrefixAuth)
+	authConfig := auth.Config{}
+	if err := env.ParseWithOptions(&cfg, env.Options{Prefix: envPrefixAuth}); err != nil {
+		logger.Error(fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
+		exitCode = 1
+		return
+	}
+
+	ac, acHandler, err := auth.Setup(authConfig)
 	if err != nil {
 		logger.Fatal(err.Error())
 		exitCode = 1
@@ -86,7 +93,14 @@ func main() {
 
 	logger.Info("Successfully connected to auth grpc server " + acHandler.Secure())
 
-	tc, tcHandler, err := auth.SetupAuthz(envPrefixAuthz)
+	authConfig = auth.Config{}
+	if err := env.ParseWithOptions(&cfg, env.Options{Prefix: envPrefixAuthz}); err != nil {
+		logger.Error(fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
+		exitCode = 1
+		return
+	}
+
+	tc, tcHandler, err := auth.SetupAuthz(authConfig)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1

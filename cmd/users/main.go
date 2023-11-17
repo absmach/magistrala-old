@@ -142,7 +142,14 @@ func main() {
 	}()
 	tracer := tp.Tracer(svcName)
 
-	authClient, authHandler, err := auth.Setup(envPrefixAuth)
+	authConfig := auth.Config{}
+	if err := env.ParseWithOptions(&cfg, env.Options{Prefix: envPrefixAuth}); err != nil {
+		logger.Error(fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
+		exitCode = 1
+		return
+	}
+
+	authClient, authHandler, err := auth.Setup(authConfig)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
@@ -221,7 +228,7 @@ func newService(ctx context.Context, auth magistrala.AuthServiceClient, db *sqlx
 	counter, latency = internal.MakeMetrics("groups", "api")
 	gsvc = gapi.MetricsMiddleware(gsvc, counter, latency)
 
-	clientID, err := createAdmin(ctx, c, cRepo, hsr, csvc, auth)
+	clientID, err := createAdmin(ctx, c, cRepo, hsr, csvc)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to create admin client: %s", err))
 	}
@@ -231,7 +238,7 @@ func newService(ctx context.Context, auth magistrala.AuthServiceClient, db *sqlx
 	return csvc, gsvc, err
 }
 
-func createAdmin(ctx context.Context, c config, crepo clientspg.Repository, hsr users.Hasher, svc users.Service, auth magistrala.AuthServiceClient) (string, error) {
+func createAdmin(ctx context.Context, c config, crepo clientspg.Repository, hsr users.Hasher, svc users.Service) (string, error) {
 	id, err := uuid.New().ID()
 	if err != nil {
 		return "", err

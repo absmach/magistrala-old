@@ -87,15 +87,22 @@ func main() {
 		return
 	}
 
-	authClient, aHandler, err := auth.SetupAuthz(envPrefixAuthz)
+	authConfig := auth.Config{}
+	if err := env.ParseWithOptions(&cfg, env.Options{Prefix: envPrefixAuthz}); err != nil {
+		logger.Error(fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
+		exitCode = 1
+		return
+	}
+
+	authClient, authHandler, err := auth.SetupAuthz(authConfig)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
 		return
 	}
-	defer aHandler.Close()
+	defer authHandler.Close()
 
-	logger.Info("Successfully connected to things grpc server " + aHandler.Secure())
+	logger.Info("Successfully connected to things grpc server " + authHandler.Secure())
 
 	tp, err := jaegerclient.NewProvider(ctx, svcName, cfg.JaegerURL, cfg.InstanceID, cfg.TraceRatio)
 	if err != nil {
