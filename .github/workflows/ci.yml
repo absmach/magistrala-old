@@ -23,7 +23,7 @@ jobs:
           curl -Os https://uploader.codecov.io/latest/linux/codecov
           chmod +x codecov
           ./codecov
-          
+
       - name: Cache codecov
         uses: actions/cache@v2
         with:
@@ -35,7 +35,15 @@ jobs:
       - name: Setup Golangci-lint
         run: |
           curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.53.3
-          mv ./bin/golangci-lint $RUNNER_TOOL_CACHE/golangci-lint/latest/x64/golangci-lint
+          
+      - name: Cache Golangci-lint
+        uses: actions/cache@v2
+        with:
+          path: ./bin/golangci-lint
+          key: ${{ runner.os }}-golangci-lint-${{ hashFiles('./bin/golangci-lint') }}
+          restore-keys: |
+            ${{ runner.os }}-golangci-lint-
+              
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
