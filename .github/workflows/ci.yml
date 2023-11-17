@@ -23,7 +23,14 @@ jobs:
           curl -Os https://uploader.codecov.io/latest/linux/codecov
           chmod +x codecov
           ./codecov
-          mv codecov $RUNNER_TOOL_CACHE/codecov/latest/x64/codecov
+          
+      - name: Cache codecov
+        uses: actions/cache@v2
+        with:
+          path: ./codecov
+          key: ${{ runner.os }}-codecov-${{ hashFiles('./codecov') }}
+          restore-keys: |
+            ${{ runner.os }}-codecov-
 
       - name: Setup Golangci-lint
         run: |
