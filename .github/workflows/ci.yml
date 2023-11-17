@@ -161,7 +161,7 @@ jobs:
       - name: Lint Users
         run: |
           cd users
-          $RUNNER_TOOL_CACHE/golangci-lint/latest/x64/golangci-lint run
+          ./bin/golangci-lint run
 
       - name: Test Users
         run: |
