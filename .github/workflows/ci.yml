@@ -1,0 +1,1573 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - MG-35-self-hostrunner
+  pull_request:
+    branches:
+      - main
+      - MG-35-self-hostrunner
+
+jobs:
+  setup:
+    runs-on: ubuntu-20.04
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Setup Codecov
+        run: |
+          curl -Os https://uploader.codecov.io/latest/linux/codecov
+          chmod +x codecov
+          ./codecov
+          mv codecov $RUNNER_TOOL_CACHE/codecov/latest/x64/codecov
+
+      - name: Setup Golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.53.3
+          mv ./bin/golangci-lint $RUNNER_TOOL_CACHE/golangci-lint/latest/x64/golangci-lint
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+
+  check-protobuf:
+    runs-on: ubuntu-20.04
+
+    needs: setup
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific files
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - './auth.proto'
+              - 'pkg/messaging/message.proto'
+        
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Check Generated Protocol Buffer Files
+        run: |
+          PROTOC_VERSION=24.3
+          PROTOC_GEN_VERSION=v1.31.0
+          PROTOC_GRPC_VERSION=v1.3.0
+          PROTOC_ZIP=protoc-$PROTOC_VERSION-linux-x86_64.zip
+
+          curl -0L https://github.com/google/protobuf/releases/download/v$PROTOC_VERSION/$PROTOC_ZIP -o $PROTOC_ZIP
+          unzip -o $PROTOC_ZIP -d protoc3
+          sudo mv protoc3/bin/* /usr/local/bin/
+          sudo mv protoc3/include/* /usr/local/include/
+          rm -rf $PROTOC_ZIP protoc3
+
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@$PROTOC_GEN_VERSION
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@$PROTOC_GRPC_VERSION
+
+          export PATH=$PATH:/usr/local/bin/protoc
+          export PATH=$PATH:$HOME/go/bin
+
+          echo "Setting up Magistrala..."
+          for p in $(ls ./*.pb.go); do
+            mv $p $p.tmp
+          done
+
+          for p in $(ls pkg/messaging/*.pb.go); do
+            mv $p $p.tmp
+          done
+
+          make proto
+
+          for p in $(ls ./*.pb.go); do
+            if ! cmp -s $p $p.tmp; then
+              echo "Proto file and generated Go file $p are out of sync!"
+              exit 1
+            fi
+          done
+
+          for p in $(ls pkg/messaging/*.pb.go); do
+            if ! cmp -s $p $p.tmp; then
+              echo "Proto file and generated Go file $p are out of sync!"
+              exit 1
+            fi
+          done
+
+  lint-test-users:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'users/**'
+              - 'cmd/users/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+              linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+    
+      - name: Restore Codecov cache
+        uses: actions/cache@v2
+        with:
+          path: |
+              codecov
+          key: ${{ runner.os }}-codecov-${{ hashFiles('**/go.sum') }}
+        id: restore-codecov
+        
+      - name: Lint Users
+        run: |
+          cd users
+          cache restore linter
+          $RUNNER_TOOL_CACHE/golangci-lint/latest/x64/golangci-lint run
+
+      - name: Test Users
+        run: |
+          cd users
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+        
+        env:
+            CODECOV_TOKEN: ${{ secrets.CODECOV }}
+        
+      - name: Upload Codecov coverage
+        uses: actions/upload-artifact@v2
+        with:
+            name: code-coverage
+            path: users/coverage.html
+
+  build-users:
+    runs-on: ubuntu-20.04
+
+    needs: lint-test-users
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Check for changes in 'users' and 'cmd/users' directories
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'users/**'
+              - 'cmd/users/**'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Build Users
+        run: |
+          make docker_users
+        env:
+          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
+        
+     
+  lint-and-test-things:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'things/**'
+              - 'cmd/things/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+        
+      - name: Restore Linter cache
+        uses: actions/cache@v2
+        with:
+            path: |
+              linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint Things
+        run: |
+          cd things
+          cache restore linter
+          ./bin/golangci-lint run
+
+      - name: Test Things
+        run: |
+          cd things
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+        
+  build-things:
+    runs-on: ubuntu-20.04
+
+    needs: lint-and-test-things
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Check for changes in 'things' and 'cmd/things' directories
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'things/**'
+              - 'cmd/things/**'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Build Things
+        run: |
+          make docker_things
+        env:
+          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
+    
+  lint-and-test-coap:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'coap/**'
+              - 'cmd/coap/**'
+              - 'things/api/grpc/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+              linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint CoAP
+        run: |
+          cd coap
+          cache restore linter
+          ./bin/golangci-lint run
+        
+      - name: Test CoAP
+        run: |
+          cd coap
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+
+  build-coap:
+    runs-on: ubuntu-20.04
+
+    needs: lint-and-test-coap
+            
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in 'coap' and 'cmd/coap' directories
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'coap/**'
+              - 'cmd/coap/**'
+        
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+        
+      - name: Build CoAP
+        run: |
+          make docker_coap
+
+        env:
+          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
+
+  lint-and-test-http:
+    runs-on: ubuntu-20.04
+    needs: [setup, check-protobuf]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'http/**'
+              - 'cmd/http/**'
+              - 'things/api/grpc/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+    
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+              linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint HTTP
+        run: |
+          cd http
+          cache restore linter
+          ./bin/golangci-lint run
+     
+      - name: Test HTTP
+        run: |
+          cd http
+          go test ./... -race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+    
+  build-http:
+    runs-on: ubuntu-20.04
+
+    needs: lint-and-test-http
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in 'http' and 'cmd/http' directories
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'http/**'
+              - 'cmd/http/**'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Build and push HTTP
+        run: |
+          docker push magistrala/http:latest
+        env:
+          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
+
+  lint-and-test-mqtt:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps: 
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'mqtt/**'
+              - 'cmd/mqtt/**'
+              - 'things/api/grpc/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+ 
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+              linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint MQTT
+        run: |
+          cd mqtt
+          cache restore linter
+          ./bin/golangci-lint run
+
+      - name: Test MQTT
+        run: |
+          cd mqtt
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+
+  build-mqtt:
+    runs-on: ubuntu-20.04
+
+    needs: lint-and-test-mqtt
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in 'mqtt' and 'cmd/mqtt' directories
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'mqtt/**'
+              - 'cmd/mqtt/**'
+        
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+            go-version: 1.21
+        
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Build and push MQTT
+        run: |
+            docker push magistrala/mqtt:latest
+        env:
+          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
+    
+  lint-and-test-ws:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'ws/**'
+              - 'cmd/ws/**'
+              - 'things/api/grpc/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+            go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+              linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint WS
+        run: |
+            cd ws
+            cache restore linter
+            ./bin/golangci-lint run
+
+      - name: Test WS
+        run: |
+            cd ws
+            go test ./... --race -v -coverprofile=coverage.out
+            go tool cover -html=coverage.out -o coverage.html
+            cache restore codecov
+            ./codecov
+
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+
+  build-ws:
+    runs-on: ubuntu-20.04
+
+    needs: lint-and-test-ws
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'ws/**'
+              - 'cmd/ws/**'
+              - 'things/api/grpc/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+            go-version: 1.21
+
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Build and push WS
+        run: |
+            docker push magistrala/ws:latest
+        env:
+          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
+        
+  lint-and-test-bootstrap:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'bootstrap/**'
+              - 'cmd/bootstrap/**'
+              - 'things/policies/postgres/policies.go'
+              - 'things/policies/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+             linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint Bootstrap
+        run: |
+          cd bootstrap
+          cache restore linter
+          ./bin/golangci-lint run
+
+      - name: Test Bootstrap
+        run: |
+          cd bootstrap
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+        
+  build-bootstrap:
+    runs-on: ubuntu-20.04
+
+    needs: lint-and-test-bootstrap
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in 'bootstrap' and 'cmd/bootstrap' directories
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'bootstrap/**'
+              - 'cmd/bootstrap/**'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Build and push Bootstrap
+        run: |
+          docker push magistrala/bootstrap:latest
+        env:
+          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
+
+  lint-and-test-certs:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'certs/**'
+              - 'cmd/certs/**'
+              - 'things/api/grpc/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+             linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint Certs
+        run: |
+          cd certs
+          cache restore linter
+          ./bin/golangci-lint run
+
+      - name: Test Certs
+        run: |
+          cd certs
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+
+  build-certs:
+    runs-on: ubuntu-20.04
+
+    needs: lint-and-test-certs
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in 'certs' and 'cmd/certs' directories
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'certs/**'
+              - 'cmd/certs/**'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Build and push Certs
+        run: |
+          docker push magistrala/certs:latest
+        env:
+          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
+
+  lint-and-test-provision:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in 'provision' and 'cmd/provision' directories
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'provision/**'
+              - 'cmd/provision/**'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+              linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint Provision
+        run: |
+          cd provision
+          cache restore linter
+          ./bin/golangci-lint run
+
+      - name: Test Provision
+        run: |
+          cd provision
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+
+  build-provision:
+    runs-on: ubuntu-20.04
+
+    needs: lint-and-test-provision
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'provision/**'
+              - 'cmd/provision/**'
+              - 'things/api/grpc/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Build and push Provision
+        run: |
+          docker push magistrala/http:latest
+        env:
+          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
+
+  lint-and-test-twins:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'twins/**'
+              - 'cmd/twins/**'
+              - 'things/api/grpc/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+                linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint Twins
+        run: |
+          cd twins
+          cache restore linter
+          ./bin/golangci-lint run
+
+      - name: Test Twins
+        run: |
+          cd twins
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+
+  build-twins:
+    runs-on: ubuntu-20.04
+
+    needs: lint-and-test-twins
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in 'twins' and 'cmd/twins' directories
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'twins/**'
+              - 'cmd/twins/**'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Build and push Twins
+        run: |
+          docker push magistrala/twins:latest
+        env:
+          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
+
+  lint-and-test-readers:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'readers/**'
+              - 'cmd/cassandra-reader/**'
+              - 'cmd/influxdb-reader/**'
+              - 'cmd/mongodb-reader/**'
+              - 'cmd/postgres-reader/**'
+              - 'cmd/timescale-reader/**'
+              - 'things/api/grpc/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+              linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint Readers
+        run: |
+          cd readers
+          cache restore linter
+          ./bin/golangci-lint run
+
+      - name: Test Readers
+        run: |
+          cd readers
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+
+  build-readers:
+    runs-on: ubuntu-20.04
+
+    needs: lint-and-test-readers
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'readers/**'
+              - 'cmd/cassandra-reader/**'
+              - 'cmd/influxdb-reader/**'
+              - 'cmd/mongodb-reader/**'
+              - 'cmd/postgres-reader/**'
+              - 'cmd/timescale-reader/**'
+              - 'things/api/grpc/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Build and push Readers
+        run: |
+          docker push magistrala/cassandra-reader:latest
+          docker push magistrala/influxdb-reader:latest
+          docker push magistrala/mongodb-reader:latest
+          docker push magistrala/postgres-reader:latest
+          docker push magistrala/timescale-reader:latest
+        env:
+          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
+
+  lint-and-test-consumers:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'consumers/**'
+              - 'cmd/cassandra-writer/**'
+              - 'cmd/influxdb-writer/**'
+              - 'cmd/mongodb-writer/**'
+              - 'cmd/postgres-writer/**'
+              - 'cmd/timescale-writer/**'
+              - 'cmd/smpp-notifier/**'
+              - 'cmd/smtp-notifier/**'
+              - 'things/api/grpc/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+              linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint Consumers
+        run: |
+          cd consumers
+          cache restore linter
+          ./bin/golangci-lint run
+
+      - name: Test Consumers
+        run: |
+          cd consumers
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+
+  build-consumers:
+    runs-on: ubuntu-20.04
+
+    needs: lint-and-test-consumers
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'consumers/**'
+              - 'cmd/cassandra-writer/**'
+              - 'cmd/influxdb-writer/**'
+              - 'cmd/mongodb-writer/**'
+              - 'cmd/postgres-writer/**'
+              - 'cmd/timescale-writer/**'
+              - 'cmd/smpp-notifier/**'
+              - 'cmd/smtp-notifier/**'
+              - 'things/api/grpc/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Build and push Consumers
+        run: |
+          docker push magistrala/cassandra-writer:latest
+          docker push magistrala/influxdb-writer:latest
+          docker push magistrala/mongodb-writer:latest
+          docker push magistrala/postgres-writer:latest
+          docker push magistrala/timescale-writer:latest
+          docker push magistrala/smtp-notifier:latest
+        env:
+          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
+
+  lint-and-test-cli:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in 'cli' and 'cmd/cli' directories
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'cli/**'
+              - 'cmd/cli/**'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+              linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint CLI
+        run: |
+          cd cli
+          cache restore linter
+          ./bin/golangci-lint run
+
+      - name: Test CLI
+        run: |
+          cd cli
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+
+  build-cli:
+    runs-on: ubuntu-20.04
+
+    needs: lint-and-test-cli
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+  
+      - name: Check for changes in 'cli' and 'cmd/cli' directories
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'cli/**'
+              - 'cmd/cli/**'
+      
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Build and push CLI
+        run: docker push magistrala/cli:latest
+        env:
+          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
+
+  lint-and-test-LoRa:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'lora/**'
+              - 'cmd/lora/**'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+              linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint LoRa
+        run: |
+          cd lora
+          cache restore linter
+          ./bin/golangci-lint run
+
+      - name: Test LoRa
+        run: |
+          cd lora
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+
+  build-LoRa:
+    runs-on: ubuntu-20.04
+
+    needs: lint-and-test-LoRa
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'lora/**'
+              - 'cmd/lora/**'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Build and push LoRa
+        run: docker push magistrala/lora:latest
+        env:
+          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
+
+  lint-and-test-opc-ua:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'opcua/**'
+              - 'cmd/opcua/**'
+              - 'things/api/grpc/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+              linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint OPC-UA
+        run: |
+          cd opcua
+          cache restore linter
+          ./bin/golangci-lint run
+
+      - name: Test OPC-UA
+        run: |
+          cd opcua
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+
+  build-opc-ua:
+    runs-on: ubuntu-20.04
+    needs: lint-and-test-opc-ua
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'opcua/**'
+              - 'cmd/opcua/**'
+              - 'things/api/grpc/**'
+              - 'auth/service.go'
+              - 'auth/api/grpc/client.go'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Login to Docker Hub
+        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
+
+      - name: Build and push OPC-UA
+        run: docker push magistrala/opcua:latest
+        env:
+          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
+
+  lint-and-test-internal: 
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in 'internal' directory
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+            filters: |
+                internal:
+                - 'internal/**'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+              linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint Internal
+        run: |
+          cd internal
+          cache restore linter
+          ./bin/golangci-lint run
+
+      - name: Test Internal
+        run: |
+          cd internal
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+
+  lint-and-test-logger:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in 'logger' directory
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+            filters: |
+                logger:
+                - 'logger/**'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+          path: ~/.cache/golangci-lint
+          key: ${{ runner.os }}-golangci-lint-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-golangci-lint-
+
+      - name: Lint Logger
+        run: |
+          cd logger
+          cache restore linter
+          ./bin/golangci-lint run
+
+      - name: Test Logger
+        run: |
+          cd logger
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+
+  lint-and-test-pkg:
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in 'pkg' directory
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            pkg:
+              - 'pkg/**'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+              linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint PKG
+        run: |
+          cd pkg
+          cache restore linter
+          ./bin/golangci-lint run
+
+      - name: Test PKG
+        run: |
+          cd pkg
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+
+  lint-and-test-tools: 
+    runs-on: ubuntu-20.04
+
+    needs: [setup, check-protobuf]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Check for changes in 'tools' directory
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            tools:
+              - 'tools/**'
+
+      - name: Setup Go
+        uses: actions/setup-go@v2
+        with:
+          go-version: 1.21
+
+      - name: Cache linter
+        uses: actions/cache@v2
+        with:
+            path: |
+              linter
+            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
+        id: restore-linter
+
+      - name: Lint Tools
+        run: |
+          cd tools
+          cache restore linter
+          ./bin/golangci-lint run
+
+      - name: Test Tools
+        run: |
+          cd tools
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+          cache restore codecov
+          ./codecov
+
+  compile-check-rabbitmq:
+    runs-on: ubuntu-20.04
+
+    needs: setup
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Compile For RabbitMQ
+        run: |
+          export MG_MESSAGE_BROKER_TYPE=rabbitmq
+          make mqtt
+            
+        
+  compile-check-redis:
+    runs-on: ubuntu-20.04
+    needs: setup
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+
+      - name: Compile For Redis
+        run: |
+          export MG_ES_STORE_TYPE=redis
+          make mqtt
