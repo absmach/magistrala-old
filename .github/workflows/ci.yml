@@ -158,6 +158,18 @@ jobs:
           key: ${{ runner.os }}-codecov-${{ hashFiles('**/go.sum') }}
         id: restore-codecov
         
+      - name: Setup Golangci-lint
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s v1.53.3
+          
+      - name: Cache Golangci-lint
+        uses: actions/cache@v2
+        with:
+          path: ./bin/golangci-lint
+          key: ${{ runner.os }}-golangci-lint-${{ hashFiles('./bin/golangci-lint') }}
+          restore-keys: |
+            ${{ runner.os }}-golangci-lint-
+
       - name: Lint Users
         run: |
           cd users
