@@ -141,14 +141,6 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.21
-
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
     
       - name: Restore Codecov cache
         uses: actions/cache@v2
@@ -161,7 +153,7 @@ jobs:
       - name: Lint Users
         run: |
           cd users
-          ./go/bin/golangci-lint run
+          ./bin/golangci-lint run
 
       - name: Test Users
         run: |
