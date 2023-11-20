@@ -75,6 +75,7 @@ type listClientsReq struct {
 	permission string
 	visibility string
 	userID     string
+	listPerms  bool
 	metadata   mgclients.Metadata
 }
 

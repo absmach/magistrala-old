@@ -168,6 +168,12 @@ func decodeListClients(_ context.Context, r *http.Request) (interface{}, error) 
 	if err != nil {
 		return nil, errors.Wrap(apiutil.ErrValidation, err)
 	}
+
+	lp, err := apiutil.ReadBoolQuery(r, api.ListPerms, api.DefListPerms)
+	if err != nil {
+		return nil, errors.Wrap(apiutil.ErrValidation, err)
+	}
+
 	if oid != "" {
 		ownerID = oid
 	}
@@ -184,6 +190,7 @@ func decodeListClients(_ context.Context, r *http.Request) (interface{}, error) 
 		name:       n,
 		tag:        t,
 		permission: p,
+		listPerms:  lp,
 		userID:     chi.URLParam(r, "userID"),
 		owner:      ownerID,
 	}
@@ -302,6 +309,11 @@ func decodeListMembersRequest(_ context.Context, r *http.Request) (interface{}, 
 	if err != nil {
 		return nil, errors.Wrap(apiutil.ErrValidation, err)
 	}
+
+	lp, err := apiutil.ReadBoolQuery(r, api.ListPerms, api.DefListPerms)
+	if err != nil {
+		return nil, errors.Wrap(apiutil.ErrValidation, err)
+	}
 	req := listMembersReq{
 		token: apiutil.ExtractBearerToken(r),
 		Page: mgclients.Page{
@@ -310,6 +322,7 @@ func decodeListMembersRequest(_ context.Context, r *http.Request) (interface{}, 
 			Limit:      l,
 			Permission: p,
 			Metadata:   m,
+			ListPerms:  lp,
 		},
 		groupID: chi.URLParam(r, "groupID"),
 	}

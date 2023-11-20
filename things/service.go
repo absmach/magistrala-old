@@ -4,6 +4,7 @@ package things
 
 import (
 	"context"
+	"sync"
 	"time"
 
 	"github.com/absmach/magistrala"
@@ -171,7 +172,59 @@ func (svc service) ListClients(ctx context.Context, token string, reqUserID stri
 
 	pm.IDs = ids
 
-	return svc.clients.RetrieveAllByIDs(ctx, pm)
+	tp, err := svc.clients.RetrieveAllByIDs(ctx, pm)
+	if err != nil {
+		return mgclients.ClientsPage{}, err
+	}
+
+	if pm.ListPerms && len(tp.Clients) > 0 {
+		var wg sync.WaitGroup
+		resultChan := make(chan error, len(tp.Clients))
+
+		for i := range tp.Clients {
+			wg.Add(1)
+			go svc.retrievePermissions(ctx, res.GetId(), &wg, &tp.Clients[i], resultChan)
+		}
+
+		go func() {
+			wg.Wait()
+			close(resultChan)
+		}()
+
+		for result := range resultChan {
+			if result != nil {
+				return mgclients.ClientsPage{}, result
+			}
+		}
+	}
+	return tp, nil
+}
+
+// Experimental functions used for async calling of svc.listUserThingPermission. This might be helpful during listing of large number of entities.
+func (svc service) retrievePermissions(ctx context.Context, userID string, wg *sync.WaitGroup, client *mgclients.Client, resultChan chan<- error) {
+	defer wg.Done()
+
+	permissions, err := svc.listUserThingPermission(ctx, userID, client.ID)
+	if err != nil {
+		resultChan <- err
+		return
+	}
+
+	client.Permissions = permissions
+	resultChan <- nil
+}
+
+func (svc service) listUserThingPermission(ctx context.Context, userID, thingID string) ([]string, error) {
+	lp, err := svc.auth.ListPermissions(ctx, &magistrala.ListPermissionsReq{
+		SubjectType: auth.UserType,
+		Subject:     userID,
+		Object:      thingID,
+		ObjectType:  auth.ThingType,
+	})
+	if err != nil {
+		return []string{}, err
+	}
+	return lp.GetPermissions(), nil
 }
 
 func (svc service) listClientIDs(ctx context.Context, userID, permission string) ([]string, error) {

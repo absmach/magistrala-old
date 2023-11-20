@@ -35,6 +35,7 @@ type Group struct {
 	UpdatedAt   time.Time        `json:"updated_at,omitempty"`
 	UpdatedBy   string           `json:"updated_by,omitempty"`
 	Status      clients.Status   `json:"status"`
+	Permissions []string         `json:"permissions"`
 }
 
 type Member struct {
@@ -59,6 +60,7 @@ type Page struct {
 	Level      uint64
 	ID         string
 	Permission string
+	ListPerms  bool
 	Direction  int64 // ancestors (+1) or descendants (-1)
 	Groups     []Group
 }
