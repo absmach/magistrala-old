@@ -21,6 +21,12 @@ var (
 	errJWTExpiryKey = errors.New(`"exp" not satisfied`)
 	// ErrExpiry indicates that the token is expired.
 	ErrExpiry = errors.New("token is expired")
+	// ErrSetClaim indicates an inability to set the claim
+	ErrSetClaim = errors.New("failed to set claim")
+	// ErrSignJWT indicates an error in signing jwt token
+	ErrSignJWT = errors.New("failed to sign jwt token")
+	// ErrParseToken indicates a failure to parse the token
+	ErrParseToken = errors.New("failed to parse token")
 )
 
 const (
@@ -62,7 +68,7 @@ func (repo *tokenizer) Issue(key auth.Key) (string, error) {
 	}
 	signedTkn, err := jwt.Sign(tkn, jwt.WithKey(jwa.HS512, repo.secret))
 	if err != nil {
-		return "", errors.Wrap(svcerror.ErrAuthentication, errors.ErrSignJWT)
+		return "", ErrSignJWT
 	}
 	return string(signedTkn), nil
 }
