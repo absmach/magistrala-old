@@ -62,7 +62,7 @@ func (repo *tokenizer) Issue(key auth.Key) (string, error) {
 	}
 	signedTkn, err := jwt.Sign(tkn, jwt.WithKey(jwa.HS512, repo.secret))
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(svcerror.ErrAuthentication, errors.ErrSignJWT)
 	}
 	return string(signedTkn), nil
 }

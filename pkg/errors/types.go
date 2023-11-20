@@ -63,6 +63,9 @@ var (
 	// ErrRollbackTx indicates failed to rollback transaction
 	ErrRollbackTx = New("failed to rollback transaction")
 
+	// ErrSetClaim indicates an inability to set the claim
+	ErrSetClaim = New("failed to set claim")
 
-
+	// ErrSignJWT indicates an error in signing jwt token
+	ErrSignJWT = New("failed to sign jwt token")
 )
