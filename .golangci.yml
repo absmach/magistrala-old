@@ -13,6 +13,10 @@ issues:
     - "string `Usage:\n` has (\\d+) occurrences, make it a constant"
     - "string `For example:\n` has (\\d+) occurrences, make it a constant"
 
+exclude:
+  - "string `Usage:\n` has (\\d+) occurrences, make it a constant"
+  - "string `For example:\n` has (\\d+) occurrences, make it a constant"
+
 linters-settings:
   gocritic:
     enabled-checks:
