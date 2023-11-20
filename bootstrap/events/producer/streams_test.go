@@ -40,7 +40,7 @@ import (
 const (
 	streamID      = "magistrala.bootstrap"
 	email         = "user@example.com"
-	validToken    = "validToken"
+	validToken    = "token"
 	channelsNum   = 3
 	defaultTimout = 5
 
@@ -814,9 +814,9 @@ func TestChangeState(t *testing.T) {
 
 	lastID := "0"
 	for _, tc := range cases {
-		repoCall = auth.On("Identify", mock.Anything, &magistrala.IdentityReq{Token: tc.token}).Return(&magistrala.IdentityRes{Id: validID}, nil)
+		repoCall = auth.On("Identify", mock.Anything, &magistrala.IdentityReq{Token: tc.token}).Return(&magistrala.IdentityRes{Id: validID, DomainId: testsutil.GenerateUUID(t)}, nil)
 		repoCall1 = auth.On("Authorize", mock.Anything, mock.Anything).Return(&magistrala.AuthorizeRes{Authorized: true}, nil)
-		repoCall2 = auth.On("AddPolicy", mock.Anything, mock.Anything).Return(&magistrala.AddPolicyRes{Authorized: true}, nil)
+		repoCall2 = auth.On("AddPolicies", mock.Anything, mock.Anything).Return(&magistrala.AddPoliciesRes{Authorized: true}, nil)
 		repoCall3 := auth.On("DeletePolicy", mock.Anything, mock.Anything).Return(&magistrala.DeletePolicyRes{Deleted: true}, nil)
 		err := svc.ChangeState(context.Background(), tc.token, tc.id, tc.state)
 		assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
