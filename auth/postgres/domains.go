@@ -16,6 +16,7 @@ import (
 	"github.com/absmach/magistrala/internal/postgres"
 	"github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/jackc/pgtype"
 	"github.com/jmoiron/sqlx"
 )
@@ -41,12 +42,12 @@ func (repo domainRepo) Save(ctx context.Context, d auth.Domain) (ad auth.Domain,
 
 	dbd, err := toDBDomains(d)
 	if err != nil {
-		return auth.Domain{}, errors.Wrap(errors.ErrCreateEntity, err)
+		return auth.Domain{}, errors.Wrap(repoerror.ErrCreateEntity, errors.ErrRollbackTx)
 	}
 
 	row, err := repo.db.NamedQueryContext(ctx, q, dbd)
 	if err != nil {
-		return auth.Domain{}, postgres.HandleError(err, errors.ErrCreateEntity)
+		return auth.Domain{}, errors.Wrap(repoerror.ErrCreateEntity, postgres.HandleError(err))
 	}
 
 	defer row.Close()
@@ -236,7 +237,7 @@ func (repo domainRepo) Update(ctx context.Context, id string, userID string, dr 
 	}
 	row, err := repo.db.NamedQueryContext(ctx, q, dbd)
 	if err != nil {
-		return auth.Domain{}, postgres.HandleError(err, errors.ErrUpdateEntity)
+		return auth.Domain{}, errors.Wrap(repoerror.ErrUpdateEntity, postgres.HandleError(err))
 	}
 
 	// defer row.Close()
@@ -265,7 +266,7 @@ func (repo domainRepo) Delete(ctx context.Context, id string) error {
 
 	row, err := repo.db.NamedQueryContext(ctx, q, nil)
 	if err != nil {
-		return postgres.HandleError(err, errors.ErrRemoveEntity)
+		return errors.Wrap(repoerror.ErrRemoveEntity, postgres.HandleError(err))
 	}
 	defer row.Close()
 
@@ -281,7 +282,7 @@ func (repo domainRepo) SavePolicies(ctx context.Context, pcs ...auth.Policy) err
 	dbpc := toDBPolicies(pcs...)
 	row, err := repo.db.NamedQueryContext(ctx, q, dbpc)
 	if err != nil {
-		return postgres.HandleError(err, errors.ErrCreateEntity)
+		return errors.Wrap(repoerror.ErrCreateEntity, postgres.HandleError(err))
 	}
 	defer row.Close()
 
@@ -305,7 +306,7 @@ func (repo domainRepo) CheckPolicy(ctx context.Context, pc auth.Policy) error {
 	dbpc := toDBPolicy(pc)
 	row, err := repo.db.NamedQueryContext(ctx, q, dbpc)
 	if err != nil {
-		return postgres.HandleError(err, errors.ErrCreateEntity)
+		return errors.Wrap(repoerror.ErrCreateEntity, postgres.HandleError(err))
 	}
 	defer row.Close()
 	row.Next()
@@ -345,7 +346,7 @@ func (repo domainRepo) DeletePolicies(ctx context.Context, pcs ...auth.Policy) (
 		dbpc := toDBPolicy(pc)
 		row, err := tx.NamedQuery(q, dbpc)
 		if err != nil {
-			return postgres.HandleError(err, errors.ErrRemoveEntity)
+			return errors.Wrap(repoerror.ErrRemoveEntity, postgres.HandleError(err))
 		}
 		defer row.Close()
 	}

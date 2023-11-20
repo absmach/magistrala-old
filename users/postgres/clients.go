@@ -48,7 +48,7 @@ func (repo clientRepo) Save(ctx context.Context, c mgclients.Client) (mgclients.
 
 	row, err := repo.ClientRepository.DB.NamedQueryContext(ctx, q, dbc)
 	if err != nil {
-		return mgclients.Client{}, postgres.HandleError(err, repoerror.ErrCreateEntity)
+		return mgclients.Client{}, errors.Wrap(repoerror.ErrCreateEntity,postgres.HandleError(err))
 	}
 
 	defer row.Close()
