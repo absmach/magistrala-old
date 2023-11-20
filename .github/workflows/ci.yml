@@ -42,7 +42,7 @@ jobs:
       - name: Cache Golangci-lint
         uses: actions/cache@v2
         with:
-          path: ./bin
+          path: ./golangci-lint
           key: ${{ runner.os }}-golangci-lint-${{ hashFiles('./bin/golangci-lint') }}
           restore-keys: |
             ${{ runner.os }}-golangci-lint-
