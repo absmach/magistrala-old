@@ -53,6 +53,13 @@ func clientsHandler(svc things.Service, r *chi.Mux, logger mglog.Logger) http.Ha
 			opts...,
 		), "view_thing").ServeHTTP)
 
+		r.Get("/{thingID}/permissions", otelhttp.NewHandler(kithttp.NewServer(
+			viewClientPermsEndpoint(svc),
+			decodeViewClientPerms,
+			api.EncodeResponse,
+			opts...,
+		), "view_thing").ServeHTTP)
+
 		r.Patch("/{thingID}", otelhttp.NewHandler(kithttp.NewServer(
 			updateClientEndpoint(svc),
 			decodeUpdateClient,
@@ -126,6 +133,15 @@ func clientsHandler(svc things.Service, r *chi.Mux, logger mglog.Logger) http.Ha
 
 func decodeViewClient(_ context.Context, r *http.Request) (interface{}, error) {
 	req := viewClientReq{
+		token: apiutil.ExtractBearerToken(r),
+		id:    chi.URLParam(r, "thingID"),
+	}
+
+	return req, nil
+}
+
+func decodeViewClientPerms(_ context.Context, r *http.Request) (interface{}, error) {
+	req := viewClientPermsReq{
 		token: apiutil.ExtractBearerToken(r),
 		id:    chi.URLParam(r, "thingID"),
 	}

@@ -61,6 +61,27 @@ type viewClientReq struct {
 }
 
 func (req viewClientReq) validate() error {
+	if req.token == "" {
+		return apiutil.ErrBearerToken
+	}
+	if req.id == "" {
+		return apiutil.ErrMissingID
+	}
+	return nil
+}
+
+type viewClientPermsReq struct {
+	token string
+	id    string
+}
+
+func (req viewClientPermsReq) validate() error {
+	if req.token == "" {
+		return apiutil.ErrBearerToken
+	}
+	if req.id == "" {
+		return apiutil.ErrMissingID
+	}
 	return nil
 }
 

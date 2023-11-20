@@ -135,6 +135,22 @@ func (svc service) ViewClient(ctx context.Context, token string, id string) (mgc
 	return svc.clients.RetrieveByID(ctx, id)
 }
 
+func (svc service) ViewClientPerms(ctx context.Context, token string, id string) ([]string, error) {
+	res, err := svc.identify(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	permissions, err := svc.listUserThingPermission(ctx, res.GetId(), id)
+	if err != nil {
+		return nil, err
+	}
+	if len(permissions) == 0 {
+		return nil, errors.ErrAuthorization
+	}
+	return permissions, nil
+}
+
 func (svc service) ListClients(ctx context.Context, token string, reqUserID string, pm mgclients.Page) (mgclients.ClientsPage, error) {
 	var ids []string
 
@@ -434,7 +450,11 @@ func (svc service) changeClientStatus(ctx context.Context, token string, client 
 }
 
 func (svc service) ListClientsByGroup(ctx context.Context, token, groupID string, pm mgclients.Page) (mgclients.MembersPage, error) {
-	if _, err := svc.authorize(ctx, auth.UserType, auth.TokenKind, token, pm.Permission, auth.GroupType, groupID); err != nil {
+	res, err := svc.identify(ctx, token)
+	if err != nil {
+		return mgclients.MembersPage{}, err
+	}
+	if _, err := svc.authorize(ctx, auth.UserType, auth.UsersKind, res.GetId(), pm.Permission, auth.GroupType, groupID); err != nil {
 		return mgclients.MembersPage{}, err
 	}
 
@@ -453,6 +473,27 @@ func (svc service) ListClientsByGroup(ctx context.Context, token, groupID string
 	cp, err := svc.clients.RetrieveAllByIDs(ctx, pm)
 	if err != nil {
 		return mgclients.MembersPage{}, errors.Wrap(repoerr.ErrNotFound, err)
+	}
+
+	if pm.ListPerms && len(cp.Clients) > 0 {
+		var wg sync.WaitGroup
+		resultChan := make(chan error, len(cp.Clients))
+
+		for i := range cp.Clients {
+			wg.Add(1)
+			go svc.retrievePermissions(ctx, res.GetId(), &wg, &cp.Clients[i], resultChan)
+		}
+
+		go func() {
+			wg.Wait()
+			close(resultChan)
+		}()
+
+		for result := range resultChan {
+			if result != nil {
+				return mgclients.MembersPage{}, result
+			}
+		}
 	}
 
 	return mgclients.MembersPage{

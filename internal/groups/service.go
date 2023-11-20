@@ -115,6 +115,22 @@ func (svc service) ViewGroup(ctx context.Context, token, id string) (groups.Grou
 	return svc.groups.RetrieveByID(ctx, id)
 }
 
+func (svc service) ViewGroupPerms(ctx context.Context, token string, id string) ([]string, error) {
+	res, err := svc.identify(ctx, token)
+	if err != nil {
+		return nil, err
+	}
+
+	permissions, err := svc.listUserGroupPermission(ctx, res.GetId(), id)
+	if err != nil {
+		return nil, err
+	}
+	if len(permissions) == 0 {
+		return nil, errors.ErrAuthorization
+	}
+	return permissions, nil
+}
+
 func (svc service) ListGroups(ctx context.Context, token, memberKind, memberID string, gm groups.Page) (groups.Page, error) {
 	var ids []string
 	res, err := svc.identify(ctx, token)

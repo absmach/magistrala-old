@@ -194,6 +194,14 @@ func DecodeGroupRequest(_ context.Context, r *http.Request) (interface{}, error)
 	return req, nil
 }
 
+func DecodeGroupPermsRequest(_ context.Context, r *http.Request) (interface{}, error) {
+	req := groupPermsReq{
+		token: apiutil.ExtractBearerToken(r),
+		id:    chi.URLParam(r, "groupID"),
+	}
+	return req, nil
+}
+
 func DecodeChangeGroupStatus(_ context.Context, r *http.Request) (interface{}, error) {
 	req := changeGroupStatusReq{
 		token: apiutil.ExtractBearerToken(r),
