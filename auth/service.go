@@ -41,13 +41,15 @@ var (
 	// ErrFailedToRetrieveChildren failed to retrieve groups.
 	ErrFailedToRetrieveChildren = errors.New("failed to retrieve all groups")
 
-	errIssueUser = errors.New("failed to issue new login key")
-	errIssueTmp  = errors.New("failed to issue new temporary key")
-	errRevoke    = errors.New("failed to remove key")
-	errRetrieve  = errors.New("failed to retrieve key data")
-	errIdentify  = errors.New("failed to validate token")
-	errPlatform  = errors.New("invalid platform id")
+	errIssueUser          = errors.New("failed to issue new login key")
+	errIssueTmp           = errors.New("failed to issue new temporary key")
+	errRevoke             = errors.New("failed to remove key")
+	errRetrieve           = errors.New("failed to retrieve key data")
+	errIdentify           = errors.New("failed to validate token")
+	errPlatform           = errors.New("invalid platform id")
 	errCreateDomainPolicy = errors.New("failed to create domain policy")
+	errAddPolicies      = errors.New("failed to add policies")
+	errRemovePolicies   = errors.New("failed to remove the policies")
 )
 
 // Authn specifies an API that must be fullfiled by the domain service
@@ -192,7 +194,7 @@ func (svc service) Authorize(ctx context.Context, pr PolicyReq) error {
 
 func (svc service) AddPolicy(ctx context.Context, pr PolicyReq) error {
 	if err := svc.PolicyValidation(pr); err != nil {
-		return err
+		return errors.Wrap(errors.ErrNotFound, err)
 	}
 	return svc.agent.AddPolicy(ctx, pr)
 }
@@ -207,7 +209,7 @@ func (svc service) PolicyValidation(pr PolicyReq) error {
 func (svc service) AddPolicies(ctx context.Context, prs []PolicyReq) error {
 	for _, pr := range prs {
 		if err := svc.PolicyValidation(pr); err != nil {
-			return err
+			return errors.Wrap(errors.ErrNotFound, err)
 		}
 	}
 	return svc.agent.AddPolicies(ctx, prs)
@@ -220,7 +222,7 @@ func (svc service) DeletePolicy(ctx context.Context, pr PolicyReq) error {
 func (svc service) DeletePolicies(ctx context.Context, prs []PolicyReq) error {
 	for _, pr := range prs {
 		if err := svc.PolicyValidation(pr); err != nil {
-			return err
+			return errors.Wrap(errors.ErrNotFound, err)
 		}
 	}
 	return svc.agent.DeletePolicies(ctx, prs)
@@ -232,7 +234,7 @@ func (svc service) ListObjects(ctx context.Context, pr PolicyReq, nextPageToken 
 	}
 	res, npt, err := svc.agent.RetrieveObjects(ctx, pr, nextPageToken, limit)
 	if err != nil {
-		return PolicyPage{}, err
+		return PolicyPage{}, errors.Wrap(errors.ErrNotFound, err)
 	}
 	var page PolicyPage
 	for _, tuple := range res {
@@ -245,13 +247,13 @@ func (svc service) ListObjects(ctx context.Context, pr PolicyReq, nextPageToken 
 func (svc service) ListAllObjects(ctx context.Context, pr PolicyReq) (PolicyPage, error) {
 	res, err := svc.agent.RetrieveAllObjects(ctx, pr)
 	if err != nil {
-		return PolicyPage{}, err
+		return PolicyPage{}, errors.Wrap(errors.ErrNotFound, err)
 	}
 	var page PolicyPage
 	for _, tuple := range res {
 		page.Policies = append(page.Policies, tuple.Object)
 	}
-	return page, err
+	return page, errors.Wrap(errors.ErrNotFound, err)
 }
 
 func (svc service) CountObjects(ctx context.Context, pr PolicyReq) (int, error) {
@@ -264,26 +266,26 @@ func (svc service) ListSubjects(ctx context.Context, pr PolicyReq, nextPageToken
 	}
 	res, npt, err := svc.agent.RetrieveSubjects(ctx, pr, nextPageToken, limit)
 	if err != nil {
-		return PolicyPage{}, err
+		return PolicyPage{}, errors.Wrap(errors.ErrNotFound, err)
 	}
 	var page PolicyPage
 	for _, tuple := range res {
 		page.Policies = append(page.Policies, tuple.Subject)
 	}
 	page.NextPageToken = npt
-	return page, err
+	return page, errors.Wrap(errors.ErrNotFound, err)
 }
 
 func (svc service) ListAllSubjects(ctx context.Context, pr PolicyReq) (PolicyPage, error) {
 	res, err := svc.agent.RetrieveAllSubjects(ctx, pr)
 	if err != nil {
-		return PolicyPage{}, err
+		return PolicyPage{}, errors.Wrap(errors.ErrNotFound, err)
 	}
 	var page PolicyPage
 	for _, tuple := range res {
 		page.Policies = append(page.Policies, tuple.Subject)
 	}
-	return page, err
+	return page, errors.Wrap(errors.ErrNotFound, err)
 }
 
 func (svc service) CountSubjects(ctx context.Context, pr PolicyReq) (int, error) {
@@ -307,7 +309,7 @@ func (svc service) accessKey(ctx context.Context, key Key) (Token, error) {
 
 	key.Subject, err = svc.checkUserDomain(ctx, key)
 	if err != nil {
-		return Token{}, err
+		return Token{}, errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 
 	access, err := svc.tokenizer.Issue(key)
@@ -327,7 +329,7 @@ func (svc service) accessKey(ctx context.Context, key Key) (Token, error) {
 func (svc service) refreshKey(ctx context.Context, token string, key Key) (Token, error) {
 	k, err := svc.tokenizer.Parse(token)
 	if err != nil {
-		return Token{}, err
+		return Token{}, errors.Wrap(errRetrieve, err)
 	}
 	if k.Type != RefreshKey {
 		return Token{}, errIssueUser
@@ -341,7 +343,7 @@ func (svc service) refreshKey(ctx context.Context, token string, key Key) (Token
 
 	key.Subject, err = svc.checkUserDomain(ctx, key)
 	if err != nil {
-		return Token{}, err
+		return Token{}, errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 
 	key.ExpiresAt = time.Now().Add(svc.loginDuration)
@@ -448,7 +450,7 @@ func SwitchToPermission(relation string) string {
 func (svc service) CreateDomain(ctx context.Context, token string, d Domain) (do Domain, err error) {
 	key, err := svc.Identify(ctx, token)
 	if err != nil {
-		return Domain{},errors.Wrap(errors.ErrAuthentication, err)
+		return Domain{}, errors.Wrap(errors.ErrAuthentication, err)
 	}
 	d.CreatedBy = key.User
 
@@ -656,7 +658,7 @@ func (svc service) addDomainPolicies(ctx context.Context, domainID, relation str
 		})
 	}
 	if err := svc.agent.AddPolicies(ctx, prs); err != nil {
-		return err
+		return errors.Wrap(errAddPolicies, err)
 	}
 	defer func() {
 		if err != nil {
@@ -762,7 +764,7 @@ func (svc service) removeDomainPolicies(ctx context.Context, domainID, relation 
 		})
 	}
 	if err := svc.agent.DeletePolicies(ctx, prs); err != nil {
-		return err
+		return errors.Wrap(errRemovePolicies, err)
 	}
 
 	return svc.domains.DeletePolicies(ctx, pcs...)

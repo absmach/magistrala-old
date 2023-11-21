@@ -83,7 +83,8 @@ func (pa *policyAgent) AddPolicies(ctx context.Context, prs []auth.PolicyReq) er
 	}
 	_, err := pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates, OptionalPreconditions: preconds})
 	if err != nil {
-		return errors.Wrap(repoerror.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
+		return errors.New("For felix")
+		//errors.Wrap(repoerror.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
 	}
 	return nil
 }

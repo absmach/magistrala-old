@@ -62,7 +62,7 @@ func (svc service) Authorize(ctx context.Context, req *magistrala.AuthorizeReq) 
 func (svc service) CreateThings(ctx context.Context, token string, cls ...mgclients.Client) ([]mgclients.Client, error) {
 	user, err := svc.identify(ctx, token)
 	if err != nil {
-		return []mgclients.Client{}, errors.Wrap(errors.ErrAuthorization, err)
+		return []mgclients.Client{}, errors.Wrap(errors.ErrAuthentication, err)
 	}
 	var clients []mgclients.Client
 	for _, c := range cls {
@@ -422,7 +422,7 @@ func (svc service) Identify(ctx context.Context, key string) (string, error) {
 func (svc service) identify(ctx context.Context, token string) (*magistrala.IdentityRes, error) {
 	res, err := svc.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return nil, err
+		return nil, errors.Wrap(svcerror.ErrAuthentication, err)
 	}
 	if res.GetId() == "" || res.GetDomainId() == "" {
 		return nil, errors.ErrDomainAuthorization
