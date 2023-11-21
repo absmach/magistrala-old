@@ -15,31 +15,42 @@ on:
 
 jobs:
   setup:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v2
 
-      - name: Setup Codecov
-        run: |
-          curl -Os https://uploader.codecov.io/latest/linux/codecov
-          chmod +x codecov
-          ./codecov
-
-      - name: Cache codecov
-        uses: actions/cache@v2
+      - name : Setup Go
+        uses: actions/setup-go@v4
         with:
-          path: ./codecov
-          key: ${{ runner.os }}-codecov-${{ hashFiles('./codecov') }}
-          restore-keys: |
-            ${{ runner.os }}-codecov-
+          go-version: 1.21.x
+          cache-dependency-path: "go.sum"
+        
+      - name : Run coverage
+        run : |
+          go test -race -coverprofile=coverage.out -covermode=atomic
 
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV }}
+      - name : Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV }}
+          name: codecov-umbrella 
+          fail_ci_if_error: false 
+          verbose: true
+        
+      - name: Build Binaries
+        run: |
+          go mod vendor
+          make all -j $(nproc)
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with: 
+          version: latest
 
   check-protobuf:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: setup
 
@@ -63,7 +74,7 @@ jobs:
 
       - name: Check Generated Protocol Buffer Files
         run: |
-          PROTOC_VERSION=24.3
+          PROTOC_VERSION=25.1
           PROTOC_GEN_VERSION=v1.31.0
           PROTOC_GRPC_VERSION=v1.3.0
           PROTOC_ZIP=protoc-$PROTOC_VERSION-linux-x86_64.zip
@@ -106,7 +117,7 @@ jobs:
           done
 
   test-users:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -155,7 +166,7 @@ jobs:
             path: users/coverage.html
 
   build-users:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: test-users
 
@@ -185,7 +196,7 @@ jobs:
         
      
   test-things:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -220,7 +231,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
         
   build-things:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: test-things
 
@@ -249,7 +260,7 @@ jobs:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
     
   test-coap:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -285,7 +296,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-coap:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: test-coap
             
@@ -315,7 +326,7 @@ jobs:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
   test-http:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: [setup, check-protobuf]
     steps:
       - name: Checkout
@@ -349,7 +360,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
     
   build-http:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: test-http
 
@@ -381,7 +392,7 @@ jobs:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
   test-mqtt:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -416,7 +427,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-mqtt:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: test-mqtt
 
@@ -448,7 +459,7 @@ jobs:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
     
   test-ws:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -485,7 +496,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-ws:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: test-ws
 
@@ -520,7 +531,7 @@ jobs:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
         
   test-bootstrap:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -554,7 +565,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
         
   build-bootstrap:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: test-bootstrap
 
@@ -586,7 +597,7 @@ jobs:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
   test-certs:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -622,7 +633,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-certs:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: test-certs
 
@@ -654,7 +665,7 @@ jobs:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
   test-provision:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -687,7 +698,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-provision:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: test-provision
 
@@ -722,7 +733,7 @@ jobs:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
   test-twins:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -757,7 +768,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-twins:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: test-twins
 
@@ -789,7 +800,7 @@ jobs:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
   test-readers:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -828,7 +839,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-readers:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: test-readers
 
@@ -871,7 +882,7 @@ jobs:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
   test-consumers:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -912,7 +923,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-consumers:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: test-consumers
 
@@ -959,7 +970,7 @@ jobs:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
   test-cli:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -991,7 +1002,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-cli:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: test-cli
 
@@ -1022,7 +1033,7 @@ jobs:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
   test-LoRa:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -1054,7 +1065,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-LoRa:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: test-LoRa
 
@@ -1085,7 +1096,7 @@ jobs:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
   test-opc-ua:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -1120,7 +1131,7 @@ jobs:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-opc-ua:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: test-opc-ua
     steps:
       - name: Checkout
@@ -1152,7 +1163,7 @@ jobs:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
   test-internal: 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -1181,7 +1192,7 @@ jobs:
           ./codecov
 
   test-logger:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -1210,7 +1221,7 @@ jobs:
           ./codecov
 
   test-pkg:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -1239,7 +1250,7 @@ jobs:
           ./codecov
 
   test-tools: 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
@@ -1268,7 +1279,7 @@ jobs:
           ./codecov
 
   compile-check-rabbitmq:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
 
     needs: setup
 
@@ -1283,7 +1294,7 @@ jobs:
             
         
   compile-check-redis:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     needs: setup
     steps:
       - name: Checkout
