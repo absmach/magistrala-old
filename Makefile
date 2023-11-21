@@ -46,7 +46,7 @@ define compile_service
 	-X 'github.com/absmach/magistrala.BuildTime=$(TIME)' \
 	-X 'github.com/absmach/magistrala.Version=$(VERSION)' \
 	-X 'github.com/absmach/magistrala.Commit=$(COMMIT)'" \
-	-o ${BUILD_DIR}/magistrala-$(1) cmd/$(1)/main.go
+	-o ${BUILD_DIR}/$(1) cmd/$(1)/main.go
 endef
 
 define make_docker
@@ -118,7 +118,9 @@ ifdef pv
 endif
 
 install:
-	cp ${BUILD_DIR}/* $(GOBIN)
+	for file in $(BUILD_DIR)/*; do \
+		cp $$file $(GOBIN)/magistrala-`basename $$file`; \
+	done
 
 test:
 	go test -mod=vendor -v -race -count 1 -tags test $(shell go list ./... | grep -v 'vendor\|cmd')

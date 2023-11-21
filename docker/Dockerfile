@@ -14,7 +14,7 @@ COPY . .
 RUN apk update \
     && apk add make\
     && make $SVC \
-    && mv build/magistrala-$SVC /exe
+    && mv build/$SVC /exe
 
 FROM scratch
 # Certificates are needed so that mailing util can work.
