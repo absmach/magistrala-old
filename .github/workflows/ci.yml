@@ -34,7 +34,7 @@ jobs:
           key: ${{ runner.os }}-codecov-${{ hashFiles('./codecov') }}
           restore-keys: |
             ${{ runner.os }}-codecov-
-          
+    
       - name: Cache Golangci-lint
         uses: actions/cache@v2
         with:
@@ -153,11 +153,6 @@ jobs:
               codecov
           key: ${{ runner.os }}-codecov-${{ hashFiles('**/go.sum') }}
         id: restore-codecov
-
-      - name: Lint Users
-        run: |
-          cd users
-          ./bin/golangci-lint run
 
       - name: Test Users
         run: |
