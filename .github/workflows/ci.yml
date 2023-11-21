@@ -334,10 +334,6 @@ jobs:
           cd http
           go test ./... -race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
-
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV }}
     
   build-http:
     runs-on: ubuntu-latest
@@ -402,9 +398,6 @@ jobs:
           cd mqtt
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-mqtt:
     runs-on: ubuntu-latest
