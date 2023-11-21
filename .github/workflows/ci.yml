@@ -141,23 +141,11 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Restore Codecov cache
-        uses: actions/cache@v2
-        with:
-          path: |
-              codecov
-          key: ${{ runner.os }}-codecov-${{ hashFiles('**/go.sum') }}
-        id: restore-codecov
-
       - name: Test Users
         run: |
           cd users
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
-        
-        env:
-            CODECOV_TOKEN: ${{ secrets.CODECOV }}
         
       - name: Upload Codecov coverage
         uses: actions/upload-artifact@v2
@@ -225,10 +213,6 @@ jobs:
           cd things
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
-
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV }}
         
   build-things:
     runs-on: ubuntu-latest
@@ -485,11 +469,6 @@ jobs:
             cd ws
             go test ./... --race -v -coverprofile=coverage.out
             go tool cover -html=coverage.out -o coverage.html
-            cache restore codecov
-            ./codecov
-
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-ws:
     runs-on: ubuntu-latest
@@ -620,10 +599,6 @@ jobs:
           cd certs
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
-
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-certs:
     runs-on: ubuntu-latest
@@ -685,10 +660,6 @@ jobs:
           cd provision
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
-
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-provision:
     runs-on: ubuntu-latest
@@ -756,9 +727,6 @@ jobs:
           cd twins
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-twins:
     runs-on: ubuntu-latest
@@ -827,9 +795,6 @@ jobs:
           cd readers
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-readers:
     runs-on: ubuntu-latest
@@ -911,9 +876,6 @@ jobs:
           cd consumers
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-consumers:
     runs-on: ubuntu-latest
@@ -990,9 +952,6 @@ jobs:
           cd cli
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-cli:
     runs-on: ubuntu-latest
@@ -1053,9 +1012,6 @@ jobs:
           cd lora
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-LoRa:
     runs-on: ubuntu-latest
@@ -1119,9 +1075,6 @@ jobs:
           cd opcua
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-opc-ua:
     runs-on: ubuntu-latest
@@ -1182,7 +1135,6 @@ jobs:
           cd internal
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
 
   test-logger:
     runs-on: ubuntu-latest
@@ -1211,7 +1163,6 @@ jobs:
           cd logger
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
 
   test-pkg:
     runs-on: ubuntu-latest
@@ -1240,7 +1191,6 @@ jobs:
           cd pkg
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
 
   test-tools: 
     runs-on: ubuntu-latest
@@ -1269,7 +1219,6 @@ jobs:
           cd tools
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
 
   compile-check-rabbitmq:
     runs-on: ubuntu-latest
