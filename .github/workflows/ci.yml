@@ -290,10 +290,6 @@ jobs:
           cd coap
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
-
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
   build-coap:
     runs-on: ubuntu-latest
@@ -560,9 +556,6 @@ jobs:
           cd bootstrap
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-          ./codecov
-        env:
-          CODECOV_TOKEN: ${{ secrets.CODECOV }}
         
   build-bootstrap:
     runs-on: ubuntu-latest
