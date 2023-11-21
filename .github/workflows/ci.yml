@@ -34,15 +34,7 @@ jobs:
           key: ${{ runner.os }}-codecov-${{ hashFiles('./codecov') }}
           restore-keys: |
             ${{ runner.os }}-codecov-
-    
-      - name: Cache Golangci-lint
-        uses: actions/cache@v2
-        with:
-          path: ./bin/golangci-lint
-          key: ${{ runner.os }}-golangci-lint-${{ hashFiles('./bin/golangci-lint') }}
-          restore-keys: |
-            ${{ runner.os }}-golangci-lint-
-              
+
         env:
           CODECOV_TOKEN: ${{ secrets.CODECOV }}
 
@@ -113,7 +105,7 @@ jobs:
             fi
           done
 
-  lint-test-users:
+  test-users:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -137,14 +129,6 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.21
-      
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
 
       - name: Restore Codecov cache
         uses: actions/cache@v2
@@ -173,7 +157,7 @@ jobs:
   build-users:
     runs-on: ubuntu-20.04
 
-    needs: lint-test-users
+    needs: test-users
 
     steps:
       - name: Checkout Code
@@ -200,7 +184,7 @@ jobs:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
         
      
-  lint-and-test-things:
+  test-things:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -225,19 +209,6 @@ jobs:
         with:
           go-version: 1.21
         
-      - name: Restore Linter cache
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint Things
-        run: |
-          cd things
-          ./bin/golangci-lint run
-
       - name: Test Things
         run: |
           cd things
@@ -251,7 +222,7 @@ jobs:
   build-things:
     runs-on: ubuntu-20.04
 
-    needs: lint-and-test-things
+    needs: test-things
 
     steps:
       - name: Checkout Code
@@ -277,7 +248,7 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
     
-  lint-and-test-coap:
+  test-coap:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -302,19 +273,6 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.21
-
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint CoAP
-        run: |
-          cd coap
-          ./bin/golangci-lint run
         
       - name: Test CoAP
         run: |
@@ -329,7 +287,7 @@ jobs:
   build-coap:
     runs-on: ubuntu-20.04
 
-    needs: lint-and-test-coap
+    needs: test-coap
             
     steps:
       - name: Checkout
@@ -356,7 +314,7 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  lint-and-test-http:
+  test-http:
     runs-on: ubuntu-20.04
     needs: [setup, check-protobuf]
     steps:
@@ -379,19 +337,6 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.21
-    
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint HTTP
-        run: |
-          cd http
-          ./bin/golangci-lint run
      
       - name: Test HTTP
         run: |
@@ -406,7 +351,7 @@ jobs:
   build-http:
     runs-on: ubuntu-20.04
 
-    needs: lint-and-test-http
+    needs: test-http
 
     steps:
       - name: Checkout
@@ -435,7 +380,7 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  lint-and-test-mqtt:
+  test-mqtt:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -460,19 +405,6 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.21
- 
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint MQTT
-        run: |
-          cd mqtt
-          ./bin/golangci-lint run
 
       - name: Test MQTT
         run: |
@@ -486,7 +418,7 @@ jobs:
   build-mqtt:
     runs-on: ubuntu-20.04
 
-    needs: lint-and-test-mqtt
+    needs: test-mqtt
 
     steps:
       - name: Checkout
@@ -515,7 +447,7 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
     
-  lint-and-test-ws:
+  test-ws:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -541,20 +473,6 @@ jobs:
         with:
             go-version: 1.21
 
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint WS
-        run: |
-            cd ws
-            cache restore linter
-            ./bin/golangci-lint run
-
       - name: Test WS
         run: |
             cd ws
@@ -569,7 +487,7 @@ jobs:
   build-ws:
     runs-on: ubuntu-20.04
 
-    needs: lint-and-test-ws
+    needs: test-ws
 
     steps:
       - name: Checkout
@@ -601,7 +519,7 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
         
-  lint-and-test-bootstrap:
+  test-bootstrap:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -626,19 +544,6 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-             linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint Bootstrap
-        run: |
-          cd bootstrap
-          ./bin/golangci-lint run
-
       - name: Test Bootstrap
         run: |
           cd bootstrap
@@ -651,7 +556,7 @@ jobs:
   build-bootstrap:
     runs-on: ubuntu-20.04
 
-    needs: lint-and-test-bootstrap
+    needs: test-bootstrap
 
     steps:
       - name: Checkout
@@ -680,7 +585,7 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  lint-and-test-certs:
+  test-certs:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -706,19 +611,6 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-             linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint Certs
-        run: |
-          cd certs
-          ./bin/golangci-lint run
-
       - name: Test Certs
         run: |
           cd certs
@@ -732,7 +624,7 @@ jobs:
   build-certs:
     runs-on: ubuntu-20.04
 
-    needs: lint-and-test-certs
+    needs: test-certs
 
     steps:
       - name: Checkout
@@ -761,7 +653,7 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  lint-and-test-provision:
+  test-provision:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -784,19 +676,6 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint Provision
-        run: |
-          cd provision
-          ./bin/golangci-lint run
-
       - name: Test Provision
         run: |
           cd provision
@@ -810,7 +689,7 @@ jobs:
   build-provision:
     runs-on: ubuntu-20.04
 
-    needs: lint-and-test-provision
+    needs: test-provision
 
     steps:
       - name: Checkout
@@ -842,7 +721,7 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  lint-and-test-twins:
+  test-twins:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -868,19 +747,6 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-                linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint Twins
-        run: |
-          cd twins
-          ./bin/golangci-lint run
-
       - name: Test Twins
         run: |
           cd twins
@@ -893,7 +759,7 @@ jobs:
   build-twins:
     runs-on: ubuntu-20.04
 
-    needs: lint-and-test-twins
+    needs: test-twins
 
     steps:
       - name: Checkout
@@ -922,7 +788,7 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  lint-and-test-readers:
+  test-readers:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -952,19 +818,6 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint Readers
-        run: |
-          cd readers
-          ./bin/golangci-lint run
-
       - name: Test Readers
         run: |
           cd readers
@@ -977,7 +830,7 @@ jobs:
   build-readers:
     runs-on: ubuntu-20.04
 
-    needs: lint-and-test-readers
+    needs: test-readers
 
     steps:
       - name: Checkout
@@ -1017,7 +870,7 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  lint-and-test-consumers:
+  test-consumers:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -1049,19 +902,6 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint Consumers
-        run: |
-          cd consumers
-          ./bin/golangci-lint run
-
       - name: Test Consumers
         run: |
           cd consumers
@@ -1074,7 +914,7 @@ jobs:
   build-consumers:
     runs-on: ubuntu-20.04
 
-    needs: lint-and-test-consumers
+    needs: test-consumers
 
     steps:
       - name: Checkout
@@ -1098,7 +938,6 @@ jobs:
               - 'auth/service.go'
               - 'auth/api/grpc/client.go'
 
-
       - name: Setup Go
         uses: actions/setup-go@v2
         with:
@@ -1115,10 +954,11 @@ jobs:
           docker push magistrala/postgres-writer:latest
           docker push magistrala/timescale-writer:latest
           docker push magistrala/smtp-notifier:latest
+        
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  lint-and-test-cli:
+  test-cli:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -1141,19 +981,6 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint CLI
-        run: |
-          cd cli
-          ./bin/golangci-lint run
-
       - name: Test CLI
         run: |
           cd cli
@@ -1166,7 +993,7 @@ jobs:
   build-cli:
     runs-on: ubuntu-20.04
 
-    needs: lint-and-test-cli
+    needs: test-cli
 
     steps:
       - name: Checkout
@@ -1194,7 +1021,7 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  lint-and-test-LoRa:
+  test-LoRa:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -1217,19 +1044,6 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint LoRa
-        run: |
-          cd lora
-          ./bin/golangci-lint run
-
       - name: Test LoRa
         run: |
           cd lora
@@ -1242,7 +1056,7 @@ jobs:
   build-LoRa:
     runs-on: ubuntu-20.04
 
-    needs: lint-and-test-LoRa
+    needs: test-LoRa
 
     steps:
       - name: Checkout
@@ -1270,7 +1084,7 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  lint-and-test-opc-ua:
+  test-opc-ua:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -1296,19 +1110,6 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint OPC-UA
-        run: |
-          cd opcua
-          ./bin/golangci-lint run
-
       - name: Test OPC-UA
         run: |
           cd opcua
@@ -1320,7 +1121,7 @@ jobs:
 
   build-opc-ua:
     runs-on: ubuntu-20.04
-    needs: lint-and-test-opc-ua
+    needs: test-opc-ua
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -1350,7 +1151,7 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  lint-and-test-internal: 
+  test-internal: 
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -1372,19 +1173,6 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint Internal
-        run: |
-          cd internal
-          ./bin/golangci-lint run
-
       - name: Test Internal
         run: |
           cd internal
@@ -1392,7 +1180,7 @@ jobs:
           go tool cover -html=coverage.out -o coverage.html
           ./codecov
 
-  lint-and-test-logger:
+  test-logger:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -1414,19 +1202,6 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-          path: ~/.cache/golangci-lint
-          key: ${{ runner.os }}-golangci-lint-${{ hashFiles('**/go.sum') }}
-          restore-keys: |
-            ${{ runner.os }}-golangci-lint-
-
-      - name: Lint Logger
-        run: |
-          cd logger
-          ./bin/golangci-lint run
-
       - name: Test Logger
         run: |
           cd logger
@@ -1434,7 +1209,7 @@ jobs:
           go tool cover -html=coverage.out -o coverage.html
           ./codecov
 
-  lint-and-test-pkg:
+  test-pkg:
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -1456,19 +1231,6 @@ jobs:
         with:
           go-version: 1.21
 
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint PKG
-        run: |
-          cd pkg
-          ./bin/golangci-lint run
-
       - name: Test PKG
         run: |
           cd pkg
@@ -1476,7 +1238,7 @@ jobs:
           go tool cover -html=coverage.out -o coverage.html
           ./codecov
 
-  lint-and-test-tools: 
+  test-tools: 
     runs-on: ubuntu-20.04
 
     needs: [setup, check-protobuf]
@@ -1497,19 +1259,6 @@ jobs:
         uses: actions/setup-go@v2
         with:
           go-version: 1.21
-
-      - name: Cache linter
-        uses: actions/cache@v2
-        with:
-            path: |
-              linter
-            key: ${{ runner.os }}-linter-${{ hashFiles('**/go.sum') }}
-        id: restore-linter
-
-      - name: Lint Tools
-        run: |
-          cd tools
-          ./bin/golangci-lint run
 
       - name: Test Tools
         run: |
