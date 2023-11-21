@@ -54,12 +54,12 @@ func (repo domainRepo) Save(ctx context.Context, d auth.Domain) (ad auth.Domain,
 	row.Next()
 	dbd = dbDomain{}
 	if err := row.StructScan(&dbd); err != nil {
-		return auth.Domain{}, err
+		return auth.Domain{},errors.Wrap(repoerror.ErrFailedOpDB, err)
 	}
 
 	domain, err := toDomain(dbd)
 	if err != nil {
-		return auth.Domain{}, err
+		return auth.Domain{}, errors.Wrap(repoerror.ErrFailedOpDB, err)
 	}
 
 	return domain, nil
@@ -100,7 +100,7 @@ func (repo domainRepo) RetrieveAllByIDs(ctx context.Context, pm auth.Page) (auth
 	}
 	query, err := buildPageQuery(pm)
 	if err != nil {
-		return auth.DomainsPage{}, err
+		return auth.DomainsPage{}, errors.Wrap(repoerror.ErrFailedOpDB, err)
 	}
 	if query == "" {
 		return auth.DomainsPage{}, nil
@@ -148,7 +148,7 @@ func (repo domainRepo) ListDomains(ctx context.Context, pm auth.Page) (auth.Doma
 	var q string
 	query, err := buildPageQuery(pm)
 	if err != nil {
-		return auth.DomainsPage{}, err
+		return auth.DomainsPage{}, errors.Wrap(repoerror.ErrFailedOpDB, err)
 	}
 	if query == "" {
 		return auth.DomainsPage{}, nil
@@ -244,12 +244,12 @@ func (repo domainRepo) Update(ctx context.Context, id string, userID string, dr 
 	row.Next()
 	dbd = dbDomain{}
 	if err := row.StructScan(&dbd); err != nil {
-		return auth.Domain{}, err
+		return auth.Domain{}, errors.Wrap(repoerror.ErrFailedOpDB, err)
 	}
 
 	domain, err := toDomain(dbd)
 	if err != nil {
-		return auth.Domain{}, err
+		return auth.Domain{}, errors.Wrap(repoerror.ErrFailedOpDB, err)
 	}
 
 	return domain, nil

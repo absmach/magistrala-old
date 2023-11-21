@@ -27,6 +27,9 @@ var (
 	ErrSignJWT = errors.New("failed to sign jwt token")
 	// ErrParseToken indicates a failure to parse the token
 	ErrParseToken = errors.New("failed to parse token")
+	// ErrValidateJWTToken indicates a failure to validate JWT token
+	ErrValidateJWTToken =errors.New("failed to validate jwt token")
+
 )
 
 const (
@@ -93,7 +96,7 @@ func (repo *tokenizer) Parse(token string) (auth.Key, error) {
 		return nil
 	})
 	if err := jwt.Validate(tkn, jwt.WithValidator(validator)); err != nil {
-		return auth.Key{}, err
+		return auth.Key{}, ErrValidateJWTToken
 	}
 
 	jsn, err := json.Marshal(tkn.PrivateClaims())
