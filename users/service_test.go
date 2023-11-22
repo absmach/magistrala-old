@@ -16,6 +16,8 @@ import (
 	"github.com/absmach/magistrala/internal/testsutil"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/absmach/magistrala/users"
 	"github.com/absmach/magistrala/users/hasher"

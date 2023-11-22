@@ -13,6 +13,8 @@ import (
 	"github.com/absmach/magistrala/auth"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/users/postgres"
 )
 
@@ -22,6 +24,12 @@ var (
 
 	// ErrPasswordFormat indicates weak password.
 	ErrPasswordFormat = errors.New("password does not meet the requirements")
+
+	//ErrFailedPolicyUpdate indicates a failure to update user policy
+	ErrFailedPolicyUpdate = errors.New("failed to update user policy")
+
+	//ErrFailedOwnerUpdate indicates a failure to update user policy
+	ErrFailedOwnerUpdate = errors.New("failed to update user owner")
 )
 
 type service struct {
@@ -51,10 +59,10 @@ func (svc service) RegisterClient(ctx context.Context, token string, cli mgclien
 	if !svc.selfRegister {
 		userID, err := svc.Identify(ctx, token)
 		if err != nil {
-			return mgclients.Client{}, err
+			return mgclients.Client{}, errors.Wrap(errors.ErrAuthentication, err)
 		}
 		if err := svc.checkSuperAdmin(ctx, userID); err != nil {
-			return mgclients.Client{}, err
+			return mgclients.Client{}, errors.Wrap(errors.ErrAuthentication, err)
 		}
 	}
 
@@ -64,7 +72,7 @@ func (svc service) RegisterClient(ctx context.Context, token string, cli mgclien
 	}
 
 	if cli.Credentials.Secret == "" {
-		return mgclients.Client{}, errors.ErrMissingSecret
+		return mgclients.Client{}, errors.Wrap(repoerror.ErrMalformedEntity, errors.ErrMissingSecret)
 	}
 	hash, err := svc.hasher.Hash(cli.Credentials.Secret)
 	if err != nil {
@@ -142,7 +150,7 @@ func (svc service) ViewClient(ctx context.Context, token string, id string) (mgc
 
 	if tokenUserID != id {
 		if err := svc.checkSuperAdmin(ctx, tokenUserID); err != nil {
-			return mgclients.Client{}, err
+			return mgclients.Client{}, errors.Wrap(svcerror.ErrAuthentication, err)
 		}
 	}
 
@@ -197,7 +205,7 @@ func (svc service) UpdateClient(ctx context.Context, token string, cli mgclients
 
 	if tokenUserID != cli.ID {
 		if err := svc.checkSuperAdmin(ctx, tokenUserID); err != nil {
-			return mgclients.Client{}, err
+			return mgclients.Client{}, errors.Wrap(errors.ErrAuthentication, err)
 		}
 	}
 
@@ -220,7 +228,7 @@ func (svc service) UpdateClientTags(ctx context.Context, token string, cli mgcli
 
 	if tokenUserID != cli.ID {
 		if err := svc.checkSuperAdmin(ctx, tokenUserID); err != nil {
-			return mgclients.Client{}, err
+			return mgclients.Client{}, errors.Wrap(errors.ErrAuthentication, err)
 		}
 	}
 
@@ -242,7 +250,7 @@ func (svc service) UpdateClientIdentity(ctx context.Context, token, clientID, id
 
 	if tokenUserID != clientID {
 		if err := svc.checkSuperAdmin(ctx, tokenUserID); err != nil {
-			return mgclients.Client{}, err
+			return mgclients.Client{}, errors.Wrap(errors.ErrAuthentication, err)
 		}
 	}
 
@@ -345,7 +353,7 @@ func (svc service) UpdateClientRole(ctx context.Context, token string, cli mgcli
 	}
 
 	if err := svc.checkSuperAdmin(ctx, tokenUserID); err != nil {
-		return mgclients.Client{}, err
+		return mgclients.Client{}, errors.Wrap(errors.ErrAuthentication, err)
 	}
 	client := mgclients.Client{
 		ID:        cli.ID,
@@ -355,7 +363,7 @@ func (svc service) UpdateClientRole(ctx context.Context, token string, cli mgcli
 	}
 
 	if err := svc.updateClientPolicy(ctx, cli.ID, cli.Role); err != nil {
-		return mgclients.Client{}, err
+		return mgclients.Client{}, errors.Wrap(ErrFailedPolicyUpdate, err)
 	}
 	client, err = svc.clients.UpdateOwner(ctx, client)
 	if err != nil {
@@ -363,7 +371,7 @@ func (svc service) UpdateClientRole(ctx context.Context, token string, cli mgcli
 		if errRollback := svc.updateClientPolicy(ctx, cli.ID, mgclients.UserRole); errRollback != nil {
 			return mgclients.Client{}, errors.Wrap(err, errors.Wrap(errors.ErrRollbackTx, errRollback))
 		}
-		return mgclients.Client{}, err
+		return mgclients.Client{}, errors.Wrap(ErrFailedOwnerUpdate, err)
 	}
 	return client, nil
 }
@@ -402,7 +410,7 @@ func (svc service) changeClientStatus(ctx context.Context, token string, client 
 		return mgclients.Client{}, errors.Wrap(errors.ErrAuthentication, err)
 	}
 	if err := svc.checkSuperAdmin(ctx, tokenUserID); err != nil {
-		return mgclients.Client{}, err
+		return mgclients.Client{}, errors.Wrap(errors.ErrAuthentication, err)
 	}
 	dbClient, err := svc.clients.RetrieveByID(ctx, client.ID)
 	if err != nil {
@@ -490,11 +498,11 @@ func (svc *service) authorize(ctx context.Context, subjType, subjKind, subj, per
 	}
 	res, err := svc.auth.Authorize(ctx, req)
 	if err != nil {
-		return "", errors.Wrap(errors.ErrAuthorization, err)
+		return "", errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 
 	if !res.GetAuthorized() {
-		return "", errors.ErrAuthorization
+		return "", svcerror.ErrAuthorization
 	}
 	return res.GetId(), nil
 }

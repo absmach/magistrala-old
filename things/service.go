@@ -16,6 +16,11 @@ import (
 	"github.com/absmach/magistrala/things/postgres"
 )
 
+var (
+	errAddPolicies    = errors.New("failed to add policies")
+	errRemovePolicies = errors.New("failed to remove the policies")
+)
+
 type service struct {
 	auth        magistrala.AuthServiceClient
 	clients     postgres.Repository
@@ -53,7 +58,7 @@ func (svc service) Authorize(ctx context.Context, req *magistrala.AuthorizeReq) 
 		return "", errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	if !resp.GetAuthorized() {
-		return "", errors.ErrAuthorization
+		return "", svcerror.ErrAuthorization
 	}
 
 	return thingID, nil
@@ -305,7 +310,7 @@ func (svc service) Share(ctx context.Context, token, id, relation string, userid
 		return nil
 	}
 	if _, err := svc.authorize(ctx, auth.UserType, auth.UsersKind, user.GetId(), auth.DeletePermission, auth.ThingType, id); err != nil {
-		return err
+		return errors.Wrap(errors.ErrAuthorization, err)
 	}
 
 	policies := magistrala.AddPoliciesReq{}
@@ -320,7 +325,7 @@ func (svc service) Share(ctx context.Context, token, id, relation string, userid
 	}
 	res, err := svc.auth.AddPolicies(ctx, &policies)
 	if err != nil {
-		return err
+		return errors.Wrap(errAddPolicies, err)
 	}
 	if !res.Authorized {
 		return errors.ErrAuthorization
@@ -334,7 +339,7 @@ func (svc service) Unshare(ctx context.Context, token, id, relation string, user
 		return nil
 	}
 	if _, err := svc.authorize(ctx, auth.UserType, auth.UsersKind, user.GetId(), auth.DeletePermission, auth.ThingType, id); err != nil {
-		return err
+		return errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 
 	policies := magistrala.DeletePoliciesReq{}
@@ -349,7 +354,7 @@ func (svc service) Unshare(ctx context.Context, token, id, relation string, user
 	}
 	res, err := svc.auth.DeletePolicies(ctx, &policies)
 	if err != nil {
-		return err
+		return errors.Wrap(errRemovePolicies, err)
 	}
 	if !res.Deleted {
 		return errors.ErrAuthorization
@@ -441,10 +446,10 @@ func (svc *service) authorize(ctx context.Context, subjType, subjKind, subj, per
 	}
 	res, err := svc.auth.Authorize(ctx, req)
 	if err != nil {
-		return "", errors.Wrap(errors.ErrAuthorization, err)
+		return "", errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	if !res.GetAuthorized() {
-		return "", errors.ErrAuthorization
+		return "", svcerror.ErrAuthorization
 	}
 
 	return res.GetId(), nil
