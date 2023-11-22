@@ -45,13 +45,13 @@ var (
 
 	ErrUnsupportedContentType = New("invalid content type")
 
-	//ErrUniqueID indicates an error in generating a unique ID
+	// ErrUniqueID indicates an error in generating a unique ID.
 	ErrUniqueID = New("failed to generate unique identifier")
 
-	//ErrFailedOpDB indicates a failure in a database operation
+	// ErrFailedOpDB indicates a failure in a database operation.
 	ErrFailedOpDB = New("operation on db element failed")
 
-	// ErrMissingSecret indicates missing secret.
+	//ErrMissingSecret indicates missing secret.
 	ErrMissingSecret = New("missing secret")
 
 	// ErrInvalidStatus indicates an invalid user account status.
@@ -60,6 +60,6 @@ var (
 	// ErrInvalidRole indicates that an invalid role.
 	ErrInvalidRole = New("invalid client role")
 
-	// ErrRollbackTx indicates failed to rollback transaction
+	// ErrRollbackTx indicates failed to rollback transaction.
 	ErrRollbackTx = New("failed to rollback transaction")
 )

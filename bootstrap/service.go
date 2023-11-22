@@ -368,7 +368,7 @@ func (bs bootstrapService) identify(ctx context.Context, token string) (string, 
 
 	res, err := bs.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(svcerror.ErrAuthentication, err)
 	}
 
 	return res.GetId(), nil
