@@ -193,210 +193,66 @@ jobs:
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
 
-  build-users:
+  build:
     runs-on: ubuntu-latest
 
     needs: test
+
+    strategy:
+      matrix:
+        component: ['users','things' , 'coap', 'http', 'mqtt', 'bootstrap', 'ws', 'certs', 'twins', 'cli', 'lora', 'opcua']
+
+        include:
+          - component: 'users'
+            paths: 'users/** cmd/users/**'
+            docker_image: 'docker_users'
+
+          - component: 'things'
+            paths: 'things/** cmd/things/**'
+            docker_image: 'docker_things'
+
+          - name: 'coap'
+            paths: 'coap/** cmd/coap/**'
+            docker_image: 'docker_coap'
+
+          - name: 'http'
+            paths: 'http/** cmd/http/**'
+
+          - name: 'mqtt'
+            paths: 'mqtt/** cmd/mqtt/**'
+
+          - name: 'bootstrap'
+            paths: 'bootstrap/** cmd/bootstrap/**'
+
+          - name: 'certs'
+            paths:  'certs/** cmd/certs/**'
+
+          - name: 'ws'
+            paths: 'ws/** cmd/ws/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+
+          - name: 'twins'
+            paths:  'twins/** cmd/twins/**'
+
+          - name: 'cli'
+            paths: 'cli/** cmd/cli/**'
+
+          - name: 'lora'
+            paths: 'lora/** cmd/lora/**'
+
+          - name: 'opcua'
+            paths: 'opcua/** cmd/opcua/** things/api/grpc/** auth/service.go auth/api/grpc/client.go' 
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'users' and 'cmd/users' directories
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'users/**'
-              - 'cmd/users/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Build Users
-        run: |
-          make docker_users
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-         
-  build-things:
-    runs-on: ubuntu-latest
-
-    needs: test
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'things' and 'cmd/things' directories
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'things/**'
-              - 'cmd/things/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Build Things
-        run: |
-          make docker_things
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-
-  build-coap:
-    runs-on: ubuntu-latest
-
-    needs: test
-            
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'coap' and 'cmd/coap' directories
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'coap/**'
-              - 'cmd/coap/**'
-        
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-        
-      - name: Build CoAP
-        run: |
-          make docker_coap
-
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-    
-  build-http:
-    runs-on: ubuntu-latest
-
-    needs: test
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'http' and 'cmd/http' directories
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'http/**'
-              - 'cmd/http/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Login to Docker Hub
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Build and push HTTP
-        run: |
-          docker push magistrala/http:latest
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-
-  build-mqtt:
-    runs-on: ubuntu-latest
-
-    needs: test
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'mqtt' and 'cmd/mqtt' directories
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'mqtt/**'
-              - 'cmd/mqtt/**'
-        
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-            go-version: 1.21
-        
-      - name: Login to Docker Hub
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Build and push MQTT
-        run: |
-            docker push magistrala/mqtt:latest
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-
-  build-ws:
-    runs-on: ubuntu-latest
-
-    needs: test
-
-    steps:
-      - name: Checkout
         uses: actions/checkout@v2
 
       - name: Check for changes in specific paths
         uses: dorny/paths-filter@v2
         id: changes
-        with:
+        with: 
           filters: |
-            any:
-              - 'ws/**'
-              - 'cmd/ws/**'
-              - 'things/api/grpc/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-            go-version: 1.21
-
-      - name: Login to Docker Hub
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Build and push WS
-        run: |
-            docker push magistrala/ws:latest
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-        
-  build-bootstrap:
-    runs-on: ubuntu-latest
-
-    needs: test
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'bootstrap' and 'cmd/bootstrap' directories
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'bootstrap/**'
-              - 'cmd/bootstrap/**'
+            any: 
+              - '${{ matrix.paths }}'
 
       - name: Setup Go
         uses: actions/setup-go@v2
@@ -406,44 +262,13 @@ jobs:
       - name: Login to Docker Hub
         run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
-      - name: Build and push Bootstrap
+      - name: Build ${{ matrix.component }} and push
         run: |
-          docker push magistrala/bootstrap:latest
+          make ${{ matrix.docker_image }}
+          docker push magistrala/${{ matrix.component }}:latest
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-
-  build-certs:
-    runs-on: ubuntu-latest
-
-    needs: test
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'certs' and 'cmd/certs' directories
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'certs/**'
-              - 'cmd/certs/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Login to Docker Hub
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Build and push Certs
-        run: |
-          docker push magistrala/certs:latest
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-
+  
   build-provision:
     runs-on: ubuntu-latest
 
@@ -476,38 +301,6 @@ jobs:
       - name: Build and push Provision
         run: |
           docker push magistrala/http:latest
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-
-  build-twins:
-    runs-on: ubuntu-latest
-
-    needs: test
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'twins' and 'cmd/twins' directories
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'twins/**'
-              - 'cmd/twins/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Login to Docker Hub
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Build and push Twins
-        run: |
-          docker push magistrala/twins:latest
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
@@ -672,100 +465,6 @@ jobs:
           docker push magistrala/timescale-writer:latest
           docker push magistrala/smtp-notifier:latest
         
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-
-  build-cli:
-    runs-on: ubuntu-latest
-
-    needs: test
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-  
-      - name: Check for changes in 'cli' and 'cmd/cli' directories
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'cli/**'
-              - 'cmd/cli/**'
-      
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Login to Docker Hub
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Build and push CLI
-        run: docker push magistrala/cli:latest
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-
-  build-LoRa:
-    runs-on: ubuntu-latest
-
-    needs: test
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'lora/**'
-              - 'cmd/lora/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Login to Docker Hub
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Build and push LoRa
-        run: docker push magistrala/lora:latest
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-
-  build-opc-ua:
-    runs-on: ubuntu-latest
-    needs: test
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'opcua/**'
-              - 'cmd/opcua/**'
-              - 'things/api/grpc/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Login to Docker Hub
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Build and push OPC-UA
-        run: docker push magistrala/opcua:latest
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
