@@ -11,7 +11,7 @@ import (
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	pgclients "github.com/absmach/magistrala/pkg/clients/postgres"
 	"github.com/absmach/magistrala/pkg/errors"
-	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	repoerr "github.com/absmach/magistrala/pkg/errors/repository"
 )
 
 var _ mgclients.Repository = (*clientRepo)(nil)
@@ -44,24 +44,24 @@ func (repo clientRepo) Save(ctx context.Context, c mgclients.Client) (mgclients.
         RETURNING id, name, tags, identity, metadata, COALESCE(owner_id, '') AS owner_id, status, created_at`
 	dbc, err := pgclients.ToDBClient(c)
 	if err != nil {
-		return mgclients.Client{}, errors.Wrap(repoerror.ErrCreateEntity, err)
+		return mgclients.Client{}, errors.Wrap(repoerr.ErrCreateEntity, err)
 	}
 
 	row, err := repo.ClientRepository.DB.NamedQueryContext(ctx, q, dbc)
 	if err != nil {
-		return mgclients.Client{}, errors.Wrap(repoerror.ErrCreateEntity,postgres.HandleError(err))
+		return mgclients.Client{}, errors.Wrap(repoerr.ErrCreateEntity,postgres.HandleError(err))
 	}
 
 	defer row.Close()
 	row.Next()
 	dbc = pgclients.DBClient{}
 	if err := row.StructScan(&dbc); err != nil {
-		return mgclients.Client{}, errors.Wrap(repoerror.ErrFailedOpDB, err)
+		return mgclients.Client{}, errors.Wrap(repoerr.ErrFailedOpDB, err)
 	}
 
 	client, err := pgclients.ToClient(dbc)
 	if err != nil {
-		return mgclients.Client{}, errors.Wrap(repoerror.ErrFailedOpDB, err)
+		return mgclients.Client{}, errors.Wrap(repoerr.ErrFailedOpDB, err)
 	}
 
 	return client, nil

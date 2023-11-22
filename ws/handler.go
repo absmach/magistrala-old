@@ -14,7 +14,7 @@ import (
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
-	svcerror "github.com/absmach/magistrala/pkg/errors/service"
+	svcerr "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/mainflux/mproxy/pkg/session"
 )
@@ -246,10 +246,10 @@ func (h *handler) authAccess(ctx context.Context, password, topic, action string
 	}
 	res, err := h.auth.Authorize(ctx, ar)
 	if err != nil {
-		return errors.Wrap(svcerror.ErrAuthorization, err)
+		return errors.Wrap(svcerr.ErrAuthorization, err)
 	}
 	if !res.GetAuthorized() {
-		return errors.Wrap(svcerror.ErrAuthorization, err)
+		return errors.Wrap(svcerr.ErrAuthorization, err)
 	}
 
 	return nil
