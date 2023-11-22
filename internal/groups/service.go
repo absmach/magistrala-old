@@ -6,7 +6,6 @@ package groups
 import (
 	"context"
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/absmach/magistrala"
@@ -15,6 +14,7 @@ import (
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
 	"github.com/absmach/magistrala/pkg/groups"
+	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -230,40 +230,29 @@ func (svc service) ListGroups(ctx context.Context, token, memberKind, memberID s
 	}
 
 	if gm.ListPerms && len(gp.Groups) > 0 {
-		var wg sync.WaitGroup
-		resultChan := make(chan error, len(gp.Groups))
+		g, ctx := errgroup.WithContext(ctx)
 
 		for i := range gp.Groups {
-			wg.Add(1)
-			go svc.retrievePermissions(ctx, res.GetId(), &wg, &gp.Groups[i], resultChan)
+			g.Go(func() error {
+				return svc.retrievePermissions(ctx, res.GetId(), &gp.Groups[i])
+			})
 		}
 
-		go func() {
-			wg.Wait()
-			close(resultChan)
-		}()
-
-		for result := range resultChan {
-			if result != nil {
-				return groups.Page{}, result
-			}
+		if err := g.Wait(); err != nil {
+			return groups.Page{}, err
 		}
 	}
 	return gp, nil
 }
 
 // Experimental functions used for async calling of svc.listUserThingPermission. This might be helpful during listing of large number of entities.
-func (svc service) retrievePermissions(ctx context.Context, userID string, wg *sync.WaitGroup, group *groups.Group, resultChan chan<- error) {
-	defer wg.Done()
-
+func (svc service) retrievePermissions(ctx context.Context, userID string, group *groups.Group) error {
 	permissions, err := svc.listUserGroupPermission(ctx, userID, group.ID)
 	if err != nil {
-		resultChan <- err
-		return
+		return err
 	}
-
 	group.Permissions = permissions
-	resultChan <- nil
+	return nil
 }
 
 func (svc service) listUserGroupPermission(ctx context.Context, userID, groupID string) ([]string, error) {

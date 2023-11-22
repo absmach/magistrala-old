@@ -4,7 +4,6 @@ package things
 
 import (
 	"context"
-	"sync"
 	"time"
 
 	"github.com/absmach/magistrala"
@@ -15,6 +14,7 @@ import (
 	svcerr "github.com/absmach/magistrala/pkg/errors/service"
 	mggroups "github.com/absmach/magistrala/pkg/groups"
 	"github.com/absmach/magistrala/things/postgres"
+	"golang.org/x/sync/errgroup"
 )
 
 var (
@@ -194,40 +194,29 @@ func (svc service) ListClients(ctx context.Context, token string, reqUserID stri
 	}
 
 	if pm.ListPerms && len(tp.Clients) > 0 {
-		var wg sync.WaitGroup
-		resultChan := make(chan error, len(tp.Clients))
+		g, ctx := errgroup.WithContext(ctx)
 
 		for i := range tp.Clients {
-			wg.Add(1)
-			go svc.retrievePermissions(ctx, res.GetId(), &wg, &tp.Clients[i], resultChan)
+			g.Go(func() error {
+				return svc.retrievePermissions(ctx, res.GetId(), &tp.Clients[i])
+			})
 		}
 
-		go func() {
-			wg.Wait()
-			close(resultChan)
-		}()
-
-		for result := range resultChan {
-			if result != nil {
-				return mgclients.ClientsPage{}, result
-			}
+		if err := g.Wait(); err != nil {
+			return mgclients.ClientsPage{}, err
 		}
 	}
 	return tp, nil
 }
 
 // Experimental functions used for async calling of svc.listUserThingPermission. This might be helpful during listing of large number of entities.
-func (svc service) retrievePermissions(ctx context.Context, userID string, wg *sync.WaitGroup, client *mgclients.Client, resultChan chan<- error) {
-	defer wg.Done()
-
+func (svc service) retrievePermissions(ctx context.Context, userID string, client *mgclients.Client) error {
 	permissions, err := svc.listUserThingPermission(ctx, userID, client.ID)
 	if err != nil {
-		resultChan <- err
-		return
+		return err
 	}
-
 	client.Permissions = permissions
-	resultChan <- nil
+	return nil
 }
 
 func (svc service) listUserThingPermission(ctx context.Context, userID, thingID string) ([]string, error) {
@@ -476,23 +465,16 @@ func (svc service) ListClientsByGroup(ctx context.Context, token, groupID string
 	}
 
 	if pm.ListPerms && len(cp.Clients) > 0 {
-		var wg sync.WaitGroup
-		resultChan := make(chan error, len(cp.Clients))
+		g, ctx := errgroup.WithContext(ctx)
 
 		for i := range cp.Clients {
-			wg.Add(1)
-			go svc.retrievePermissions(ctx, res.GetId(), &wg, &cp.Clients[i], resultChan)
+			g.Go(func() error {
+				return svc.retrievePermissions(ctx, res.GetId(), &cp.Clients[i])
+			})
 		}
 
-		go func() {
-			wg.Wait()
-			close(resultChan)
-		}()
-
-		for result := range resultChan {
-			if result != nil {
-				return mgclients.MembersPage{}, result
-			}
+		if err := g.Wait(); err != nil {
+			return mgclients.MembersPage{}, err
 		}
 	}
 

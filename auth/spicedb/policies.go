@@ -324,7 +324,6 @@ func (pa *policyAgent) RetrievePermissions(ctx context.Context, pr auth.PolicyRe
 		})
 	}
 	resp, err := pa.client.ExperimentalServiceClient.BulkCheckPermission(ctx, &v1.BulkCheckPermissionRequest{Items: permissionChecks})
-
 	if err != nil {
 		return auth.Permissions{}, err
 	}
