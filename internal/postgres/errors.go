@@ -23,11 +23,11 @@ func HandleError(err error) error {
 	if ok {
 		switch pqErr.Code {
 		case errDuplicate:
-			return repoerror.ErrConflict
+			return errors.Wrap(repoerror.ErrConflict, err)
 		case errInvalid, errTruncation:
-			return repoerror.ErrMalformedEntity
+			return errors.Wrap(repoerror.ErrMalformedEntity, err)
 		case errFK:
-			return repoerror.ErrCreateEntity
+			return errors.Wrap(repoerror.ErrCreateEntity, err)
 		}
 	}
 

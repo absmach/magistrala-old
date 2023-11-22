@@ -55,10 +55,10 @@ func (svc service) Authorize(ctx context.Context, req *magistrala.AuthorizeReq) 
 	}
 	resp, err := svc.auth.Authorize(ctx, r)
 	if err != nil {
-		return "", err
+		return "", errors.Wrap(errors.ErrAuthorization, err)
 	}
 	if !resp.GetAuthorized() {
-		return "", err
+		return "", errors.Wrap(errors.ErrAuthorization, err)
 	}
 
 	return thingID, nil
@@ -118,7 +118,7 @@ func (svc service) CreateThings(ctx context.Context, token string, cls ...mgclie
 		})
 	}
 	if _, err := svc.auth.AddPolicies(ctx, &policies); err != nil {
-		return nil, err
+		return nil, errors.Wrap(errAddPolicies, err)
 	}
 
 	return saved, nil
@@ -427,7 +427,7 @@ func (svc service) Identify(ctx context.Context, key string) (string, error) {
 func (svc service) identify(ctx context.Context, token string) (*magistrala.IdentityRes, error) {
 	res, err := svc.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return nil, errors.ErrAuthentication
+		return nil, errors.Wrap(errors.ErrAuthentication, err)
 	}
 	if res.GetId() == "" || res.GetDomainId() == "" {
 		return nil, errors.ErrDomainAuthorization
@@ -446,10 +446,10 @@ func (svc *service) authorize(ctx context.Context, subjType, subjKind, subj, per
 	}
 	res, err := svc.auth.Authorize(ctx, req)
 	if err != nil {
-		return "", errors.ErrAuthorization
+		return "", errors.Wrap(errors.ErrAuthorization, err)
 	}
 	if !res.GetAuthorized() {
-		return "", errors.ErrAuthorization
+		return "", errors.Wrap(errors.ErrAuthorization, err)
 	}
 
 	return res.GetId(), nil

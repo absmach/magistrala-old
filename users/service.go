@@ -31,8 +31,14 @@ var (
 	//ErrFailedOwnerUpdate indicates a failure to update user policy.
 	ErrFailedOwnerUpdate = errors.New("failed to update user owner")
 
-	//ErrAddPolicies indictaed a failre to add policies
+	//ErrAddPolicies indictaed a failre to add policies.
 	errAddPolicies = errors.New("failed to add policies")
+
+	//ErrIssueToken indicates a failure to issue token.
+	ErrIssueToken = errors.New("failed to issue token")
+
+	//ErrAddPolicies indictaed a failre to add policies.
+	errDeletePolicies = errors.New("failed to delete policies")
 )
 
 type service struct {
@@ -292,7 +298,7 @@ func (svc service) ResetSecret(ctx context.Context, resetToken, secret string) e
 	}
 	c, err := svc.clients.RetrieveByID(ctx, id)
 	if err != nil {
-		return err
+		return errors.Wrap(repoerror.ErrNotFound, err)
 	}
 	if c.Credentials.Identity == "" {
 		return errors.ErrNotFound
@@ -313,7 +319,7 @@ func (svc service) ResetSecret(ctx context.Context, resetToken, secret string) e
 		UpdatedBy: id,
 	}
 	if _, err := svc.clients.UpdateSecret(ctx, c); err != nil {
-		return err
+		return errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	return nil
 }
@@ -331,7 +337,7 @@ func (svc service) UpdateClientSecret(ctx context.Context, token, oldSecret, new
 		return mgclients.Client{}, errors.Wrap(repoerror.ErrNotFound, err)
 	}
 	if _, err := svc.IssueToken(ctx, dbClient.Credentials.Identity, oldSecret, ""); err != nil {
-		return mgclients.Client{}, err
+		return mgclients.Client{}, errors.Wrap(ErrIssueToken, err)
 	}
 	newSecret, err = svc.hasher.Hash(newSecret)
 	if err != nil {
@@ -444,7 +450,7 @@ func (svc service) ListMembers(ctx context.Context, token, objectKind string, ob
 	}
 
 	if _, err := svc.authorize(ctx, auth.UserType, auth.TokenKind, token, authzPerm, objectType, objectID); err != nil {
-		return mgclients.MembersPage{}, err
+		return mgclients.MembersPage{}, errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	duids, err := svc.auth.ListAllSubjects(ctx, &magistrala.ListSubjectsReq{
 		SubjectType: auth.UserType,
@@ -483,7 +489,7 @@ func (svc service) ListMembers(ctx context.Context, token, objectKind string, ob
 func (svc *service) checkSuperAdmin(ctx context.Context, adminID string) error {
 	if _, err := svc.authorize(ctx, auth.UserType, auth.UsersKind, adminID, auth.AdminPermission, auth.PlatformType, auth.MagistralaObject); err != nil {
 		if err := svc.clients.CheckSuperAdmin(ctx, adminID); err != nil {
-			return err
+			return errors.Wrap(errors.ErrAuthorization, err)
 		}
 	}
 
@@ -501,11 +507,11 @@ func (svc *service) authorize(ctx context.Context, subjType, subjKind, subj, per
 	}
 	res, err := svc.auth.Authorize(ctx, req)
 	if err != nil {
-		return "", errors.ErrAuthorization
+		return "", errors.Wrap(errors.ErrAuthorization, err)
 	}
 
 	if !res.GetAuthorized() {
-		return "", errors.ErrAuthorization
+		return "", errors.Wrap(errors.ErrAuthorization, err)
 	}
 	return res.GetId(), nil
 }
@@ -513,7 +519,7 @@ func (svc *service) authorize(ctx context.Context, subjType, subjKind, subj, per
 func (svc service) Identify(ctx context.Context, token string) (string, error) {
 	user, err := svc.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return "", errors.ErrAuthentication
+		return "", errors.Wrap(svcerror.ErrAuthentication, err)
 	}
 	return user.GetUserId(), nil
 }
@@ -529,10 +535,10 @@ func (svc service) updateClientPolicy(ctx context.Context, userID string, role m
 			Object:      auth.MagistralaObject,
 		})
 		if err != nil {
-			return errAddPolicies
+			return errors.Wrap(errAddPolicies, err)
 		}
 		if !resp.Authorized {
-			return errors.ErrAuthorization
+			return errors.Wrap(errors.ErrAuthorization, err)
 		}
 		return nil
 	case mgclients.UserRole:
@@ -546,10 +552,10 @@ func (svc service) updateClientPolicy(ctx context.Context, userID string, role m
 			Object:      auth.MagistralaObject,
 		})
 		if err != nil {
-			return err
+			return errors.Wrap(errDeletePolicies, err)
 		}
 		if !resp.Deleted {
-			return errors.ErrAuthorization
+			return errors.Wrap(errDeletePolicies, err)
 		}
 		return nil
 	}
