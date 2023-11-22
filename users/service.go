@@ -416,10 +416,10 @@ func (svc service) DisableClient(ctx context.Context, token, id string) (mgclien
 func (svc service) changeClientStatus(ctx context.Context, token string, client mgclients.Client) (mgclients.Client, error) {
 	tokenUserID, err := svc.Identify(ctx, token)
 	if err != nil {
-		return mgclients.Client{}, errors.Wrap(errors.ErrAuthentication, err)
+		return mgclients.Client{}, errors.Wrap(svcerror.ErrAuthentication, err)
 	}
 	if err := svc.checkSuperAdmin(ctx, tokenUserID); err != nil {
-		return mgclients.Client{}, errors.Wrap(errors.ErrAuthentication, err)
+		return mgclients.Client{}, errors.Wrap(svcerror.ErrAuthentication, err)
 	}
 	dbClient, err := svc.clients.RetrieveByID(ctx, client.ID)
 	if err != nil {
@@ -489,7 +489,7 @@ func (svc service) ListMembers(ctx context.Context, token, objectKind string, ob
 func (svc *service) checkSuperAdmin(ctx context.Context, adminID string) error {
 	if _, err := svc.authorize(ctx, auth.UserType, auth.UsersKind, adminID, auth.AdminPermission, auth.PlatformType, auth.MagistralaObject); err != nil {
 		if err := svc.clients.CheckSuperAdmin(ctx, adminID); err != nil {
-			return errors.Wrap(errors.ErrAuthorization, err)
+			return errors.Wrap(svcerror.ErrAuthorization, err)
 		}
 	}
 
@@ -507,11 +507,11 @@ func (svc *service) authorize(ctx context.Context, subjType, subjKind, subj, per
 	}
 	res, err := svc.auth.Authorize(ctx, req)
 	if err != nil {
-		return "", errors.Wrap(errors.ErrAuthorization, err)
+		return "", errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 
 	if !res.GetAuthorized() {
-		return "", errors.Wrap(errors.ErrAuthorization, err)
+		return "", errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	return res.GetId(), nil
 }
@@ -538,7 +538,7 @@ func (svc service) updateClientPolicy(ctx context.Context, userID string, role m
 			return errors.Wrap(errAddPolicies, err)
 		}
 		if !resp.Authorized {
-			return errors.Wrap(errors.ErrAuthorization, err)
+			return errors.Wrap(svcerror.ErrAuthorization, err)
 		}
 		return nil
 	case mgclients.UserRole:

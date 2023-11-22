@@ -162,11 +162,11 @@ func (svc service) Identify(ctx context.Context, token string) (Key, error) {
 	case APIKey:
 		_, err := svc.keys.Retrieve(ctx, key.Issuer, key.ID)
 		if err != nil {
-			return Key{}, errors.ErrAuthentication
+			return Key{}, svcerror.ErrAuthentication
 		}
 		return key, nil
 	default:
-		return Key{}, errors.ErrAuthentication
+		return Key{}, svcerror.ErrAuthentication
 	}
 }
 
@@ -177,13 +177,13 @@ func (svc service) Authorize(ctx context.Context, pr PolicyReq) error {
 	if pr.SubjectKind == TokenKind {
 		key, err := svc.Identify(ctx, pr.Subject)
 		if err != nil {
-			return errors.Wrap(errors.ErrAuthentication, err)
+			return errors.Wrap(svcerror.ErrAuthentication, err)
 		}
 		if key.Subject == "" {
 			if pr.ObjectType == GroupType || pr.ObjectType == ThingType || pr.ObjectType == DomainType {
 				return errors.ErrDomainAuthorization
 			}
-			return errors.ErrAuthentication
+			return svcerror.ErrAuthentication
 		}
 		pr.Subject = key.Subject
 	}
@@ -426,7 +426,7 @@ func (svc service) authenticate(token string) (string, string, error) {
 	}
 	// Only login key token is valid for login.
 	if key.Type != AccessKey || key.Issuer == "" {
-		return "", "", errors.ErrAuthentication
+		return "", "", svcerror.ErrAuthentication
 	}
 
 	return key.Issuer, key.Subject, nil
@@ -490,7 +490,7 @@ func (svc service) RetrieveDomain(ctx context.Context, token string, id string) 
 		ObjectType:  DomainType,
 		Permission:  ViewPermission,
 	}); err != nil {
-		return Domain{}, errors.Wrap(errors.ErrAuthorization, err)
+		return Domain{}, errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 
 	return svc.domains.RetrieveByID(ctx, id)
@@ -509,7 +509,7 @@ func (svc service) UpdateDomain(ctx context.Context, token string, id string, d 
 		ObjectType:  DomainType,
 		Permission:  EditPermission,
 	}); err != nil {
-		return Domain{}, errors.Wrap(errors.ErrAuthorization, err)
+		return Domain{}, errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	return svc.domains.Update(ctx, id, key.User, d)
 }
@@ -527,7 +527,7 @@ func (svc service) ChangeDomainStatus(ctx context.Context, token string, id stri
 		ObjectType:  DomainType,
 		Permission:  AdminPermission,
 	}); err != nil {
-		return Domain{}, errors.Wrap(errors.ErrAuthorization, err)
+		return Domain{}, errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	return svc.domains.Update(ctx, id, key.User, d)
 }
@@ -581,7 +581,7 @@ func (svc service) AssignUsers(ctx context.Context, token string, id string, use
 			Object:      MagistralaObject,
 			ObjectType:  PlatformType,
 		}); err != nil {
-			return errors.Wrap(errors.ErrMalformedEntity, fmt.Errorf("invalid user id : %s ", userID))
+			return errors.Wrap(svcerror.ErrMalformedEntity, fmt.Errorf("invalid user id : %s ", userID))
 		}
 	}
 
@@ -627,7 +627,7 @@ func (svc service) ListUserDomains(ctx context.Context, token string, userID str
 		Object:      MagistralaObject,
 		ObjectType:  PlatformType,
 	}); err != nil {
-		return DomainsPage{}, errors.Wrap(errors.ErrAuthorization, err)
+		return DomainsPage{}, errors.Wrap(svcerror.ErrAuthorization, err)
 	}
 	if userID != "" && res.User != userID {
 		p.SubjectID = userID

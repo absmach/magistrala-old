@@ -256,7 +256,7 @@ func (bs bootstrapService) UpdateConnections(ctx context.Context, token, id stri
 func (bs bootstrapService) List(ctx context.Context, token string, filter Filter, offset, limit uint64) (ConfigsPage, error) {
 	owner, err := bs.identify(ctx, token)
 	if err != nil {
-		return ConfigsPage{}, errors.Wrap(errors.ErrAuthentication, err)
+		return ConfigsPage{}, errors.Wrap(svcerror.ErrAuthentication, err)
 	}
 
 	return bs.configs.RetrieveAll(ctx, owner, filter, offset, limit), nil

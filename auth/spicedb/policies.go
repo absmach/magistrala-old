@@ -51,7 +51,7 @@ func (pa *policyAgent) CheckPolicy(ctx context.Context, pr auth.PolicyReq) error
 
 	resp, err := pa.permissionClient.CheckPermission(ctx, &checkReq)
 	if err != nil {
-		return errors.Wrap(repoerror.ErrMalformedEntity, errors.Wrap(errPermission, err))
+		return errors.Wrap(svcerror.ErrMalformedEntity, errors.Wrap(errPermission, err))
 	}
 	if resp.Permissionship == v1.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION {
 		return nil
@@ -85,7 +85,7 @@ func (pa *policyAgent) AddPolicies(ctx context.Context, prs []auth.PolicyReq) er
 	}
 	_, err := pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates, OptionalPreconditions: preconds})
 	if err != nil {
-		return errors.Wrap(repoerror.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
+		return errors.Wrap(svcerror.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
 	}
 	return nil
 }
@@ -108,7 +108,7 @@ func (pa *policyAgent) AddPolicy(ctx context.Context, pr auth.PolicyReq) error {
 	}
 	_, err = pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates, OptionalPreconditions: precond})
 	if err != nil {
-		return errors.Wrap(repoerror.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
+		return errors.Wrap(svcerror.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
 	}
 	return nil
 }
@@ -130,7 +130,7 @@ func (pa *policyAgent) DeletePolicies(ctx context.Context, prs []auth.PolicyReq)
 	}
 	_, err := pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates})
 	if err != nil {
-		return errors.Wrap(repoerror.ErrMalformedEntity, errors.Wrap(errRemovePolicies, err))
+		return errors.Wrap(svcerror.ErrMalformedEntity, errors.Wrap(errRemovePolicies, err))
 	}
 	return nil
 }
@@ -151,7 +151,7 @@ func (pa *policyAgent) DeletePolicy(ctx context.Context, pr auth.PolicyReq) erro
 		},
 	}
 	if _, err := pa.permissionClient.DeleteRelationships(ctx, req); err != nil {
-		return errors.Wrap(repoerror.ErrMalformedEntity, errors.Wrap(errRemovePolicies, err))
+		return errors.Wrap(svcerror.ErrMalformedEntity, errors.Wrap(errRemovePolicies, err))
 	}
 	return nil
 }
@@ -200,7 +200,7 @@ func (pa *policyAgent) RetrieveAllObjects(ctx context.Context, pr auth.PolicyReq
 	}
 	stream, err := pa.permissionClient.LookupResources(ctx, resourceReq)
 	if err != nil {
-		return nil, errors.Wrap(repoerror.ErrMalformedEntity, errors.Wrap(errRetrievePolicies, err))
+		return nil, errors.Wrap(svcerror.ErrMalformedEntity, errors.Wrap(errRetrievePolicies, err))
 	}
 	tuples := []auth.PolicyRes{}
 	for {
@@ -247,7 +247,7 @@ func (pa *policyAgent) RetrieveSubjects(ctx context.Context, pr auth.PolicyReq, 
 	}
 	stream, err := pa.permissionClient.LookupSubjects(ctx, &subjectsReq)
 	if err != nil {
-		return nil, "", errors.Wrap(repoerror.ErrMalformedEntity, errors.Wrap(errRetrievePolicies, err))
+		return nil, "", errors.Wrap(svcerror.ErrMalformedEntity, errors.Wrap(errRetrievePolicies, err))
 	}
 	subjects := []*v1.LookupSubjectsResponse{}
 	var token string
