@@ -116,47 +116,83 @@ jobs:
             fi
           done
 
-  test-users:
+  test: 
     runs-on: ubuntu-latest
 
     needs: [setup, check-protobuf]
 
-    steps:
-      - name: Checkout Code
+    strategy:
+      matrix:
+        service:
+          - name: users
+            additional_paths: ''
+          - name: things
+            additional_paths: ''
+          - name: coap
+            additional_paths: 'things/api/grpc/**'
+          - name: http
+            additional_paths: 'things/api/grpc/**'
+          - name: mqtt
+            additional_paths: 'things/api/grpc/**'
+          - name: ws
+            additional_paths: 'things/api/grpc/**'
+          - name: certs
+            additional_paths: 'things/api/grpc/**'
+          - name: twins
+            additional_paths: 'things/api/grpc/**'
+          - name: provision
+            additional_paths: ''
+            exclude_paths: '!auth/service.go !auth/api/grpc/client.go'
+          - name: cli
+            additional_paths: ''
+            exclude_paths: '!auth/service.go !auth/api/grpc/client.go'
+          - name: lora
+            additional_paths: ''
+            exclude_paths: '!auth/service.go !auth/api/grpc/client.go'
+          - name: opcua
+            additional_paths: 'things/api/grpc/**'
+          - name: internal
+            additional_paths: ''
+            exclude_paths: '!auth/service.go !auth/api/grpc/client.go !cmd/**'
+          - name: logger
+            additional_paths: ''
+            exclude_paths: '!auth/service.go !auth/api/grpc/client.go !cmd/**'
+          - name: pkg
+            additional_paths: ''
+            exclude_paths: '!auth/service.go !auth/api/grpc/client.go !cmd/**'
+          - name: tools
+            additional_paths: ''
+            exclude_paths: '!auth/service.go !auth/api/grpc/client.go !cmd/**'
+          - name: bootstrap
+            additional_paths: 'things/policies/postgres/policies.go things/policies/api/grpc/client.go'
+
+    steps: 
+      - name: Checkout
         uses: actions/checkout@v2
 
       - name: Check for changes in specific paths
         uses: dorny/paths-filter@v2
         id: changes
-        with:
+        with: 
           filters: |
-            any:
-              - 'users/**'
-              - 'cmd/users/**'
+            any: 
+              - '${{ matrix.service.name }}/**'
+              - 'cmd/${{ matrix.service.name }}/**'
+              - '${{ matrix.service.additional_paths }}'
+              - '${{ matrix.service.exclude_paths }}'
               - 'auth/service.go'
               - 'auth/api/grpc/client.go'
 
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test Users
+      - name: Test ${{ matrix.service.name }}
         run: |
-          cd users
+          cd ${{ matrix.service.name }}
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-        
-      - name: Upload Codecov coverage
-        uses: actions/upload-artifact@v2
-        with:
-            name: code-coverage
-            path: users/coverage.html
 
   build-users:
     runs-on: ubuntu-latest
 
-    needs: test-users
+    needs: test
 
     steps:
       - name: Checkout Code
@@ -181,43 +217,11 @@ jobs:
           make docker_users
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-        
-     
-  test-things:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'things/**'
-              - 'cmd/things/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-        
-      - name: Test Things
-        run: |
-          cd things
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-        
+         
   build-things:
     runs-on: ubuntu-latest
 
-    needs: test-things
+    needs: test
 
     steps:
       - name: Checkout Code
@@ -242,43 +246,11 @@ jobs:
           make docker_things
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-    
-  test-coap:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'coap/**'
-              - 'cmd/coap/**'
-              - 'things/api/grpc/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-        
-      - name: Test CoAP
-        run: |
-          cd coap
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
 
   build-coap:
     runs-on: ubuntu-latest
 
-    needs: test-coap
+    needs: test
             
     steps:
       - name: Checkout
@@ -304,41 +276,11 @@ jobs:
 
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-
-  test-http:
-    runs-on: ubuntu-latest
-    needs: [setup, check-protobuf]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'http/**'
-              - 'cmd/http/**'
-              - 'things/api/grpc/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-     
-      - name: Test HTTP
-        run: |
-          cd http
-          go test ./... -race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
     
   build-http:
     runs-on: ubuntu-latest
 
-    needs: test-http
+    needs: test
 
     steps:
       - name: Checkout
@@ -367,42 +309,10 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  test-mqtt:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps: 
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'mqtt/**'
-              - 'cmd/mqtt/**'
-              - 'things/api/grpc/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test MQTT
-        run: |
-          cd mqtt
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
   build-mqtt:
     runs-on: ubuntu-latest
 
-    needs: test-mqtt
+    needs: test
 
     steps:
       - name: Checkout
@@ -430,43 +340,11 @@ jobs:
             docker push magistrala/mqtt:latest
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-    
-  test-ws:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'ws/**'
-              - 'cmd/ws/**'
-              - 'things/api/grpc/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-            go-version: 1.21
-
-      - name: Test WS
-        run: |
-            cd ws
-            go test ./... --race -v -coverprofile=coverage.out
-            go tool cover -html=coverage.out -o coverage.html
 
   build-ws:
     runs-on: ubuntu-latest
 
-    needs: test-ws
+    needs: test
 
     steps:
       - name: Checkout
@@ -498,41 +376,10 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
         
-  test-bootstrap:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'bootstrap/**'
-              - 'cmd/bootstrap/**'
-              - 'things/policies/postgres/policies.go'
-              - 'things/policies/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test Bootstrap
-        run: |
-          cd bootstrap
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-        
   build-bootstrap:
     runs-on: ubuntu-latest
 
-    needs: test-bootstrap
+    needs: test
 
     steps:
       - name: Checkout
@@ -561,42 +408,10 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  test-certs:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'certs/**'
-              - 'cmd/certs/**'
-              - 'things/api/grpc/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test Certs
-        run: |
-          cd certs
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
   build-certs:
     runs-on: ubuntu-latest
 
-    needs: test-certs
+    needs: test
 
     steps:
       - name: Checkout
@@ -625,39 +440,10 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  test-provision:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'provision' and 'cmd/provision' directories
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'provision/**'
-              - 'cmd/provision/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test Provision
-        run: |
-          cd provision
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
   build-provision:
     runs-on: ubuntu-latest
 
-    needs: test-provision
+    needs: test
 
     steps:
       - name: Checkout
@@ -689,42 +475,10 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  test-twins:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'twins/**'
-              - 'cmd/twins/**'
-              - 'things/api/grpc/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test Twins
-        run: |
-          cd twins
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
   build-twins:
     runs-on: ubuntu-latest
 
-    needs: test-twins
+    needs: test
 
     steps:
       - name: Checkout
@@ -917,39 +671,10 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  test-cli:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'cli' and 'cmd/cli' directories
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'cli/**'
-              - 'cmd/cli/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test CLI
-        run: |
-          cd cli
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
   build-cli:
     runs-on: ubuntu-latest
 
-    needs: test-cli
+    needs: test
 
     steps:
       - name: Checkout
@@ -977,39 +702,10 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  test-LoRa:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'lora/**'
-              - 'cmd/lora/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test LoRa
-        run: |
-          cd lora
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
   build-LoRa:
     runs-on: ubuntu-latest
 
-    needs: test-LoRa
+    needs: test
 
     steps:
       - name: Checkout
@@ -1037,41 +733,9 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  test-opc-ua:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'opcua/**'
-              - 'cmd/opcua/**'
-              - 'things/api/grpc/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test OPC-UA
-        run: |
-          cd opcua
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
   build-opc-ua:
     runs-on: ubuntu-latest
-    needs: test-opc-ua
+    needs: test
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -1101,118 +765,6 @@ jobs:
         env:
           DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
 
-  test-internal: 
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'internal' directory
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-            filters: |
-                internal:
-                - 'internal/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test Internal
-        run: |
-          cd internal
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
-  test-logger:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'logger' directory
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-            filters: |
-                logger:
-                - 'logger/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test Logger
-        run: |
-          cd logger
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
-  test-pkg:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'pkg' directory
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            pkg:
-              - 'pkg/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test PKG
-        run: |
-          cd pkg
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
-  test-tools: 
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'tools' directory
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            tools:
-              - 'tools/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test Tools
-        run: |
-          cd tools
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
   compile-check-rabbitmq:
     runs-on: ubuntu-latest
 
@@ -1227,7 +779,6 @@ jobs:
           export MG_MESSAGE_BROKER_TYPE=rabbitmq
           make mqtt
             
-        
   compile-check-redis:
     runs-on: ubuntu-latest
     needs: setup
