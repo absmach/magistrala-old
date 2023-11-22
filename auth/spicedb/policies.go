@@ -51,7 +51,7 @@ func (pa *policyAgent) CheckPolicy(ctx context.Context, pr auth.PolicyReq) error
 
 	resp, err := pa.permissionClient.CheckPermission(ctx, &checkReq)
 	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errPermission, err))
+		return errors.Wrap(errors.ErrMalformedEntity, errPermission)
 	}
 	if resp.Permissionship == v1.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION {
 		return nil
@@ -85,7 +85,7 @@ func (pa *policyAgent) AddPolicies(ctx context.Context, prs []auth.PolicyReq) er
 	}
 	_, err := pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates, OptionalPreconditions: preconds})
 	if err != nil {
-		return errors.Wrap(repoerror.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
+		return errors.Wrap(repoerror.ErrMalformedEntity, errAddPolicies)
 	}
 	return nil
 }
@@ -108,7 +108,7 @@ func (pa *policyAgent) AddPolicy(ctx context.Context, pr auth.PolicyReq) error {
 	}
 	_, err = pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates, OptionalPreconditions: precond})
 	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
+		return errors.Wrap(errors.ErrMalformedEntity, errAddPolicies)
 	}
 	return nil
 }
@@ -130,7 +130,7 @@ func (pa *policyAgent) DeletePolicies(ctx context.Context, prs []auth.PolicyReq)
 	}
 	_, err := pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates})
 	if err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errRemovePolicies, err))
+		return errors.Wrap(errors.ErrMalformedEntity, errRemovePolicies)
 	}
 	return nil
 }
@@ -151,7 +151,7 @@ func (pa *policyAgent) DeletePolicy(ctx context.Context, pr auth.PolicyReq) erro
 		},
 	}
 	if _, err := pa.permissionClient.DeleteRelationships(ctx, req); err != nil {
-		return errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errRemovePolicies, err))
+		return errors.Wrap(errors.ErrMalformedEntity, errRemovePolicies)
 	}
 	return nil
 }
@@ -169,7 +169,7 @@ func (pa *policyAgent) RetrieveObjects(ctx context.Context, pr auth.PolicyReq, n
 	}
 	stream, err := pa.permissionClient.LookupResources(ctx, resourceReq)
 	if err != nil {
-		return nil, "", errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errRetrievePolicies, err))
+		return nil, "", errors.Wrap(errors.ErrMalformedEntity, errRetrievePolicies)
 	}
 	resources := []*v1.LookupResourcesResponse{}
 	var token string
@@ -187,7 +187,7 @@ func (pa *policyAgent) RetrieveObjects(ctx context.Context, pr auth.PolicyReq, n
 			if len(resources) > 0 && resources[len(resources)-1].AfterResultCursor != nil {
 				token = resources[len(resources)-1].AfterResultCursor.Token
 			}
-			return objectsToAuthPolicies(resources), token, errors.Wrap(errors.ErrViewEntity, err)
+			return objectsToAuthPolicies(resources), token, errors.ErrViewEntity
 		}
 	}
 }
@@ -200,7 +200,7 @@ func (pa *policyAgent) RetrieveAllObjects(ctx context.Context, pr auth.PolicyReq
 	}
 	stream, err := pa.permissionClient.LookupResources(ctx, resourceReq)
 	if err != nil {
-		return nil, errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errRetrievePolicies, err))
+		return nil, errors.Wrap(errors.ErrMalformedEntity, errRetrievePolicies)
 	}
 	tuples := []auth.PolicyRes{}
 	for {
@@ -247,7 +247,7 @@ func (pa *policyAgent) RetrieveSubjects(ctx context.Context, pr auth.PolicyReq, 
 	}
 	stream, err := pa.permissionClient.LookupSubjects(ctx, &subjectsReq)
 	if err != nil {
-		return nil, "", errors.Wrap(errors.ErrMalformedEntity, errors.Wrap(errRetrievePolicies, err))
+		return nil, "", errors.Wrap(errors.ErrMalformedEntity, errRetrievePolicies)
 	}
 	subjects := []*v1.LookupSubjectsResponse{}
 	var token string
@@ -266,7 +266,7 @@ func (pa *policyAgent) RetrieveSubjects(ctx context.Context, pr auth.PolicyReq, 
 			if len(subjects) > 0 && subjects[len(subjects)-1].AfterResultCursor != nil {
 				token = subjects[len(subjects)-1].AfterResultCursor.Token
 			}
-			return subjectsToAuthPolicies(subjects), token, errors.Wrap(errors.ErrViewEntity, err)
+			return subjectsToAuthPolicies(subjects), token, errors.ErrViewEntity
 		}
 	}
 }
