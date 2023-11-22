@@ -125,46 +125,55 @@ jobs:
       matrix:
         service:
           - name: users
-            additional_paths: ''
+            paths: 'users/** cmd/users/** auth/service.go auth/api/grpc/client.go'
+
           - name: things
-            additional_paths: ''
+            paths: 'things/** cmd/things/** auth/service.go auth/api/grpc/client.go'
+
           - name: coap
-            additional_paths: 'things/api/grpc/**'
+            paths: 'coap/** cmd/coap/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+
           - name: http
-            additional_paths: 'things/api/grpc/**'
+            paths: 'http/** cmd/http/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+
           - name: mqtt
-            additional_paths: 'things/api/grpc/**'
+            paths: 'mqtt/** cmd/mqtt/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+            
           - name: ws
-            additional_paths: 'things/api/grpc/**'
+            paths: 'ws/** cmd/ws/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+
           - name: certs
-            additional_paths: 'things/api/grpc/**'
+            paths:  'certs/** cmd/certs/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+
           - name: twins
-            additional_paths: 'things/api/grpc/**'
+            paths:  'twins/** cmd/twins/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+
           - name: provision
-            additional_paths: ''
-            exclude_paths: '!auth/service.go !auth/api/grpc/client.go'
+            paths: 'provision/** cmd/provision/**'
+
           - name: cli
-            additional_paths: ''
-            exclude_paths: '!auth/service.go !auth/api/grpc/client.go'
+            paths: 'cli/** cmd/cli/**'
+
           - name: lora
-            additional_paths: ''
-            exclude_paths: '!auth/service.go !auth/api/grpc/client.go'
+            paths: 'lora/** cmd/lora/**'
+
           - name: opcua
-            additional_paths: 'things/api/grpc/**'
+            paths: 'opcua/** cmd/opcua/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+
           - name: internal
-            additional_paths: ''
-            exclude_paths: '!auth/service.go !auth/api/grpc/client.go !cmd/**'
+            paths: 'internal/**'
+
           - name: logger
-            additional_paths: ''
-            exclude_paths: '!auth/service.go !auth/api/grpc/client.go !cmd/**'
+            paths: 'logger/**'
+
           - name: pkg
-            additional_paths: ''
-            exclude_paths: '!auth/service.go !auth/api/grpc/client.go !cmd/**'
+            paths: 'pkg/**'
+
           - name: tools
-            additional_paths: ''
-            exclude_paths: '!auth/service.go !auth/api/grpc/client.go !cmd/**'
+            paths: 'tools/**'
+
           - name: bootstrap
-            additional_paths: 'things/policies/postgres/policies.go things/policies/api/grpc/client.go'
+            paths: 'bootstrap/** cmd/bootstrap/** things/policies/postgres/policies.go things/policies/api/grpc/client.go'
 
     steps: 
       - name: Checkout
@@ -176,12 +185,7 @@ jobs:
         with: 
           filters: |
             any: 
-              - '${{ matrix.service.name }}/**'
-              - 'cmd/${{ matrix.service.name }}/**'
-              - '${{ matrix.service.additional_paths }}'
-              - '${{ matrix.service.exclude_paths }}'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
+              - '${{ matrix.service.paths }}/**'
 
       - name: Test ${{ matrix.service.name }}
         run: |
