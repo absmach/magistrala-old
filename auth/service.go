@@ -12,6 +12,7 @@ import (
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 )
 
 const (
@@ -48,8 +49,8 @@ var (
 	errIdentify           = errors.New("failed to validate token")
 	errPlatform           = errors.New("invalid platform id")
 	errCreateDomainPolicy = errors.New("failed to create domain policy")
-	errAddPolicies      = errors.New("failed to add policies")
-	errRemovePolicies   = errors.New("failed to remove the policies")
+	errAddPolicies        = errors.New("failed to add policies")
+	errRemovePolicies     = errors.New("failed to remove the policies")
 )
 
 // Authn specifies an API that must be fullfiled by the domain service

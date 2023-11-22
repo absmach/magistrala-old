@@ -13,6 +13,7 @@ import (
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/mainflux/senml"
 )

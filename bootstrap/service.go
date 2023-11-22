@@ -12,7 +12,6 @@ import (
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/pkg/errors"
-	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
 	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	mgsdk "github.com/absmach/magistrala/pkg/sdk/go"
 )
@@ -369,7 +368,7 @@ func (bs bootstrapService) identify(ctx context.Context, token string) (string, 
 
 	res, err := bs.auth.Identify(ctx, &magistrala.IdentityReq{Token: token})
 	if err != nil {
-		return "", errors.ErrAuthentication
+		return "", svcerror.ErrAuthentication
 	}
 
 	return res.GetId(), nil

@@ -11,6 +11,8 @@ import (
 	"github.com/absmach/magistrala/auth"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerror "github.com/absmach/magistrala/pkg/errors/service"
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/authzed-go/v1"
 )
@@ -83,8 +85,7 @@ func (pa *policyAgent) AddPolicies(ctx context.Context, prs []auth.PolicyReq) er
 	}
 	_, err := pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates, OptionalPreconditions: preconds})
 	if err != nil {
-		return errors.New("For felix")
-		//errors.Wrap(repoerror.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
+		return errors.Wrap(repoerror.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
 	}
 	return nil
 }

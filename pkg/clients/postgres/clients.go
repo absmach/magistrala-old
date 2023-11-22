@@ -305,7 +305,7 @@ func (repo ClientRepository) update(ctx context.Context, client clients.Client, 
 
 	row, err := repo.DB.NamedQueryContext(ctx, query, dbc)
 	if err != nil {
-		return clients.Client{}, postgres.HandleError(err, errors.ErrUpdateEntity)
+		return clients.Client{},errors.Wrap(errors.ErrUpdateEntity,postgres.HandleError(err))
 	}
 
 	defer row.Close()
