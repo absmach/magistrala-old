@@ -235,11 +235,11 @@ run: check_certs change_config
 ifeq ($(MG_ES_STORE_TYPE), redis)
 	sed -i "s/MG_ES_STORE_TYPE=.*/MG_ES_STORE_TYPE=redis/" docker/.env
 	sed -i "s/MG_ES_STORE_URL=.*/MG_ES_STORE_URL=$$\{MG_REDIS_URL}/" docker/.env
-	docker compose -f docker/docker-compose.yml --profile $(DOCKER_PROFILE) --profile redis -p $(DOCKER_PROJECT) $(DOCKER_COMPOSE_COMMAND) $(args)
+	docker-compose -f docker/docker-compose.yml --profile $(DOCKER_PROFILE) --profile redis -p $(DOCKER_PROJECT) $(DOCKER_COMPOSE_COMMAND) $(args)
 else
 	sed -i "s,MG_ES_STORE_TYPE=.*,MG_ES_STORE_TYPE=$$\{MG_MESSAGE_BROKER_TYPE}," docker/.env
 	sed -i "s,MG_ES_STORE_URL=.*,MG_ES_STORE_URL=$$\{MG_$(shell echo ${MG_MESSAGE_BROKER_TYPE} | tr 'a-z' 'A-Z')_URL\}," docker/.env
-	docker compose -f docker/docker-compose.yml --profile $(DOCKER_PROFILE) -p $(DOCKER_PROJECT) $(DOCKER_COMPOSE_COMMAND) $(args)
+	docker-compose -f docker/docker-compose.yml --profile $(DOCKER_PROFILE) -p $(DOCKER_PROJECT) $(DOCKER_COMPOSE_COMMAND) $(args)
 endif
 
 run_addons: check_certs
