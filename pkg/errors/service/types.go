@@ -5,7 +5,7 @@ package service
 
 import "github.com/absmach/magistrala/pkg/errors"
 
-// Wrapper for Service errors
+// Wrapper for Service errors.
 var (
 	// ErrAuthentication indicates failure occurred while authenticating the entity.
 	ErrAuthentication = errors.New("authentication error")

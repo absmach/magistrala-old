@@ -25,10 +25,10 @@ var (
 	// ErrPasswordFormat indicates weak password.
 	ErrPasswordFormat = errors.New("password does not meet the requirements")
 
-	//ErrFailedPolicyUpdate indicates a failure to update user policy
+	//ErrFailedPolicyUpdate indicates a failure to update user policy.
 	ErrFailedPolicyUpdate = errors.New("failed to update user policy")
 
-	//ErrFailedOwnerUpdate indicates a failure to update user policy
+	//ErrFailedOwnerUpdate indicates a failure to update user policy.
 	ErrFailedOwnerUpdate = errors.New("failed to update user owner")
 )
 
