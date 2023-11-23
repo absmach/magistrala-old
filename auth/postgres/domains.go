@@ -54,7 +54,7 @@ func (repo domainRepo) Save(ctx context.Context, d auth.Domain) (ad auth.Domain,
 	row.Next()
 	dbd = dbDomain{}
 	if err := row.StructScan(&dbd); err != nil {
-		return auth.Domain{},errors.Wrap(repoerr.ErrFailedOpDB, err)
+		return auth.Domain{}, errors.Wrap(repoerr.ErrFailedOpDB, err)
 	}
 
 	domain, err := toDomain(dbd)
@@ -237,7 +237,7 @@ func (repo domainRepo) Update(ctx context.Context, id string, userID string, dr 
 	}
 	row, err := repo.db.NamedQueryContext(ctx, q, dbd)
 	if err != nil {
-		return auth.Domain{}, postgres.HandleError(repoerr.ErrUpdateEntity,err)
+		return auth.Domain{}, postgres.HandleError(repoerr.ErrUpdateEntity, err)
 	}
 
 	// defer row.Close()

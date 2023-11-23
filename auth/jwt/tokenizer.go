@@ -29,7 +29,7 @@ var (
 	ErrParseToken = errors.New("failed to parse token")
 	// ErrValidateJWTToken indicates a failure to validate JWT token.
 	ErrValidateJWTToken = errors.New("failed to validate jwt token")
-	//ErrJSONHandle indicates an error in handling JSON.
+	// ErrJSONHandle indicates an error in handling JSON.
 	ErrJSONHandle = errors.New("failed to perform operation JSON")
 )
 
