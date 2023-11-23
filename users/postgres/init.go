@@ -20,7 +20,7 @@ func Migration() *migrate.MemoryMigrationSource {
 				Up: []string{
 					`CREATE TABLE IF NOT EXISTS clients (
 						id          VARCHAR(36) PRIMARY KEY,
-						name        VARCHAR(254),
+						name        VARCHAR(254) NOT NULL UNIQUE,
 						owner_id    VARCHAR(36),
 						identity    VARCHAR(254) NOT NULL UNIQUE,
 						secret      TEXT NOT NULL,
@@ -35,17 +35,6 @@ func Migration() *migrate.MemoryMigrationSource {
 				},
 				Down: []string{
 					`DROP TABLE IF EXISTS clients`,
-				},
-			},
-			{
-				Id: "clients_02",
-				Up: []string{
-					`ALTER TABLE clients ALTER COLUMN name SET NOT NULL`,
-					`ALTER TABLE clients ADD CONSTRAINT clients_name_unique UNIQUE (name)`,
-				},
-				Down: []string{
-					`ALTER TABLE clients ALTER COLUMN name DROP NOT NULL`,
-					`ALTER TABLE clients DROP CONSTRAINT clients_name_unique`,
 				},
 			},
 		},
