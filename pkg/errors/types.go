@@ -51,7 +51,7 @@ var (
 	// ErrFailedOpDB indicates a failure in a database operation.
 	ErrFailedOpDB = New("operation on db element failed")
 
-	//ErrMissingSecret indicates missing secret.
+	// ErrMissingSecret indicates missing secret.
 	ErrMissingSecret = New("missing secret")
 
 	// ErrInvalidStatus indicates an invalid user account status.

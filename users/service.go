@@ -25,19 +25,19 @@ var (
 	// ErrPasswordFormat indicates weak password.
 	ErrPasswordFormat = errors.New("password does not meet the requirements")
 
-	//ErrFailedPolicyUpdate indicates a failure to update user policy.
+	// ErrFailedPolicyUpdate indicates a failure to update user policy.
 	ErrFailedPolicyUpdate = errors.New("failed to update user policy")
 
-	//ErrFailedOwnerUpdate indicates a failure to update user policy.
+	// ErrFailedOwnerUpdate indicates a failure to update user policy.
 	ErrFailedOwnerUpdate = errors.New("failed to update user owner")
 
-	//ErrAddPolicies indictaed a failre to add policies.
+	// ErrAddPolicies indictaed a failre to add policies.
 	errAddPolicies = errors.New("failed to add policies")
 
-	//ErrIssueToken indicates a failure to issue token.
+	// ErrIssueToken indicates a failure to issue token.
 	ErrIssueToken = errors.New("failed to issue token")
 
-	//ErrAddPolicies indictaed a failre to add policies.
+	// ErrAddPolicies indictaed a failre to add policies.
 	errDeletePolicies = errors.New("failed to delete policies")
 )
 

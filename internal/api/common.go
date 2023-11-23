@@ -15,7 +15,6 @@ import (
 	"github.com/absmach/magistrala/pkg/errors"
 	repoerr "github.com/absmach/magistrala/pkg/errors/repository"
 	svcerr "github.com/absmach/magistrala/pkg/errors/service"
-
 	"github.com/gofrs/uuid"
 )
 
@@ -114,7 +113,7 @@ func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
 		errors.Contains(err, apiutil.ErrMissingMemberKind),
 		errors.Contains(err, apiutil.ErrNameSize):
 		w.WriteHeader(http.StatusBadRequest)
-	case errors.Contains(err, svcerr.ErrAuthentication):
+	case errors.Contains(err, errors.ErrAuthentication):
 		w.WriteHeader(http.StatusUnauthorized)
 	case errors.Contains(err, repoerr.ErrNotFound):
 		w.WriteHeader(http.StatusNotFound)
@@ -126,10 +125,10 @@ func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
 		w.WriteHeader(http.StatusConflict)
 	case errors.Contains(err, apiutil.ErrUnsupportedContentType):
 		w.WriteHeader(http.StatusUnsupportedMediaType)
-	case errors.Contains(err, repoerr.ErrCreateEntity),
-		errors.Contains(err, repoerr.ErrUpdateEntity),
-		errors.Contains(err, repoerr.ErrViewEntity),
-		errors.Contains(err, repoerr.ErrRemoveEntity):
+	case errors.Contains(err, svcerr.ErrCreateEntity),
+		errors.Contains(err, svcerr.ErrUpdateEntity),
+		errors.Contains(err, svcerr.ErrViewEntity),
+		errors.Contains(err, svcerr.ErrRemoveEntity):
 		w.WriteHeader(http.StatusInternalServerError)
 	default:
 		w.WriteHeader(http.StatusInternalServerError)

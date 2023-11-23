@@ -37,9 +37,9 @@ var (
 	// ErrLogin indicates wrong login credentials.
 	ErrLogin = errors.New("invalid user id or secret")
 
-	//ErrUniqueID indicates an error in generating a unique ID.
+	// ErrUniqueID indicates an error in generating a unique ID.
 	ErrUniqueID = errors.New("failed to generate unique identifier")
 
-	//ErrFailedOpDB indicates a failure in a database operation.
+	// ErrFailedOpDB indicates a failure in a database operation.
 	ErrFailedOpDB = errors.New("operation on db element failed")
 )
