@@ -47,7 +47,7 @@ func (repo domainRepo) Save(ctx context.Context, d auth.Domain) (ad auth.Domain,
 
 	row, err := repo.db.NamedQueryContext(ctx, q, dbd)
 	if err != nil {
-		return auth.Domain{}, errors.Wrap(repoerr.ErrCreateEntity, postgres.HandleError(err))
+		return auth.Domain{}, postgres.HandleError(repoerr.ErrCreateEntity, err)
 	}
 
 	defer row.Close()
@@ -237,7 +237,7 @@ func (repo domainRepo) Update(ctx context.Context, id string, userID string, dr 
 	}
 	row, err := repo.db.NamedQueryContext(ctx, q, dbd)
 	if err != nil {
-		return auth.Domain{}, errors.Wrap(repoerr.ErrUpdateEntity, postgres.HandleError(err))
+		return auth.Domain{}, postgres.HandleError(repoerr.ErrUpdateEntity,err)
 	}
 
 	// defer row.Close()
@@ -266,7 +266,7 @@ func (repo domainRepo) Delete(ctx context.Context, id string) error {
 
 	row, err := repo.db.NamedQueryContext(ctx, q, nil)
 	if err != nil {
-		return errors.Wrap(repoerr.ErrRemoveEntity, postgres.HandleError(err))
+		return postgres.HandleError(repoerr.ErrRemoveEntity, err)
 	}
 	defer row.Close()
 
@@ -282,7 +282,7 @@ func (repo domainRepo) SavePolicies(ctx context.Context, pcs ...auth.Policy) err
 	dbpc := toDBPolicies(pcs...)
 	row, err := repo.db.NamedQueryContext(ctx, q, dbpc)
 	if err != nil {
-		return errors.Wrap(repoerr.ErrCreateEntity, postgres.HandleError(err))
+		return postgres.HandleError(repoerr.ErrCreateEntity, err)
 	}
 	defer row.Close()
 
@@ -306,7 +306,7 @@ func (repo domainRepo) CheckPolicy(ctx context.Context, pc auth.Policy) error {
 	dbpc := toDBPolicy(pc)
 	row, err := repo.db.NamedQueryContext(ctx, q, dbpc)
 	if err != nil {
-		return errors.Wrap(repoerr.ErrCreateEntity, postgres.HandleError(err))
+		return postgres.HandleError(repoerr.ErrCreateEntity, err)
 	}
 	defer row.Close()
 	row.Next()
@@ -346,7 +346,7 @@ func (repo domainRepo) DeletePolicies(ctx context.Context, pcs ...auth.Policy) (
 		dbpc := toDBPolicy(pc)
 		row, err := tx.NamedQuery(q, dbpc)
 		if err != nil {
-			return errors.Wrap(repoerr.ErrRemoveEntity, postgres.HandleError(err))
+			return postgres.HandleError(repoerr.ErrRemoveEntity, err)
 		}
 		defer row.Close()
 	}

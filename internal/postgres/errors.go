@@ -18,7 +18,7 @@ const (
 	errInvalid    = "22P02" // invalid_text_representation
 )
 
-func HandleError(err error) error {
+func HandleError(wrapper, err error) error {
 	pqErr, ok := err.(*pgconn.PgError)
 	if ok {
 		switch pqErr.Code {
@@ -31,5 +31,5 @@ func HandleError(err error) error {
 		}
 	}
 
-	return errors.New("database error")
+	return errors.Wrap(wrapper, err)
 }

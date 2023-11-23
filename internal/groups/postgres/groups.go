@@ -43,7 +43,7 @@ func (repo groupRepository) Save(ctx context.Context, g mggroups.Group) (mggroup
 	}
 	row, err := repo.db.NamedQueryContext(ctx, q, dbg)
 	if err != nil {
-		return mggroups.Group{}, errors.Wrap(repoerror.ErrCreateEntity, postgres.HandleError(err))
+		return mggroups.Group{}, postgres.HandleError(repoerror.ErrCreateEntity, err)
 	}
 
 	defer row.Close()
@@ -83,7 +83,7 @@ func (repo groupRepository) Update(ctx context.Context, g mggroups.Group) (mggro
 
 	row, err := repo.db.NamedQueryContext(ctx, q, dbu)
 	if err != nil {
-		return mggroups.Group{}, errors.Wrap(repoerror.ErrUpdateEntity, postgres.HandleError(err))
+		return mggroups.Group{}, postgres.HandleError(repoerror.ErrUpdateEntity, err)
 	}
 
 	defer row.Close()
@@ -107,7 +107,7 @@ func (repo groupRepository) ChangeStatus(ctx context.Context, group mggroups.Gro
 	}
 	row, err := repo.db.NamedQueryContext(ctx, qc, dbg)
 	if err != nil {
-		return mggroups.Group{}, errors.Wrap(repoerror.ErrUpdateEntity, postgres.HandleError(err))
+		return mggroups.Group{}, postgres.HandleError(repoerror.ErrUpdateEntity, err)
 	}
 
 	defer row.Close()
@@ -267,7 +267,7 @@ func (repo groupRepository) AssignParentGroup(ctx context.Context, parentGroupID
 
 	row, err := repo.db.QueryContext(ctx, query)
 	if err != nil {
-		return errors.Wrap(repoerror.ErrUpdateEntity, postgres.HandleError(err))
+		return postgres.HandleError(repoerror.ErrUpdateEntity, err)
 	}
 	defer row.Close()
 
@@ -294,7 +294,7 @@ func (repo groupRepository) UnassignParentGroup(ctx context.Context, parentGroup
 
 	row, err := repo.db.QueryContext(ctx, query)
 	if err != nil {
-		return errors.Wrap(repoerror.ErrUpdateEntity, postgres.HandleError(err))
+		return postgres.HandleError(repoerror.ErrUpdateEntity, err)
 	}
 	defer row.Close()
 

@@ -60,7 +60,7 @@ func (repo clientRepo) Save(ctx context.Context, cs ...mgclients.Client) ([]mgcl
 		row, err := repo.ClientRepository.DB.NamedQueryContext(ctx, q, dbcli)
 		if err != nil {
 			if err := tx.Rollback(); err != nil {
-				return []mgclients.Client{}, errors.Wrap(repoerr.ErrCreateEntity, postgres.HandleError(err))
+				return []mgclients.Client{}, postgres.HandleError(repoerr.ErrCreateEntity, err)
 			}
 			return []mgclients.Client{}, errors.Wrap(repoerr.ErrCreateEntity, err)
 		}
