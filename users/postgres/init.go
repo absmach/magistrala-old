@@ -40,10 +40,12 @@ func Migration() *migrate.MemoryMigrationSource {
 			{
 				Id: "clients_02",
 				Up: []string{
-					`ALTER TABLE clients ADD CONSTRAINT clients_name_key UNIQUE (name)`,
+					`ALTER TABLE clients ALTER COLUMN name SET NOT NULL`,
+					`ALTER TABLE clients ADD CONSTRAINT clients_name_unique UNIQUE (name)`,
 				},
 				Down: []string{
-					`ALTER TABLE clients DROP CONSTRAINT clients_name_key`,
+					`ALTER TABLE clients ALTER COLUMN name DROP NOT NULL`,
+					`ALTER TABLE clients DROP CONSTRAINT clients_name_unique`,
 				},
 			},
 		},
