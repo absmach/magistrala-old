@@ -13,6 +13,9 @@ import (
 	"github.com/absmach/magistrala/internal/postgres"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerr "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerr "github.com/absmach/magistrala/pkg/errors/service"
+
 	"github.com/gofrs/uuid"
 )
 
@@ -104,29 +107,29 @@ func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", ContentType)
 	switch {
 	case errors.Contains(err, apiutil.ErrInvalidSecret),
-		errors.Contains(err, errors.ErrMalformedEntity),
+		errors.Contains(err, repoerr.ErrMalformedEntity),
 		errors.Contains(err, apiutil.ErrMissingID),
 		errors.Contains(err, apiutil.ErrEmptyList),
 		errors.Contains(err, apiutil.ErrMissingMemberType),
 		errors.Contains(err, apiutil.ErrMissingMemberKind),
 		errors.Contains(err, apiutil.ErrNameSize):
 		w.WriteHeader(http.StatusBadRequest)
-	case errors.Contains(err, errors.ErrAuthentication):
+	case errors.Contains(err, svcerr.ErrAuthentication):
 		w.WriteHeader(http.StatusUnauthorized)
-	case errors.Contains(err, errors.ErrNotFound):
+	case errors.Contains(err, repoerr.ErrNotFound):
 		w.WriteHeader(http.StatusNotFound)
-	case errors.Contains(err, errors.ErrConflict):
+	case errors.Contains(err, repoerr.ErrConflict):
 		w.WriteHeader(http.StatusConflict)
-	case errors.Contains(err, errors.ErrAuthorization):
+	case errors.Contains(err, svcerr.ErrAuthorization):
 		w.WriteHeader(http.StatusForbidden)
 	case errors.Contains(err, postgres.ErrMemberAlreadyAssigned):
 		w.WriteHeader(http.StatusConflict)
 	case errors.Contains(err, apiutil.ErrUnsupportedContentType):
 		w.WriteHeader(http.StatusUnsupportedMediaType)
-	case errors.Contains(err, errors.ErrCreateEntity),
-		errors.Contains(err, errors.ErrUpdateEntity),
-		errors.Contains(err, errors.ErrViewEntity),
-		errors.Contains(err, errors.ErrRemoveEntity):
+	case errors.Contains(err, repoerr.ErrCreateEntity),
+		errors.Contains(err, repoerr.ErrUpdateEntity),
+		errors.Contains(err, repoerr.ErrViewEntity),
+		errors.Contains(err, repoerr.ErrRemoveEntity):
 		w.WriteHeader(http.StatusInternalServerError)
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
