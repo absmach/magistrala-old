@@ -134,7 +134,7 @@ func (m *Repository) UpdateTags(ctx context.Context, client mgclients.Client) (m
 	return ret.Get(0).(mgclients.Client), ret.Error(1)
 }
 
-func (m *Repository) UpdateRole(ctx context.Context, client mgclients.Client) (mgclients.Client, error) {
+func (m *Repository) UpdateOwner(ctx context.Context, client mgclients.Client) (mgclients.Client, error) {
 	ret := m.Called(ctx, client)
 
 	if client.ID == WrongID {
