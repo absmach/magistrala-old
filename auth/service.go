@@ -51,6 +51,7 @@ var (
 	errCreateDomainPolicy = errors.New("failed to create domain policy")
 	errAddPolicies        = errors.New("failed to add policies")
 	errRemovePolicies     = errors.New("failed to remove the policies")
+	errInvalidPolicy      = errors.New("failed to validate policy")
 )
 
 // Authn specifies an API that must be fullfiled by the domain service
@@ -172,7 +173,7 @@ func (svc service) Identify(ctx context.Context, token string) (Key, error) {
 
 func (svc service) Authorize(ctx context.Context, pr PolicyReq) error {
 	if err := svc.PolicyValidation(pr); err != nil {
-		return err
+		return errors.Wrap(errInvalidPolicy, err)
 	}
 	if pr.SubjectKind == TokenKind {
 		key, err := svc.Identify(ctx, pr.Subject)
@@ -195,7 +196,7 @@ func (svc service) Authorize(ctx context.Context, pr PolicyReq) error {
 
 func (svc service) AddPolicy(ctx context.Context, pr PolicyReq) error {
 	if err := svc.PolicyValidation(pr); err != nil {
-		return errors.Wrap(svcerr.ErrNotFound, err)
+		return errors.Wrap(errInvalidPolicy, err)
 	}
 	return svc.agent.AddPolicy(ctx, pr)
 }
@@ -210,7 +211,7 @@ func (svc service) PolicyValidation(pr PolicyReq) error {
 func (svc service) AddPolicies(ctx context.Context, prs []PolicyReq) error {
 	for _, pr := range prs {
 		if err := svc.PolicyValidation(pr); err != nil {
-			return errors.Wrap(svcerr.ErrNotFound, err)
+			return errors.Wrap(errInvalidPolicy, err)
 		}
 	}
 	return svc.agent.AddPolicies(ctx, prs)
@@ -223,7 +224,7 @@ func (svc service) DeletePolicy(ctx context.Context, pr PolicyReq) error {
 func (svc service) DeletePolicies(ctx context.Context, prs []PolicyReq) error {
 	for _, pr := range prs {
 		if err := svc.PolicyValidation(pr); err != nil {
-			return errors.Wrap(svcerr.ErrNotFound, err)
+			return errors.Wrap(errInvalidPolicy, err)
 		}
 	}
 	return svc.agent.DeletePolicies(ctx, prs)
