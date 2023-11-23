@@ -37,6 +37,15 @@ func Migration() *migrate.MemoryMigrationSource {
 					`DROP TABLE IF EXISTS clients`,
 				},
 			},
+			{
+				Id: "clients_02",
+				Up: []string{
+					`ALTER TABLE clients ADD CONSTRAINT clients_name_key UNIQUE (name)`,
+				},
+				Down: []string{
+					`ALTER TABLE clients DROP CONSTRAINT clients_name_key`,
+				},
+			},
 		},
 	}
 }
