@@ -425,7 +425,7 @@ func (pa *policyAgent) addPolicyPreCondition(ctx context.Context, pr auth.Policy
 func (pa *policyAgent) userGroupPreConditions(ctx context.Context, pr auth.PolicyReq) ([]*v1.Precondition, error) {
 	var preconds []*v1.Precondition
 
-	// user should not any relation with group
+	// user should not have any relation with group
 	preconds = append(preconds, &v1.Precondition{
 		Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
 		Filter: &v1.RelationshipFilter{
@@ -498,7 +498,7 @@ func (pa *policyAgent) userGroupPreConditions(ctx context.Context, pr auth.Polic
 func (pa *policyAgent) userThingPreConditions(ctx context.Context, pr auth.PolicyReq) ([]*v1.Precondition, error) {
 	var preconds []*v1.Precondition
 
-	// user should not any relation with thing
+	// user should not have any relation with thing
 	preconds = append(preconds, &v1.Precondition{
 		Operation: v1.Precondition_OPERATION_MUST_NOT_MATCH,
 		Filter: &v1.RelationshipFilter{
