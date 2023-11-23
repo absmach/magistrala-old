@@ -74,19 +74,19 @@ func (svc service) CreateThings(ctx context.Context, token string, cls ...mgclie
 		if c.ID == "" {
 			clientID, err := svc.idProvider.ID()
 			if err != nil {
-				return []mgclients.Client{}, errors.Wrap(errors.ErrUniqueID, err)
+				return []mgclients.Client{}, errors.Wrap(svcerr.ErrUniqueID, err)
 			}
 			c.ID = clientID
 		}
 		if c.Credentials.Secret == "" {
 			key, err := svc.idProvider.ID()
 			if err != nil {
-				return []mgclients.Client{}, errors.Wrap(errors.ErrUniqueID, err)
+				return []mgclients.Client{}, errors.Wrap(svcerr.ErrUniqueID, err)
 			}
 			c.Credentials.Secret = key
 		}
 		if c.Status != mgclients.DisabledStatus && c.Status != mgclients.EnabledStatus {
-			return []mgclients.Client{}, errors.ErrInvalidStatus
+			return []mgclients.Client{}, svcerr.ErrInvalidStatus
 		}
 		c.CreatedAt = time.Now()
 		clients = append(clients, c)

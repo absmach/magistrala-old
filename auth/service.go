@@ -458,12 +458,12 @@ func (svc service) CreateDomain(ctx context.Context, token string, d Domain) (do
 
 	domainID, err := svc.idProvider.ID()
 	if err != nil {
-		return Domain{}, errors.Wrap(errors.ErrUniqueID, err)
+		return Domain{}, errors.Wrap(svcerr.ErrUniqueID, err)
 	}
 	d.ID = domainID
 
 	if d.Status != clients.DisabledStatus && d.Status != clients.EnabledStatus {
-		return Domain{}, errors.ErrInvalidStatus
+		return Domain{}, svcerr.ErrInvalidStatus
 	}
 
 	d.CreatedAt = time.Now()

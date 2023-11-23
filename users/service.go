@@ -77,11 +77,11 @@ func (svc service) RegisterClient(ctx context.Context, token string, cli mgclien
 
 	clientID, err := svc.idProvider.ID()
 	if err != nil {
-		return mgclients.Client{}, errors.Wrap(repoerr.ErrUniqueID, err)
+		return mgclients.Client{}, errors.Wrap(svcerr.ErrUniqueID, err)
 	}
 
 	if cli.Credentials.Secret == "" {
-		return mgclients.Client{}, errors.Wrap(repoerr.ErrMalformedEntity, errors.ErrMissingSecret)
+		return mgclients.Client{}, errors.Wrap(repoerr.ErrMalformedEntity, repoerr.ErrMissingSecret)
 	}
 	hash, err := svc.hasher.Hash(cli.Credentials.Secret)
 	if err != nil {
@@ -89,10 +89,10 @@ func (svc service) RegisterClient(ctx context.Context, token string, cli mgclien
 	}
 	cli.Credentials.Secret = hash
 	if cli.Status != mgclients.DisabledStatus && cli.Status != mgclients.EnabledStatus {
-		return mgclients.Client{}, errors.ErrInvalidStatus
+		return mgclients.Client{}, svcerr.ErrInvalidStatus
 	}
 	if cli.Role != mgclients.UserRole && cli.Role != mgclients.AdminRole {
-		return mgclients.Client{}, errors.ErrInvalidRole
+		return mgclients.Client{}, svcerr.ErrInvalidRole
 	}
 	cli.ID = clientID
 	cli.CreatedAt = time.Now()
@@ -119,7 +119,7 @@ func (svc service) RegisterClient(ctx context.Context, token string, cli mgclien
 				Object:      auth.MagistralaObject,
 				ObjectType:  auth.PlatformType,
 			}); errRollback != nil {
-				err = errors.Wrap(err, errors.Wrap(errors.ErrRollbackTx, errRollback))
+				err = errors.Wrap(err, errors.Wrap(repoerr.ErrRollbackTx, errRollback))
 			}
 		}
 	}()
@@ -378,7 +378,7 @@ func (svc service) UpdateClientRole(ctx context.Context, token string, cli mgcli
 	if err != nil {
 		// If failed to update role in DB, then revert back to platform admin policy in spicedb
 		if errRollback := svc.updateClientPolicy(ctx, cli.ID, mgclients.UserRole); errRollback != nil {
-			return mgclients.Client{}, errors.Wrap(err, errors.Wrap(errors.ErrRollbackTx, errRollback))
+			return mgclients.Client{}, errors.Wrap(err, errors.Wrap(repoerr.ErrRollbackTx, errRollback))
 		}
 		return mgclients.Client{}, errors.Wrap(ErrFailedOwnerUpdate, err)
 	}

@@ -14,6 +14,7 @@ import (
 	"github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
 	repoerr "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerr "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/mainflux/senml"
 )
@@ -110,7 +111,7 @@ func (ts *twinsService) AddTwin(ctx context.Context, token string, twin Twin, de
 
 	twin.ID, err = ts.idProvider.ID()
 	if err != nil {
-		return Twin{}, errors.Wrap(repoerr.ErrUniqueID, err)
+		return Twin{}, errors.Wrap(svcerr.ErrUniqueID, err)
 	}
 
 	twin.Owner = res.GetId()

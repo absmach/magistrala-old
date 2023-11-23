@@ -42,7 +42,7 @@ func (repo domainRepo) Save(ctx context.Context, d auth.Domain) (ad auth.Domain,
 
 	dbd, err := toDBDomains(d)
 	if err != nil {
-		return auth.Domain{}, errors.Wrap(repoerr.ErrCreateEntity, errors.ErrRollbackTx)
+		return auth.Domain{}, errors.Wrap(repoerr.ErrCreateEntity, repoerr.ErrRollbackTx)
 	}
 
 	row, err := repo.db.NamedQueryContext(ctx, q, dbd)

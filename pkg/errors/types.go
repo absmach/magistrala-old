@@ -3,6 +3,8 @@
 
 package errors
 
+import "errors"
+
 var (
 	// ErrAuthentication indicates failure occurred while authenticating the entity.
 	ErrAuthentication = New("failed to perform authentication over the entity")
@@ -43,23 +45,6 @@ var (
 	// ErrLogin indicates wrong login credentials.
 	ErrLogin = New("invalid user id or secret")
 
-	ErrUnsupportedContentType = New("invalid content type")
-
-	// ErrUniqueID indicates an error in generating a unique ID.
-	ErrUniqueID = New("failed to generate unique identifier")
-
-	// ErrFailedOpDB indicates a failure in a database operation.
-	ErrFailedOpDB = New("operation on db element failed")
-
-	// ErrMissingSecret indicates missing secret.
-	ErrMissingSecret = New("missing secret")
-
-	// ErrInvalidStatus indicates an invalid user account status.
-	ErrInvalidStatus = New("invalid user account status")
-
-	// ErrInvalidRole indicates that an invalid role.
-	ErrInvalidRole = New("invalid client role")
-
-	// ErrRollbackTx indicates failed to rollback transaction.
-	ErrRollbackTx = New("failed to rollback transaction")
+	// ErrUnsupportedContentType indicates invalid content type.
+	ErrUnsupportedContentType = errors.New("invalid content type")
 )

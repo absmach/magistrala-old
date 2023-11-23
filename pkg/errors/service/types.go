@@ -33,4 +33,13 @@ var (
 
 	// ErrUpdateEntity indicates error in updating entity or entities.
 	ErrUpdateEntity = errors.New("update entity failed")
+
+	// ErrUniqueID indicates an error in generating a unique ID.
+	ErrUniqueID = errors.New("failed to generate unique identifier")
+
+	// ErrInvalidStatus indicates an invalid status.
+	ErrInvalidStatus = errors.New("Invalid status")
+
+	// ErrInvalidRole indicates that an invalid role.
+	ErrInvalidRole = errors.New("invalid client role")
 )

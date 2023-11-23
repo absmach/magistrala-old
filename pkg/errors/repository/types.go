@@ -37,9 +37,12 @@ var (
 	// ErrLogin indicates wrong login credentials.
 	ErrLogin = errors.New("invalid user id or secret")
 
-	// ErrUniqueID indicates an error in generating a unique ID.
-	ErrUniqueID = errors.New("failed to generate unique identifier")
-
 	// ErrFailedOpDB indicates a failure in a database operation.
 	ErrFailedOpDB = errors.New("operation on db element failed")
+
+	// ErrRollbackTx indicates failed to rollback transaction.
+	ErrRollbackTx = errors.New("failed to rollback transaction")
+
+	// ErrMissingSecret indicates missing secret.
+	ErrMissingSecret = errors.New("missing secret")
 )
