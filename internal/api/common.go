@@ -13,7 +13,6 @@ import (
 	"github.com/absmach/magistrala/internal/postgres"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
-	repoerr "github.com/absmach/magistrala/pkg/errors/repository"
 	svcerr "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/gofrs/uuid"
 )
@@ -106,7 +105,7 @@ func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
 	w.Header().Set("Content-Type", ContentType)
 	switch {
 	case errors.Contains(err, apiutil.ErrInvalidSecret),
-		errors.Contains(err, repoerr.ErrMalformedEntity),
+		errors.Contains(err, svcerr.ErrMalformedEntity),
 		errors.Contains(err, apiutil.ErrMissingID),
 		errors.Contains(err, apiutil.ErrEmptyList),
 		errors.Contains(err, apiutil.ErrMissingMemberType),
@@ -115,9 +114,9 @@ func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
 		w.WriteHeader(http.StatusBadRequest)
 	case errors.Contains(err, errors.ErrAuthentication):
 		w.WriteHeader(http.StatusUnauthorized)
-	case errors.Contains(err, repoerr.ErrNotFound):
+	case errors.Contains(err, svcerr.ErrNotFound):
 		w.WriteHeader(http.StatusNotFound)
-	case errors.Contains(err, repoerr.ErrConflict):
+	case errors.Contains(err, svcerr.ErrConflict):
 		w.WriteHeader(http.StatusConflict)
 	case errors.Contains(err, svcerr.ErrAuthorization):
 		w.WriteHeader(http.StatusForbidden)
