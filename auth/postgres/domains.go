@@ -159,6 +159,11 @@ func (repo domainRepo) ListDomains(ctx context.Context, pm auth.Page) (auth.Doma
 	JOIN policies pc
 	ON pc.object_id = d.id`
 
+	if pm.SubjectID == "" {
+		q = `SELECT d.id as id, d.name as name, d.tags as tags, d.alias as alias, d.metadata as metadata, d.created_at as created_at, d.updated_at as updated_at, d.updated_by as updated_by, d.created_by as created_by, d.status as status
+		FROM domains as d`
+	}
+
 	q = fmt.Sprintf("%s %s LIMIT %d OFFSET %d", q, query, pm.Limit, pm.Offset)
 
 	dbPage, err := toDBClientsPage(pm)
