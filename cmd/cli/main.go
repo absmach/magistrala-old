@@ -205,7 +205,7 @@ func main() {
 	rootCmd.PersistentFlags().StringVarP(
 		&cli.Identity,
 		"identity",
-		"e",
+		"I",
 		"",
 		"User identity query parameter",
 	)
