@@ -11,7 +11,7 @@ import (
 	"time"
 
 	"github.com/absmach/magistrala"
-	"github.com/absmach/magistrala/logger"
+	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
 	svcerr "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/pkg/messaging"
@@ -80,13 +80,13 @@ type twinsService struct {
 	idProvider magistrala.IDProvider
 	channelID  string
 	twinCache  TwinCache
-	logger     logger.Logger
+	logger     mglog.Logger
 }
 
 var _ Service = (*twinsService)(nil)
 
 // New instantiates the twins service implementation.
-func New(publisher messaging.Publisher, auth magistrala.AuthServiceClient, twins TwinRepository, tcache TwinCache, sr StateRepository, idp magistrala.IDProvider, chann string, logger logger.Logger) Service {
+func New(publisher messaging.Publisher, auth magistrala.AuthServiceClient, twins TwinRepository, tcache TwinCache, sr StateRepository, idp magistrala.IDProvider, chann string, logger mglog.Logger) Service {
 	return &twinsService{
 		publisher:  publisher,
 		auth:       auth,

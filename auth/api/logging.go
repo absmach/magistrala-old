@@ -11,18 +11,18 @@ import (
 	"time"
 
 	"github.com/absmach/magistrala/auth"
-	log "github.com/absmach/magistrala/logger"
+	mglog "github.com/absmach/magistrala/logger"
 )
 
 var _ auth.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
-	logger log.Logger
+	logger mglog.Logger
 	svc    auth.Service
 }
 
 // LoggingMiddleware adds logging facilities to the core service.
-func LoggingMiddleware(svc auth.Service, logger log.Logger) auth.Service {
+func LoggingMiddleware(svc auth.Service, logger mglog.Logger) auth.Service {
 	return &loggingMiddleware{logger, svc}
 }
 
