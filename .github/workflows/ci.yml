@@ -465,12 +465,12 @@ jobs:
 
       - name: Build
         run: |
-          make docker_readers
+         echo ${{ secrets.DOCKER_PASSWORD }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
 
       - name: Publish to Registry
         uses: elgohr/Publish-Docker-Github-Action@master
         with:
-          name: mainflux/readers
+          name: magistrala/cassandra-reader
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
           dockerfile: docker/Dockerfile
