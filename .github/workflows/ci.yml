@@ -149,14 +149,8 @@ jobs:
           - name: opcua
             paths: 'opcua/** cmd/opcua/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
 
-          - name: internal
-            paths: 'internal/**'
-
           - name: logger
             paths: 'logger/**'
-
-          - name: pkg
-            paths: 'pkg/**'
 
           - name: tools
             paths: 'tools/**'
