@@ -8,7 +8,7 @@ import (
 	"github.com/absmach/magistrala/internal/api"
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/logger"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
@@ -40,24 +40,28 @@ func MakeHandler(svc auth.Service, mux *chi.Mux, logger logger.Logger) *chi.Mux 
 				api.EncodeResponse,
 				opts...,
 			), "view_domain").ServeHTTP)
+
 			r.Patch("/", otelhttp.NewHandler(kithttp.NewServer(
 				updateDomainEndpoint(svc),
 				decodeUpdateDomainRequest,
 				api.EncodeResponse,
 				opts...,
 			), "update_domain").ServeHTTP)
+
 			r.Post("/enable", otelhttp.NewHandler(kithttp.NewServer(
 				enableDomainEndpoint(svc),
 				decodeEnableDomainRequest,
 				api.EncodeResponse,
 				opts...,
 			), "enable_domain").ServeHTTP)
+
 			r.Post("/disable", otelhttp.NewHandler(kithttp.NewServer(
 				disableDomainEndpoint(svc),
 				decodeDisableDomainRequest,
 				api.EncodeResponse,
 				opts...,
 			), "disable_domain").ServeHTTP)
+
 			r.Route("/users", func(r chi.Router) {
 				r.Post("/assign", otelhttp.NewHandler(kithttp.NewServer(
 					assignDomainUsersEndpoint(svc),
@@ -65,6 +69,7 @@ func MakeHandler(svc auth.Service, mux *chi.Mux, logger logger.Logger) *chi.Mux 
 					api.EncodeResponse,
 					opts...,
 				), "assign_domain_users").ServeHTTP)
+
 				r.Post("/unassign", otelhttp.NewHandler(kithttp.NewServer(
 					unassignDomainUsersEndpoint(svc),
 					decodeUnassignUsersRequest,
@@ -72,7 +77,6 @@ func MakeHandler(svc auth.Service, mux *chi.Mux, logger logger.Logger) *chi.Mux 
 					opts...,
 				), "unassign_domain_users").ServeHTTP)
 			})
-
 		})
 	})
 	mux.Get("/users/{userID}/domains", otelhttp.NewHandler(kithttp.NewServer(

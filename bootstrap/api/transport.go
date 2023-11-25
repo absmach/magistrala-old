@@ -15,7 +15,7 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	kithttp "github.com/go-kit/kit/transport/http"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
@@ -49,37 +49,44 @@ func MakeHandler(svc bootstrap.Service, reader bootstrap.ConfigReader, logger mg
 				decodeAddRequest,
 				encodeResponse,
 				opts...), "add").ServeHTTP)
+
 			r.Get("/", otelhttp.NewHandler(kithttp.NewServer(
 				listEndpoint(svc),
 				decodeListRequest,
 				encodeResponse,
 				opts...), "list").ServeHTTP)
+
 			r.Get("/{configID}", otelhttp.NewHandler(kithttp.NewServer(
 				viewEndpoint(svc),
 				decodeEntityRequest,
 				encodeResponse,
 				opts...), "view").ServeHTTP)
+
 			r.Put("/{configID}", otelhttp.NewHandler(kithttp.NewServer(
 				updateEndpoint(svc),
 				decodeUpdateRequest,
 				encodeResponse,
 				opts...), "update").ServeHTTP)
+
 			r.Delete("/{configID}", otelhttp.NewHandler(kithttp.NewServer(
 				removeEndpoint(svc),
 				decodeEntityRequest,
 				encodeResponse,
 				opts...), "remove").ServeHTTP)
+
 			r.Patch("/certs/{certID}", otelhttp.NewHandler(kithttp.NewServer(
 				updateCertEndpoint(svc),
 				decodeUpdateCertRequest,
 				encodeResponse,
 				opts...), "update_cert").ServeHTTP)
+
 			r.Put("/connections/{connID}", otelhttp.NewHandler(kithttp.NewServer(
 				updateConnEndpoint(svc),
 				decodeUpdateConnRequest,
 				encodeResponse,
 				opts...), "update_connections").ServeHTTP)
 		})
+
 		r.Route("/bootstrap", func(r chi.Router) {
 			r.Get("/{externalID}", otelhttp.NewHandler(kithttp.NewServer(
 				bootstrapEndpoint(svc, reader, false),
@@ -92,6 +99,7 @@ func MakeHandler(svc bootstrap.Service, reader bootstrap.ConfigReader, logger mg
 				encodeSecureRes,
 				opts...), "bootstrap_secure").ServeHTTP)
 		})
+
 		r.Put("/state/{thingID}", otelhttp.NewHandler(kithttp.NewServer(
 			stateEndpoint(svc),
 			decodeStateRequest,

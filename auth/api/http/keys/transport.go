@@ -14,7 +14,7 @@ import (
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
-	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/v5"
 	kithttp "github.com/go-kit/kit/transport/http"
 )
 
@@ -26,42 +26,28 @@ func MakeHandler(svc auth.Service, mux *chi.Mux, logger logger.Logger) *chi.Mux 
 		kithttp.ServerErrorEncoder(apiutil.LoggingErrorEncoder(logger, encodeError)),
 	}
 	mux.Route("/keys", func(r chi.Router) {
-		r.Post("/", issueEndpointHandler(svc, opts))
+		r.Post("/", kithttp.NewServer(
+			issueEndpoint(svc),
+			decodeIssue,
+			encodeResponse,
+			opts...,
+		).ServeHTTP)
 
-		r.Route("/{id}", func(r chi.Router) {
-			r.Get("/", retrieveEndpointHandler(svc, opts))
-			r.Delete("/", revokeEndpointHandler(svc, opts))
-		})
+		r.Get("/{id}", kithttp.NewServer(
+			(retrieveEndpoint(svc)),
+			decodeKeyReq,
+			encodeResponse,
+			opts...,
+		).ServeHTTP)
 
+		r.Delete("/{id}", kithttp.NewServer(
+			(revokeEndpoint(svc)),
+			decodeKeyReq,
+			encodeResponse,
+			opts...,
+		).ServeHTTP)
 	})
 	return mux
-}
-
-func issueEndpointHandler(svc auth.Service, opts []kithttp.ServerOption) http.HandlerFunc {
-	return kithttp.NewServer(
-		issueEndpoint(svc),
-		decodeIssue,
-		encodeResponse,
-		opts...,
-	).ServeHTTP
-}
-
-func retrieveEndpointHandler(svc auth.Service, opts []kithttp.ServerOption) http.HandlerFunc {
-	return kithttp.NewServer(
-		(retrieveEndpoint(svc)),
-		decodeKeyReq,
-		encodeResponse,
-		opts...,
-	).ServeHTTP
-}
-
-func revokeEndpointHandler(svc auth.Service, opts []kithttp.ServerOption) http.HandlerFunc {
-	return kithttp.NewServer(
-		(revokeEndpoint(svc)),
-		decodeKeyReq,
-		encodeResponse,
-		opts...,
-	).ServeHTTP
 }
 
 func decodeIssue(_ context.Context, r *http.Request) (interface{}, error) {
