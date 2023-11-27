@@ -121,7 +121,7 @@ func (svc service) Issue(ctx context.Context, token string, key Key) (Token, err
 	case RecoveryKey:
 		return svc.tmpKey(recoveryDuration, key)
 	case InvitationKey:
-		return svc.tmpKey(invitationDuration, key)
+		return svc.invitationKey(ctx, key)
 	default:
 		return svc.accessKey(ctx, key)
 	}
@@ -326,6 +326,24 @@ func (svc service) accessKey(ctx context.Context, key Key) (Token, error) {
 	}
 
 	return Token{AccessToken: access, RefreshToken: refresh}, nil
+}
+
+func (svc service) invitationKey(ctx context.Context, key Key) (Token, error) {
+	var err error
+	key.Type = InvitationKey
+	key.ExpiresAt = time.Now().Add(invitationDuration)
+
+	key.Subject, err = svc.checkUserDomain(ctx, key)
+	if err != nil {
+		return Token{}, err
+	}
+
+	access, err := svc.tokenizer.Issue(key)
+	if err != nil {
+		return Token{}, errors.Wrap(errIssueTmp, err)
+	}
+
+	return Token{AccessToken: access}, nil
 }
 
 func (svc service) refreshKey(ctx context.Context, token string, key Key) (Token, error) {
