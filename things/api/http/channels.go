@@ -21,7 +21,7 @@ import (
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 )
 
-func groupsHandler(svc groups.Service, r *chi.Mux, logger logger.Logger) *chi.Mux {
+func groupsHandler(svc groups.Service, r *chi.Mux, logger logger.Logger) http.Handler {
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(apiutil.LoggingErrorEncoder(logger, api.EncodeError)),
 	}
