@@ -1657,7 +1657,7 @@ components:
             $ref: "#/components/schemas/UserSecret"
 
     UserUpdateRoleReq:
-      description: JSON-formated document describing the owner of user to be update
+      description: JSON-formated document describing the role of the user to be update
       required: true
       content:
         application/json:
