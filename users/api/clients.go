@@ -22,7 +22,7 @@ import (
 )
 
 // MakeHandler returns a HTTP handler for API endpoints.
-func clientsHandler(svc users.Service, r *chi.Mux, logger mglog.Logger) http.Handler {
+func clientsHandler(svc users.Service, r *chi.Mux, logger mglog.Logger) *chi.Mux {
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(apiutil.LoggingErrorEncoder(logger, api.EncodeError)),
 	}
