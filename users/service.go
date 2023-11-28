@@ -189,6 +189,14 @@ func (svc service) ListClients(ctx context.Context, token string, pm mgclients.P
 	return svc.clients.RetrieveAllBasicInfo(ctx, p)
 }
 
+func (svc service) SearchClients(ctx context.Context, token string, pm mgclients.Page) (mgclients.ClientsPage, error) {
+	if _, err := svc.Identify(ctx, token); err != nil {
+		return mgclients.ClientsPage{}, errors.Wrap(svcerr.ErrAuthentication, err)
+	}
+
+	return svc.clients.RetrieveNames(ctx, pm)
+}
+
 func (svc service) UpdateClient(ctx context.Context, token string, cli mgclients.Client) (mgclients.Client, error) {
 	tokenUserID, err := svc.Identify(ctx, token)
 	if err != nil {

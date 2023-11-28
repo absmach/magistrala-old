@@ -59,10 +59,26 @@ func (tm *tracingMiddleware) ViewClient(ctx context.Context, token, id string) (
 
 // ListClients traces the "ListClients" operation of the wrapped clients.Service.
 func (tm *tracingMiddleware) ListClients(ctx context.Context, token string, pm mgclients.Page) (mgclients.ClientsPage, error) {
-	ctx, span := tm.tracer.Start(ctx, "svc_list_clients")
+	ctx, span := tm.tracer.Start(ctx, "svc_list_clients", trace.WithAttributes(
+		attribute.Int64("offset", int64(pm.Offset)),
+		attribute.Int64("limit", int64(pm.Limit)),
+		attribute.String("direction", pm.Dir),
+		attribute.String("order", pm.Order),
+		attribute.String("name", pm.Name),
+		attribute.String("name", pm.Name),
+	))
+
 	defer span.End()
 
 	return tm.svc.ListClients(ctx, token, pm)
+}
+
+// SearchClients traces the "SearchClients" operation of the wrapped clients.Service.
+func (tm *tracingMiddleware) SearchClients(ctx context.Context, token string, pm mgclients.Page) (mgclients.ClientsPage, error) {
+	ctx, span := tm.tracer.Start(ctx, "svc_search_clients")
+	defer span.End()
+
+	return tm.svc.SearchClients(ctx, token, pm)
 }
 
 // UpdateClient traces the "UpdateClient" operation of the wrapped clients.Service.

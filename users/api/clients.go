@@ -55,6 +55,13 @@ func clientsHandler(svc users.Service, r *chi.Mux, logger mglog.Logger) http.Han
 			opts...,
 		), "list_clients").ServeHTTP)
 
+		r.Get("/search", otelhttp.NewHandler(kithttp.NewServer(
+			searchClientsEndpoint(svc),
+			decodeListClients,
+			api.EncodeResponse,
+			opts...,
+		), "search_clients").ServeHTTP)
+
 		r.Patch("/secret", otelhttp.NewHandler(kithttp.NewServer(
 			updateClientSecretEndpoint(svc),
 			decodeUpdateClientSecret,
@@ -227,6 +234,14 @@ func decodeListClients(_ context.Context, r *http.Request) (interface{}, error) 
 	if err != nil {
 		return nil, errors.Wrap(apiutil.ErrValidation, err)
 	}
+	order, err := apiutil.ReadStringQuery(r, api.OrderKey, api.DefOrder)
+	if err != nil {
+		return nil, errors.Wrap(apiutil.ErrValidation, err)
+	}
+	dir, err := apiutil.ReadStringQuery(r, api.DirKey, api.DefDir)
+	if err != nil {
+		return nil, errors.Wrap(apiutil.ErrValidation, err)
+	}
 	switch visibility {
 	case api.MyVisibility:
 		ownerID = api.MyVisibility
@@ -254,6 +269,8 @@ func decodeListClients(_ context.Context, r *http.Request) (interface{}, error) 
 		tag:      t,
 		sharedBy: sharedID,
 		owner:    ownerID,
+		order:    order,
+		dir:      dir,
 	}
 
 	return req, nil

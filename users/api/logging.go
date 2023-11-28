@@ -118,6 +118,20 @@ func (lm *loggingMiddleware) ListClients(ctx context.Context, token string, pm m
 	return lm.svc.ListClients(ctx, token, pm)
 }
 
+// SearchClients logs the search_clients request. It logs the token and page metadata and the time it took to complete the request.
+// If the request fails, it logs the error.
+func (lm *loggingMiddleware) SearchClients(ctx context.Context, token string, pm mgclients.Page) (cp mgclients.ClientsPage, err error) {
+	defer func(begin time.Time) {
+		message := fmt.Sprintf("Method search_clients %d clients using token %s took %s to complete", cp.Total, token, time.Since(begin))
+		if err != nil {
+			lm.logger.Warn(fmt.Sprintf("%s with error: %s.", message, err))
+			return
+		}
+		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
+	}(time.Now())
+	return lm.svc.SearchClients(ctx, token, pm)
+}
+
 // UpdateClient logs the update_client request. It logs the client id and token and the time it took to complete the request.
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) UpdateClient(ctx context.Context, token string, client mgclients.Client) (c mgclients.Client, err error) {
