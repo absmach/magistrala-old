@@ -1,22 +1,19 @@
-# This workflow is licensed under the Apache License, Version 2.0
 # Copyright (c) Abstract Machines
+# SPDX-License-Identifier: Apache-2.0
 
-name: CI Pipeline
+name: Continuous Integration
 
 on:
   push:
     branches:
       - main
-    paths:
-      - '.github/workflows/ci.yml'
   pull_request:
     branches:
       - main
-    paths:
-      - '.github/workflows/ci.yml'
 
 jobs:
-  setup:
+  lint-and-build: # Linting and building are combined to save time for setting up Go
+    name: Lint and Build
     runs-on: ubuntu-latest
 
     steps:
@@ -40,6 +37,18 @@ jobs:
           name: codecov-umbrella 
           fail_ci_if_error: false 
           verbose: true
+          
+      - name : Run coverage
+        run : |
+          go test -race -coverprofile=coverage.out -covermode=atomic
+
+      - name : Upload coverage to Codecov
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV }}
+          name: codecov-umbrella 
+          fail_ci_if_error: false 
+          verbose: true
         
       - name: Build Binaries
         run: |
@@ -48,71 +57,26 @@ jobs:
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
-        with: 
+        with:
           version: latest
 
-  check-protobuf:
-    runs-on: ubuntu-latest
-
-    needs: setup
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific files
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - './auth.proto'
-              - 'pkg/messaging/message.proto'
-        
-      - name : Setup Go
-        uses: actions/setup-go@v4
-        with:
-          go-version: 1.21.x
-          cache-dependency-path: "go.sum"
-
-      - name: Check Generated Protocol Buffer Files
+      - name: Compile check for rabbitmq
         run: |
-          PROTOC_VERSION=25.1
-          PROTOC_GEN_VERSION=v1.31.0
-          PROTOC_GRPC_VERSION=v1.3.0
-          PROTOC_ZIP=protoc-$PROTOC_VERSION-linux-x86_64.zip
+          MG_MESSAGE_BROKER_TYPE=rabbitmq make mqtt
 
-          curl -0L https://github.com/google/protobuf/releases/download/v$PROTOC_VERSION/$PROTOC_ZIP -o $PROTOC_ZIP
-          unzip -o $PROTOC_ZIP -d protoc3
-          sudo mv protoc3/bin/* /usr/local/bin/
-          sudo mv protoc3/include/* /usr/local/include/
-          rm -rf $PROTOC_ZIP protoc3
+      - name: Compile check for redis
+        run: |
+          MG_ES_STORE_TYPE=redis make mqtt
 
-          go install google.golang.org/protobuf/cmd/protoc-gen-go@$PROTOC_GEN_VERSION
-          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@$PROTOC_GRPC_VERSION
+      - name: Build Binaries
+        if: github.event_name == 'pull_request'
+        run: |
+          make all -j $(nproc)
+          make dockers_dev -j $(nproc)
 
-          export PATH=$PATH:/usr/local/bin/protoc
-          export PATH=$PATH:$HOME/go/bin
-
-          echo "Setting up Magistrala..."
-          for p in $(find . -name "*.pb.go"); do
-            mv $p $p.tmp
-          done
-
-          make proto
-
-          for p in $(find . -name "*.pb.go"); do
-            if ! cmp -s $p $p.tmp; then
-              echo "Proto file and generated Go file $p are out of sync!"
-              exit 1
-            fi
-          done
-
-  test: 
+  run-tests:
+    name: Run Tests
     runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
     strategy:
       matrix:
         service:
@@ -157,7 +121,7 @@ jobs:
 
     steps: 
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
 
       - name: Check for changes in specific paths
         uses: dorny/paths-filter@v2
@@ -172,480 +136,3 @@ jobs:
           cd ${{ matrix.service.name }}
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
-
-  build:
-    runs-on: ubuntu-latest
-
-    needs: test
-
-    strategy:
-      matrix:
-        component: ['users','things' , 'coap', 'http', 'mqtt', 'bootstrap', 'ws', 'certs', 'twins', 'cli', 'lora', 'opcua']
-
-        include:
-          - component: 'users'
-            paths: 'users/** cmd/users/**'
-            docker_image: 'docker_users'
-
-          - component: 'things'
-            paths: 'things/** cmd/things/**'
-            docker_image: 'docker_things'
-
-          - name: 'coap'
-            paths: 'coap/** cmd/coap/**'
-            docker_image: 'docker_coap'
-
-          - name: 'http'
-            paths: 'http/** cmd/http/**'
-
-          - name: 'mqtt'
-            paths: 'mqtt/** cmd/mqtt/**'
-
-          - name: 'certs'
-            paths:  'certs/** cmd/certs/**'
-
-          - name: 'ws'
-            paths: 'ws/** cmd/ws/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
-
-          - name: 'cli'
-            paths: 'cli/** cmd/cli/**'
-
-          - name: 'lora'
-            paths: 'lora/** cmd/lora/**'
-
-          - name: 'opcua'
-            paths: 'opcua/** cmd/opcua/** things/api/grpc/** auth/service.go auth/api/grpc/client.go' 
-
-    steps:
-      - name: Checkout Code
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with: 
-          filters: |
-            any: 
-              - '${{ matrix.paths }}'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-      - name: Login to Docker Hub
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Build ${{ matrix.component }} and push
-        run: |
-          make ${{ matrix.docker_image }}
-          docker push magistrala/${{ matrix.component }}:latest
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-  
-  build-provision:
-    runs-on: ubuntu-latest
-
-    needs: test
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'provision/**'
-              - 'cmd/provision/**'
-              - 'things/api/grpc/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Login to Docker Hub
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Build and push Provision
-        run: |
-          docker push magistrala/http:latest
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-
-
-  test-bootstrap:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'bootstrap/**'
-              - 'cmd/bootstrap/**'
-              - 'things/policies/postgres/policies.go'
-              - 'things/policies/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test Bootstrap
-        run: |
-          cd bootstrap
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-        
-  build-bootstrap:
-    runs-on: ubuntu-latest
-
-    needs: test-bootstrap
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'bootstrap' and 'cmd/bootstrap' directories
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'bootstrap/**'
-              - 'cmd/bootstrap/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Login to Docker Hub
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Build and push Bootstrap
-        run: |
-          docker push magistrala/bootstrap:latest
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-           
-  test-internal: 
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'internal' directory
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-            filters: |
-                internal:
-                - 'internal/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test Internal
-        run: |
-          cd internal
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
-  test-pkg:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'pkg' directory
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            pkg:
-              - 'pkg/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test PKG
-        run: |
-          cd pkg
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
-  test-readers:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'readers/**'
-              - 'cmd/cassandra-reader/**'
-              - 'cmd/influxdb-reader/**'
-              - 'cmd/mongodb-reader/**'
-              - 'cmd/postgres-reader/**'
-              - 'cmd/timescale-reader/**'
-              - 'things/api/grpc/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test Readers
-        run: |
-          cd readers
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
-  build-readers:
-    runs-on: ubuntu-latest
-
-    needs: test-readers
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'readers/**'
-              - 'cmd/cassandra-reader/**'
-              - 'cmd/influxdb-reader/**'
-              - 'cmd/mongodb-reader/**'
-              - 'cmd/postgres-reader/**'
-              - 'cmd/timescale-reader/**'
-              - 'things/api/grpc/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Build
-        run: |
-         make
-
-      - name: Publish to Registry
-        uses: elgohr/Publish-Docker-Github-Action@master
-        with:
-          name: magistrala/cassandra-reader
-          username: ${{ secrets.DOCKER_USERNAME }}
-          password: ${{ secrets.DOCKER_TOKEN }}
-          dockerfile: docker/Dockerfile
-
-  test-consumers:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'consumers/**'
-              - 'cmd/cassandra-writer/**'
-              - 'cmd/influxdb-writer/**'
-              - 'cmd/mongodb-writer/**'
-              - 'cmd/postgres-writer/**'
-              - 'cmd/timescale-writer/**'
-              - 'cmd/smpp-notifier/**'
-              - 'cmd/smtp-notifier/**'
-              - 'things/api/grpc/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test Consumers
-        run: |
-          cd consumers
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
-  build-consumers:
-    runs-on: ubuntu-latest
-
-    needs: test-consumers
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'consumers/**'
-              - 'cmd/cassandra-writer/**'
-              - 'cmd/influxdb-writer/**'
-              - 'cmd/mongodb-writer/**'
-              - 'cmd/postgres-writer/**'
-              - 'cmd/timescale-writer/**'
-              - 'cmd/smpp-notifier/**'
-              - 'cmd/smtp-notifier/**'
-              - 'things/api/grpc/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Login to Docker Hub
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Build and push Consumers
-        run: |
-          docker push magistrala/cassandra-writer:latest
-          docker push magistrala/influxdb-writer:latest
-          docker push magistrala/mongodb-writer:latest
-          docker push magistrala/postgres-writer:latest
-          docker push magistrala/timescale-writer:latest
-          docker push magistrala/smtp-notifier:latest
-        
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-  
-  test-twins:
-    runs-on: ubuntu-latest
-
-    needs: [setup, check-protobuf]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in specific paths
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'twins/**'
-              - 'cmd/twins/**'
-              - 'things/api/grpc/**'
-              - 'auth/service.go'
-              - 'auth/api/grpc/client.go'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Test Twins
-        run: |
-          cd twins
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
-
-  build-twins:
-    runs-on: ubuntu-latest
-
-    needs: test-twins
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Check for changes in 'twins' and 'cmd/twins' directories
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'twins/**'
-              - 'cmd/twins/**'
-
-      - name: Setup Go
-        uses: actions/setup-go@v2
-        with:
-          go-version: 1.21
-
-      - name: Login to Docker Hub
-        run: echo ${{ secrets.DOCKER_TOKEN }} | docker login --username ${{ secrets.DOCKER_USERNAME }} --password-stdin
-
-      - name: Build and push Twins
-        run: |
-          docker push magistrala/twins:latest
-        env:
-          DOCKER_HUB_SECRET: ${{ secrets.DOCKER_HUB }}
-
-  compile-check-rabbitmq:
-    runs-on: ubuntu-latest
-
-    needs: setup
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Compile For RabbitMQ
-        run: |
-          export MG_MESSAGE_BROKER_TYPE=rabbitmq
-          make mqtt
-            
-  compile-check-redis:
-    runs-on: ubuntu-latest
-    needs: setup
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v2
-
-      - name: Compile For Redis
-        run: |
-          export MG_ES_STORE_TYPE=redis
-          make mqtt
