@@ -154,7 +154,7 @@ func (repo ClientRepository) RetrieveAll(ctx context.Context, pm clients.Page) (
 	q := fmt.Sprintf(`SELECT c.id, c.name, c.tags, c.identity, c.metadata, COALESCE(c.owner_id, '') AS owner_id, c.status,
 					c.created_at, c.updated_at, COALESCE(c.updated_by, '') AS updated_by FROM clients c %s ORDER BY c.created_at LIMIT :limit OFFSET :offset;`, query)
 
-	dbPage, err := toDBClientsPage(pm)
+	dbPage, err := ToDBClientsPage(pm)
 	if err != nil {
 		return clients.ClientsPage{}, errors.Wrap(postgres.ErrFailedToRetrieveAll, err)
 	}
@@ -205,7 +205,7 @@ func (repo ClientRepository) RetrieveAllBasicInfo(ctx context.Context, pm client
 
 	q := fmt.Sprintf(`SELECT c.id, c.name, c.tags, c.identity FROM clients c %s ORDER BY c.created_at LIMIT :limit OFFSET :offset;`, query)
 
-	dbPage, err := toDBClientsPage(pm)
+	dbPage, err := ToDBClientsPage(pm)
 	if err != nil {
 		return clients.ClientsPage{}, errors.Wrap(postgres.ErrFailedToRetrieveAll, err)
 	}
@@ -262,7 +262,7 @@ func (repo ClientRepository) RetrieveAllByIDs(ctx context.Context, pm clients.Pa
 	q := fmt.Sprintf(`SELECT c.id, c.name, c.tags, c.identity, c.metadata, COALESCE(c.owner_id, '') AS owner_id, c.status,
 					c.created_at, c.updated_at, COALESCE(c.updated_by, '') AS updated_by FROM clients c %s ORDER BY c.created_at LIMIT :limit OFFSET :offset;`, query)
 
-	dbPage, err := toDBClientsPage(pm)
+	dbPage, err := ToDBClientsPage(pm)
 	if err != nil {
 		return clients.ClientsPage{}, errors.Wrap(postgres.ErrFailedToRetrieveAll, err)
 	}
@@ -428,7 +428,7 @@ func ToClient(c DBClient) (clients.Client, error) {
 	}, nil
 }
 
-func toDBClientsPage(pm clients.Page) (dbClientsPage, error) {
+func ToDBClientsPage(pm clients.Page) (dbClientsPage, error) {
 	_, data, err := postgres.CreateMetadataQuery("", pm.Metadata)
 	if err != nil {
 		return dbClientsPage{}, errors.Wrap(repoerr.ErrViewEntity, err)
