@@ -37,7 +37,7 @@ jobs:
 
       - name: Set up protoc
         run: |
-          PROTOC_VERSION=24.4
+          PROTOC_VERSION=25.1
           PROTOC_GEN_VERSION=v1.31.0
           PROTOC_GRPC_VERSION=v1.3.0
 
