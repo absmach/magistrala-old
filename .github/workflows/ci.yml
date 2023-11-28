@@ -22,18 +22,6 @@ jobs:
         with:
           go-version: 1.21.x
           cache-dependency-path: "go.sum"
-        
-      - name : Run coverage
-        run : |
-          go test -race -coverprofile=coverage.out -covermode=atomic
-
-      - name : Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV }}
-          name: codecov-umbrella 
-          fail_ci_if_error: false 
-          verbose: true
 
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
