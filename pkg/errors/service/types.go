@@ -38,7 +38,7 @@ var (
 	ErrUniqueID = errors.New("failed to generate unique identifier")
 
 	// ErrInvalidStatus indicates an invalid status.
-	ErrInvalidStatus = errors.New("Invalid status")
+	ErrInvalidStatus = errors.New("invalid user account status")
 
 	// ErrInvalidRole indicates that an invalid role.
 	ErrInvalidRole = errors.New("invalid client role")
