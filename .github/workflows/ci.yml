@@ -1,13 +1,9 @@
 # Copyright (c) Abstract Machines
 # SPDX-License-Identifier: Apache-2.0
 
-name: Continuous Integration
+name: CI Pipeline
 
 on:
-  push:
-    branches:
-      - main
-      
   pull_request:
     branches:
       - main
@@ -39,23 +35,6 @@ jobs:
           fail_ci_if_error: false 
           verbose: true
 
-      - name : Run coverage
-        run : |
-          go test -race -coverprofile=coverage.out -covermode=atomic
-
-      - name : Upload coverage to Codecov
-        uses: codecov/codecov-action@v3
-        with:
-          token: ${{ secrets.CODECOV }}
-          name: codecov-umbrella 
-          fail_ci_if_error: false 
-          verbose: true
-        
-      - name: Build Binaries
-        run: |
-          go mod vendor
-          make all -j $(nproc)
-
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v3
         with:
@@ -68,9 +47,8 @@ jobs:
       - name: Compile check for redis
         run: |
           MG_ES_STORE_TYPE=redis make mqtt
-
+       
       - name: Build Binaries
-        if: github.event_name == 'pull_request'
         run: |
           make all -j $(nproc)
           make dockers_dev -j $(nproc)
@@ -123,6 +101,12 @@ jobs:
     steps: 
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changed-files
+        uses: tj-actions/changed-files@v40
 
       - name: Check for changes in specific paths
         uses: dorny/paths-filter@v2
