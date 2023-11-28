@@ -256,3 +256,204 @@ func TestIsPlatformAdmin(t *testing.T) {
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.err, err))
 	}
 }
+
+func TestClientsRetrieveNames(t *testing.T) {
+	t.Cleanup(func() {
+		_, err := db.Exec("DELETE FROM clients")
+		require.Nil(t, err, fmt.Sprintf("clean clients unexpected error: %s", err))
+	})
+	repo := cpostgres.NewRepository(database)
+
+	nusers := 100
+	users := make([]mgclients.Client, nusers)
+
+	name := namesgen.Generate()
+
+	for i := 0; i < nusers; i++ {
+		client := mgclients.Client{
+			ID:   testsutil.GenerateUUID(t),
+			Name: fmt.Sprintf("%s-%d", name, i),
+			Credentials: mgclients.Credentials{
+				Identity: fmt.Sprintf("%s-%d@example.com", name, i),
+				Secret:   password,
+			},
+			Metadata: mgclients.Metadata{},
+			Status:   mgclients.EnabledStatus,
+		}
+		_, err := repo.Save(context.Background(), client)
+		require.Nil(t, err, fmt.Sprintf("save client unexpected error: %s", err))
+
+		users[i] = mgclients.Client{
+			Name: client.Name,
+		}
+	}
+
+	cases := []struct {
+		desc     string
+		page     mgclients.Page
+		response mgclients.ClientsPage
+		err      error
+	}{
+		{
+			desc: "retrieve all clients",
+			page: mgclients.Page{
+				Offset: 0,
+				Limit:  uint64(nusers),
+			},
+			response: mgclients.ClientsPage{
+				Clients: users,
+				Page: mgclients.Page{
+					Total:  uint64(nusers),
+					Offset: 0,
+					Limit:  uint64(nusers),
+				},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve all clients with offset",
+			page: mgclients.Page{
+				Offset: 10,
+				Limit:  uint64(nusers),
+			},
+			response: mgclients.ClientsPage{
+				Clients: users[10:],
+				Page: mgclients.Page{
+					Total:  uint64(nusers),
+					Offset: 10,
+					Limit:  uint64(nusers),
+				},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve all clients with limit",
+			page: mgclients.Page{
+				Offset: 0,
+				Limit:  10,
+			},
+			response: mgclients.ClientsPage{
+				Clients: users[:10],
+				Page: mgclients.Page{
+					Total:  uint64(nusers),
+					Offset: 0,
+					Limit:  10,
+				},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve all clients with offset and limit",
+			page: mgclients.Page{
+				Offset: 10,
+				Limit:  10,
+			},
+			response: mgclients.ClientsPage{
+				Clients: users[10:20],
+				Page: mgclients.Page{
+					Total:  uint64(nusers),
+					Offset: 10,
+					Limit:  10,
+				},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve all clients with name",
+			page: mgclients.Page{
+				Name:   users[0].Name[:1],
+				Offset: 0,
+				Limit:  10,
+			},
+			response: mgclients.ClientsPage{
+				Clients: findClient(users, users[0].Name[:1], true, false, 0, 10),
+				Page: mgclients.Page{
+					Total:  uint64(nusers),
+					Offset: 0,
+					Limit:  10,
+				},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve all clients with name",
+			page: mgclients.Page{
+				Name:   users[0].Name[:4],
+				Offset: 0,
+				Limit:  10,
+			},
+			response: mgclients.ClientsPage{
+				Clients: findClient(users, users[0].Name[:4], true, false, 0, 10),
+				Page: mgclients.Page{
+					Total:  uint64(nusers),
+					Offset: 0,
+					Limit:  10,
+				},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve all clients unknown name",
+			page: mgclients.Page{
+				Name:   "unknown",
+				Offset: 0,
+				Limit:  10,
+			},
+			response: mgclients.ClientsPage{
+				Clients: []mgclients.Client(nil),
+				Page: mgclients.Page{
+					Total:  0,
+					Offset: 0,
+					Limit:  10,
+				},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve all clients unknown identity",
+			page: mgclients.Page{
+				Identity: "unknown",
+				Offset:   0,
+				Limit:    10,
+			},
+			response: mgclients.ClientsPage{
+				Clients: []mgclients.Client(nil),
+				Page: mgclients.Page{
+					Total:  0,
+					Offset: 0,
+					Limit:  10,
+				},
+			},
+			err: nil,
+		},
+	}
+	for _, tc := range cases {
+		resp, err := repo.RetrieveNames(context.Background(), tc.page)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+		if err == nil {
+			assert.Equal(t, tc.response, resp, fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.response, resp))
+		}
+	}
+}
+
+func findClient(clients []mgclients.Client, query string, name, email bool, offset, limit uint64) []mgclients.Client {
+	clis := []mgclients.Client{}
+	for _, client := range clients {
+		if name && strings.Contains(client.Name, query) {
+			clis = append(clis, client)
+		}
+		if email && strings.Contains(client.Credentials.Identity, query) {
+			clis = append(clis, client)
+		}
+	}
+
+	if offset > uint64(len(clis)) {
+		return []mgclients.Client{}
+	}
+
+	if limit > uint64(len(clis)) {
+		return clis[offset:]
+	}
+
+	return clis[offset:limit]
+}

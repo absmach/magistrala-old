@@ -7,6 +7,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"strings"
 
 	"github.com/absmach/magistrala/internal/postgres"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
@@ -33,6 +34,9 @@ type Repository interface {
 	UpdateRole(ctx context.Context, client mgclients.Client) (mgclients.Client, error)
 
 	CheckSuperAdmin(ctx context.Context, adminID string) error
+
+	// RetrieveNames returns a list of client names that match the given query.
+	RetrieveNames(ctx context.Context, pm mgclients.Page) (mgclients.ClientsPage, error)
 }
 
 // NewRepository instantiates a PostgreSQL
@@ -140,7 +144,7 @@ func (repo clientRepo) RetrieveAll(ctx context.Context, pm mgclients.Page) (mgcl
 	for rows.Next() {
 		dbc := pgclients.DBClient{}
 		if err := rows.StructScan(&dbc); err != nil {
-			return mgclients.ClientsPage{}, errors.Wrap(errors.ErrViewEntity, err)
+			return mgclients.ClientsPage{}, errors.Wrap(repoerr.ErrViewEntity, err)
 		}
 
 		c, err := pgclients.ToClient(dbc)
@@ -154,7 +158,7 @@ func (repo clientRepo) RetrieveAll(ctx context.Context, pm mgclients.Page) (mgcl
 
 	total, err := postgres.Total(ctx, repo.DB, cq, dbPage)
 	if err != nil {
-		return mgclients.ClientsPage{}, errors.Wrap(errors.ErrViewEntity, err)
+		return mgclients.ClientsPage{}, errors.Wrap(repoerr.ErrViewEntity, err)
 	}
 
 	page := mgclients.ClientsPage{
@@ -194,4 +198,78 @@ func (repo clientRepo) UpdateRole(ctx context.Context, client mgclients.Client) 
 	}
 
 	return pgclients.ToClient(dbc)
+}
+
+func (repo clientRepo) RetrieveNames(ctx context.Context, pm mgclients.Page) (mgclients.ClientsPage, error) {
+	query := constructQuery(pm)
+
+	q := fmt.Sprintf("SELECT name FROM clients %s LIMIT :limit OFFSET :offset", query)
+
+	dbPage, err := pgclients.ToDBClientsPage(pm)
+	if err != nil {
+		return mgclients.ClientsPage{}, errors.Wrap(postgres.ErrFailedToRetrieveAll, err)
+	}
+
+	rows, err := repo.DB.NamedQueryContext(ctx, q, dbPage)
+	if err != nil {
+		return mgclients.ClientsPage{}, errors.Wrap(postgres.ErrFailedToRetrieveAll, err)
+	}
+	defer rows.Close()
+
+	var items []mgclients.Client
+	for rows.Next() {
+		dbc := pgclients.DBClient{}
+		if err := rows.StructScan(&dbc); err != nil {
+			return mgclients.ClientsPage{}, errors.Wrap(repoerr.ErrViewEntity, err)
+		}
+
+		c, err := pgclients.ToClient(dbc)
+		if err != nil {
+			return mgclients.ClientsPage{}, err
+		}
+
+		items = append(items, c)
+	}
+	cq := fmt.Sprintf(`SELECT COUNT(*) FROM clients c %s;`, query)
+
+	total, err := postgres.Total(ctx, repo.DB, cq, dbPage)
+	if err != nil {
+		return mgclients.ClientsPage{}, errors.Wrap(repoerr.ErrViewEntity, err)
+	}
+
+	page := mgclients.ClientsPage{
+		Clients: items,
+		Page: mgclients.Page{
+			Total:  total,
+			Offset: pm.Offset,
+			Limit:  pm.Limit,
+		},
+	}
+
+	return page, nil
+}
+
+func constructQuery(pm mgclients.Page) string {
+	var query []string
+	var emq string
+	if pm.Name != "" {
+		query = append(query, fmt.Sprintf("name ILIKE '%%%s%%'", pm.Name))
+	}
+	if pm.Identity != "" {
+		query = append(query, fmt.Sprintf("identity ILIKE '%%%s%%'", pm.Identity))
+	}
+
+	if len(query) > 0 {
+		emq = fmt.Sprintf("WHERE %s", strings.Join(query, " AND "))
+	}
+
+	if pm.Order != "" && (pm.Order == "name" || pm.Order == "email" || pm.Order == "created_at" || pm.Order == "updated_at") {
+		emq = fmt.Sprintf("%s ORDER BY %s", emq, pm.Order)
+	}
+
+	if pm.Dir != "" && (pm.Dir == "asc" || pm.Dir == "desc") {
+		emq = fmt.Sprintf("%s %s", emq, pm.Dir)
+	}
+
+	return emq
 }
