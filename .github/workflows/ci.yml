@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - main
+      
   pull_request:
     branches:
       - main
@@ -37,7 +38,7 @@ jobs:
           name: codecov-umbrella 
           fail_ci_if_error: false 
           verbose: true
-          
+
       - name : Run coverage
         run : |
           go test -race -coverprofile=coverage.out -covermode=atomic

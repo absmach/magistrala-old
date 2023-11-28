@@ -30,6 +30,6 @@ jobs:
         run: |
           MG_ES_STORE_TYPE=redis make mqtt
 
-      - name: Build Binaries
+      - name: Build Dockers
         run: |
           make latest -j $(nproc)
