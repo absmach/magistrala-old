@@ -18,7 +18,7 @@ import (
 
 const (
 	recoveryDuration   = 5 * time.Minute
-	invitationDuration = 24 * time.Hour
+	invitationDuration = 7 * 24 * time.Hour
 )
 
 var (
