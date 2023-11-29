@@ -168,7 +168,7 @@ By utilizing Magistrala, you actively contribute to its improvement. Together, w
 [gitter-badge]: https://badges.gitter.im/Join%20Chat.svg
 [grc-badge]: https://goreportcard.com/badge/github.com/absmach/magistrala
 [grc-url]: https://goreportcard.com/report/github.com/absmach/magistrala
-[cov-badge]: https://codecov.io/gh/absmach/magistrala/branch/master/graph/badge.svg
+[cov-badge]: https://codecov.io/gh/absmach/magistrala/graph/badge.svg?token=SEMDAO3L09
 [cov-url]: https://codecov.io/gh/absmach/magistrala
 [license]: https://img.shields.io/badge/license-Apache%20v2.0-blue.svg
 [twitter]: https://twitter.com/mainflux
