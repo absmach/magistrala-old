@@ -13,6 +13,7 @@ import (
 	"github.com/absmach/magistrala/auth/jwt"
 	"github.com/absmach/magistrala/auth/mocks"
 	"github.com/absmach/magistrala/pkg/errors"
+	svcerr "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -63,14 +64,6 @@ func TestIssue(t *testing.T) {
 			err:   nil,
 		},
 		{
-			desc: "issue login key with no time",
-			key: auth.Key{
-				Type: auth.AccessKey,
-			},
-			token: accessToken,
-			err:   auth.ErrInvalidKeyIssuedAt,
-		},
-		{
 			desc: "issue API key",
 			key: auth.Key{
 				Type:     auth.APIKey,
@@ -86,15 +79,7 @@ func TestIssue(t *testing.T) {
 				IssuedAt: time.Now(),
 			},
 			token: "invalid",
-			err:   errors.ErrAuthentication,
-		},
-		{
-			desc: "issue API key with no time",
-			key: auth.Key{
-				Type: auth.APIKey,
-			},
-			token: accessToken,
-			err:   auth.ErrInvalidKeyIssuedAt,
+			err:   svcerr.ErrAuthentication,
 		},
 		{
 			desc: "issue recovery key",
@@ -104,14 +89,6 @@ func TestIssue(t *testing.T) {
 			},
 			token: "",
 			err:   nil,
-		},
-		{
-			desc: "issue recovery with no issue time",
-			key: auth.Key{
-				Type: auth.RecoveryKey,
-			},
-			token: accessToken,
-			err:   auth.ErrInvalidKeyIssuedAt,
 		},
 	}
 

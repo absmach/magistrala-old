@@ -12,7 +12,6 @@ import (
 
 	"github.com/absmach/magistrala"
 	authmocks "github.com/absmach/magistrala/auth/mocks"
-	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/internal/testsutil"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
@@ -220,7 +219,7 @@ func TestRegisterClient(t *testing.T) {
 					Identity: "newclientwithemptysecret@example.com",
 				},
 			},
-			err:   apiutil.ErrMissingSecret,
+			err:   repoerror.ErrMissingSecret,
 			token: validToken,
 		},
 		{
@@ -232,7 +231,7 @@ func TestRegisterClient(t *testing.T) {
 				},
 				Status: mgclients.AllStatus,
 			},
-			err:   apiutil.ErrInvalidStatus,
+			err:   svcerror.ErrInvalidStatus,
 			token: validToken,
 		},
 	}
@@ -929,7 +928,7 @@ func TestUpdateClientSecret(t *testing.T) {
 			newSecret: "newSecret",
 			token:     validToken,
 			response:  mgclients.Client{},
-			err:       apiutil.ErrInvalidSecret,
+			err:       repoerror.ErrInvalidSecret,
 		},
 	}
 
