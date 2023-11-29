@@ -197,8 +197,10 @@ func (svc service) ListClients(ctx context.Context, token string, reqUserID stri
 		g, ctx := errgroup.WithContext(ctx)
 
 		for i := range tp.Clients {
+			// Copying loop variable "i" to avoid "loop variable captured by func literal"
+			iter := i
 			g.Go(func() error {
-				return svc.retrievePermissions(ctx, res.GetId(), &tp.Clients[i])
+				return svc.retrievePermissions(ctx, res.GetId(), &tp.Clients[iter])
 			})
 		}
 
@@ -468,8 +470,10 @@ func (svc service) ListClientsByGroup(ctx context.Context, token, groupID string
 		g, ctx := errgroup.WithContext(ctx)
 
 		for i := range cp.Clients {
+			// Copying loop variable "i" to avoid "loop variable captured by func literal"
+			iter := i
 			g.Go(func() error {
-				return svc.retrievePermissions(ctx, res.GetId(), &cp.Clients[i])
+				return svc.retrievePermissions(ctx, res.GetId(), &cp.Clients[iter])
 			})
 		}
 

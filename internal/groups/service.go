@@ -233,8 +233,10 @@ func (svc service) ListGroups(ctx context.Context, token, memberKind, memberID s
 		g, ctx := errgroup.WithContext(ctx)
 
 		for i := range gp.Groups {
+			// Copying loop variable "i" to avoid "loop variable captured by func literal"
+			iter := i
 			g.Go(func() error {
-				return svc.retrievePermissions(ctx, res.GetId(), &gp.Groups[i])
+				return svc.retrievePermissions(ctx, res.GetId(), &gp.Groups[iter])
 			})
 		}
 
