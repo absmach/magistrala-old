@@ -18,10 +18,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-const (
-	maxNameSize = 254
-	ascending   = "asc"
-)
+const maxNameSize = 254
 
 var (
 	invalidName = strings.Repeat("m", maxNameSize+10)

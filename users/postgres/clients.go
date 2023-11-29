@@ -268,10 +268,9 @@ func constructQuery(pm mgclients.Page) (string, string) {
 
 	if pm.Order != "" && (pm.Order == "name" || pm.Order == "identity" || pm.Order == "created_at" || pm.Order == "updated_at") {
 		emq = fmt.Sprintf("%s ORDER BY %s", emq, pm.Order)
-	}
-
-	if pm.Dir != "" && (pm.Dir == "asc" || pm.Dir == "desc") {
-		emq = fmt.Sprintf("%s %s", emq, pm.Dir)
+		if pm.Dir != "" && (pm.Dir == "asc" || pm.Dir == "desc") {
+			emq = fmt.Sprintf("%s %s", emq, pm.Dir)
+		}
 	}
 
 	return emq, tq
