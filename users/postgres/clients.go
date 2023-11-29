@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/absmach/magistrala/internal/api"
 	"github.com/absmach/magistrala/internal/postgres"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	pgclients "github.com/absmach/magistrala/pkg/clients/postgres"
@@ -268,7 +269,7 @@ func constructQuery(pm mgclients.Page) (string, string) {
 
 	if pm.Order != "" && (pm.Order == "name" || pm.Order == "identity" || pm.Order == "created_at" || pm.Order == "updated_at") {
 		emq = fmt.Sprintf("%s ORDER BY %s", emq, pm.Order)
-		if pm.Dir != "" && (pm.Dir == "asc" || pm.Dir == "desc") {
+		if pm.Dir != "" && (pm.Dir == api.AscDir || pm.Dir == api.DescDir) {
 			emq = fmt.Sprintf("%s %s", emq, pm.Dir)
 		}
 	}
