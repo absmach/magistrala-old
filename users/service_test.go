@@ -618,6 +618,89 @@ func TestListClients(t *testing.T) {
 	}
 }
 
+func TestSearchClients(t *testing.T) {
+	cRepo := new(mocks.Repository)
+	auth := new(authmocks.Service)
+	e := mocks.NewEmailer()
+	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
+
+	nClients := uint64(200)
+	aClients := []mgclients.Client{}
+	for i := uint64(1); i < nClients; i++ {
+		identity := fmt.Sprintf("TestSearchClients_%d@example.com", i)
+		client := mgclients.Client{
+			Name: identity,
+			Credentials: mgclients.Credentials{
+				Identity: identity,
+				Secret:   "password",
+			},
+		}
+		aClients = append(aClients, client)
+	}
+
+	cases := []struct {
+		desc     string
+		token    string
+		page     mgclients.Page
+		response mgclients.ClientsPage
+		size     uint64
+		err      error
+	}{
+		{
+			desc:  "search clients with authorized token",
+			token: validToken,
+			page: mgclients.Page{
+				Identity: "Test",
+			},
+			size: 0,
+			response: mgclients.ClientsPage{
+				Page: mgclients.Page{
+					Total:  0,
+					Offset: 0,
+					Limit:  0,
+				},
+				Clients: []mgclients.Client{},
+			},
+			err: nil,
+		},
+		{
+			desc:  "search clients with an invalid token",
+			token: inValidToken,
+			page: mgclients.Page{
+				Identity: "Test",
+			},
+			size: 0,
+			response: mgclients.ClientsPage{
+				Page: mgclients.Page{
+					Total:  0,
+					Offset: 0,
+					Limit:  0,
+				},
+			},
+			err: svcerror.ErrAuthentication,
+		},
+	}
+
+	for _, tc := range cases {
+		repoCall := auth.On("Identify", mock.Anything, &magistrala.IdentityReq{Token: validToken}).Return(&magistrala.IdentityRes{UserId: validID}, nil)
+		if tc.token == inValidToken {
+			repoCall = auth.On("Identify", mock.Anything, &magistrala.IdentityReq{Token: inValidToken}).Return(&magistrala.IdentityRes{}, svcerror.ErrAuthentication)
+		}
+		repoCall1 := auth.On("Authorize", mock.Anything, mock.Anything).Return(&magistrala.AuthorizeRes{Authorized: true}, nil)
+		repoCall2 := cRepo.On("RetrieveNames", context.Background(), mock.Anything).Return(tc.response, tc.err)
+		page, err := svc.SearchClients(context.Background(), tc.token, tc.page)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+		assert.Equal(t, tc.response, page, fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.response, page))
+		if tc.err == nil {
+			ok := repoCall2.Parent.AssertCalled(t, "RetrieveNames", context.Background(), mock.Anything)
+			assert.True(t, ok, fmt.Sprintf("RetrieveNames was not called on %s", tc.desc))
+		}
+		repoCall.Unset()
+		repoCall1.Unset()
+		repoCall2.Unset()
+	}
+}
+
 func TestUpdateClient(t *testing.T) {
 	cRepo := new(mocks.Repository)
 	auth := new(authmocks.Service)

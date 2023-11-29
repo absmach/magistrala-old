@@ -81,7 +81,7 @@ func (req listClientsReq) validate() error {
 		req.visibility != api.SharedVisibility {
 		return apiutil.ErrInvalidVisibilityType
 	}
-	if req.dir != "" && (req.dir != "asc" && req.dir != "desc") {
+	if req.dir != "" && (req.dir != api.AscDir && req.dir != api.DescDir) {
 		return apiutil.ErrInvalidDirection
 	}
 
