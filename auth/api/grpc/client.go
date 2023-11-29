@@ -668,7 +668,15 @@ func (client grpcClient) ListPermissions(ctx context.Context, in *magistrala.Lis
 	ctx, close := context.WithTimeout(ctx, client.timeout)
 	defer close()
 
-	res, err := client.listPermissions(ctx, in)
+	res, err := client.listPermissions(ctx, listPermissionsReq{
+		Domain:            in.GetDomain(),
+		SubjectType:       in.GetSubjectType(),
+		Subject:           in.GetSubject(),
+		SubjectRelation:   in.GetSubjectRelation(),
+		ObjectType:        in.GetObjectType(),
+		Object:            in.GetObject(),
+		FilterPermissions: in.GetFilterPermissions(),
+	})
 	if err != nil {
 		return &magistrala.ListPermissionsRes{}, err
 	}
@@ -687,15 +695,15 @@ func (client grpcClient) ListPermissions(ctx context.Context, in *magistrala.Lis
 }
 
 func decodeListPermissionsResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
-	res := grpcRes.(listPermissionsRes)
+	res := grpcRes.(*magistrala.ListPermissionsRes)
 	return listPermissionsRes{
-		Domain:          res.Domain,
-		SubjectType:     res.SubjectType,
-		Subject:         res.Subject,
-		SubjectRelation: res.SubjectRelation,
-		ObjectType:      res.ObjectType,
-		Object:          res.Object,
-		Permissions:     res.Permissions,
+		Domain:          res.GetDomain(),
+		SubjectType:     res.GetSubjectType(),
+		Subject:         res.GetSubject(),
+		SubjectRelation: res.GetSubjectRelation(),
+		ObjectType:      res.GetObjectType(),
+		Object:          res.GetObject(),
+		Permissions:     res.GetPermissions(),
 	}, nil
 }
 
