@@ -673,48 +673,39 @@ func (client grpcClient) ListPermissions(ctx context.Context, in *magistrala.Lis
 		return &magistrala.ListPermissionsRes{}, err
 	}
 
-	// lp := res.(listPermissionsRes)
-	// return &magistrala.ListPermissionsRes{
-	// 	Domain:          lp.Domain,
-	// 	SubjectType:     lp.SubjectType,
-	// 	Subject:         lp.Subject,
-	// 	SubjectRelation: lp.SubjectRelation,
-	// 	ObjectType:      lp.ObjectType,
-	// 	Object:          lp.Object,
-	// 	Permissions:     lp.Permissions,
-	// }, nil
-
-	lp := res.(*magistrala.ListPermissionsRes)
-	return lp, nil
+	lp := res.(listPermissionsRes)
+	return &magistrala.ListPermissionsRes{
+		Domain:          lp.Domain,
+		SubjectType:     lp.SubjectType,
+		Subject:         lp.Subject,
+		SubjectRelation: lp.SubjectRelation,
+		ObjectType:      lp.ObjectType,
+		Object:          lp.Object,
+		Permissions:     lp.Permissions,
+	}, nil
 
 }
 
 func decodeListPermissionsResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
-	// res := grpcRes.(listPermissionsRes)
-	// return listPermissionsRes{
-	// 	Domain:          res.Domain,
-	// 	SubjectType:     res.SubjectType,
-	// 	Subject:         res.Subject,
-	// 	SubjectRelation: res.SubjectRelation,
-	// 	ObjectType:      res.ObjectType,
-	// 	Object:          res.Object,
-	// 	Permissions:     res.Permissions,
-	// }, nil
-
-	res := grpcRes.(*magistrala.ListPermissionsRes)
-	return res, nil
+	res := grpcRes.(listPermissionsRes)
+	return listPermissionsRes{
+		Domain:          res.Domain,
+		SubjectType:     res.SubjectType,
+		Subject:         res.Subject,
+		SubjectRelation: res.SubjectRelation,
+		ObjectType:      res.ObjectType,
+		Object:          res.Object,
+		Permissions:     res.Permissions,
+	}, nil
 }
 
 func encodeListPermissionsRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
-	// req := grpcReq.(listPermissionsReq)
-	// return &magistrala.ListPermissionsReq{
-	// 	Domain:      req.Domain,
-	// 	SubjectType: req.SubjectType,
-	// 	Subject:     req.Subject,
-	// 	ObjectType:  req.ObjectType,
-	// 	Object:      req.Object,
-	// }, nil
-
-	req := grpcReq.(*magistrala.ListPermissionsReq)
-	return req, nil
+	req := grpcReq.(listPermissionsReq)
+	return &magistrala.ListPermissionsReq{
+		Domain:      req.Domain,
+		SubjectType: req.SubjectType,
+		Subject:     req.Subject,
+		ObjectType:  req.ObjectType,
+		Object:      req.Object,
+	}, nil
 }
