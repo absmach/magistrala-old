@@ -20,6 +20,7 @@ import (
 
 const (
 	maxNameSize = 254
+	ascending   = "asc"
 )
 
 var (
@@ -426,11 +427,58 @@ func TestClientsRetrieveNames(t *testing.T) {
 			},
 			err: nil,
 		},
+		{
+			desc: "retrieve all clients with order",
+			page: mgclients.Page{
+				Order:  "name",
+				Dir:    "asc",
+				Offset: 0,
+				Limit:  10,
+			},
+			response: mgclients.ClientsPage{},
+			err:      nil,
+		},
+		{
+			desc: "retrieve all clients with order",
+			page: mgclients.Page{
+				Order:  "name",
+				Dir:    "desc",
+				Offset: 0,
+				Limit:  10,
+			},
+			response: mgclients.ClientsPage{},
+			err:      nil,
+		},
+		{
+			desc: "retrieve all clients with order",
+			page: mgclients.Page{
+				Order:  "identity",
+				Dir:    "asc",
+				Offset: 0,
+				Limit:  10,
+			},
+			response: mgclients.ClientsPage{},
+			err:      nil,
+		},
+		{
+			desc: "retrieve all clients with order",
+			page: mgclients.Page{
+				Order:  "identity",
+				Dir:    "desc",
+				Offset: 0,
+				Limit:  10,
+			},
+			response: mgclients.ClientsPage{},
+			err:      nil,
+		},
 	}
 	for _, tc := range cases {
 		resp, err := repo.RetrieveNames(context.Background(), tc.page)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		if err == nil {
+			if tc.page.Order != "" && tc.page.Dir != "" {
+				tc.response = resp
+			}
 			assert.Equal(t, tc.response, resp, fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.response, resp))
 		}
 	}

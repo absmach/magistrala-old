@@ -201,9 +201,9 @@ func (repo clientRepo) UpdateRole(ctx context.Context, client mgclients.Client) 
 }
 
 func (repo clientRepo) RetrieveNames(ctx context.Context, pm mgclients.Page) (mgclients.ClientsPage, error) {
-	query := constructQuery(pm)
+	sq, tq := constructQuery(pm)
 
-	q := fmt.Sprintf("SELECT name FROM clients %s LIMIT :limit OFFSET :offset", query)
+	q := fmt.Sprintf("SELECT name FROM clients %s LIMIT :limit OFFSET :offset", sq)
 
 	dbPage, err := pgclients.ToDBClientsPage(pm)
 	if err != nil {
@@ -230,7 +230,7 @@ func (repo clientRepo) RetrieveNames(ctx context.Context, pm mgclients.Page) (mg
 
 		items = append(items, c)
 	}
-	cq := fmt.Sprintf(`SELECT COUNT(*) FROM clients c %s;`, query)
+	cq := fmt.Sprintf(`SELECT COUNT(*) FROM clients %s;`, tq)
 
 	total, err := postgres.Total(ctx, repo.DB, cq, dbPage)
 	if err != nil {
@@ -249,9 +249,10 @@ func (repo clientRepo) RetrieveNames(ctx context.Context, pm mgclients.Page) (mg
 	return page, nil
 }
 
-func constructQuery(pm mgclients.Page) string {
+func constructQuery(pm mgclients.Page) (string, string) {
 	var query []string
 	var emq string
+	var tq string
 	if pm.Name != "" {
 		query = append(query, fmt.Sprintf("name ILIKE '%%%s%%'", pm.Name))
 	}
@@ -263,7 +264,9 @@ func constructQuery(pm mgclients.Page) string {
 		emq = fmt.Sprintf("WHERE %s", strings.Join(query, " AND "))
 	}
 
-	if pm.Order != "" && (pm.Order == "name" || pm.Order == "email" || pm.Order == "created_at" || pm.Order == "updated_at") {
+	tq = emq
+
+	if pm.Order != "" && (pm.Order == "name" || pm.Order == "identity" || pm.Order == "created_at" || pm.Order == "updated_at") {
 		emq = fmt.Sprintf("%s ORDER BY %s", emq, pm.Order)
 	}
 
@@ -271,5 +274,5 @@ func constructQuery(pm mgclients.Page) string {
 		emq = fmt.Sprintf("%s %s", emq, pm.Dir)
 	}
 
-	return emq
+	return emq, tq
 }
