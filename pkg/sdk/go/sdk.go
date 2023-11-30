@@ -1251,7 +1251,7 @@ func (pm PageMetadata) query() (string, error) {
 		q.Add("permission", pm.Permission)
 	}
 	if pm.ListPermissions != "" {
-		q.Add("list_permissions", pm.ListPermissions)
+		q.Add("list_perms", pm.ListPermissions)
 	}
 	return q.Encode(), nil
 }
