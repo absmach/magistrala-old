@@ -713,6 +713,7 @@ func TestUpdateClientTags(t *testing.T) {
 		repoCall3.Unset()
 	}
 }
+
 func TestUpdateClientSecret(t *testing.T) {
 	svc, cRepo, auth := newService()
 
