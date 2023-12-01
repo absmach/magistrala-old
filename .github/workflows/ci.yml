@@ -57,11 +57,25 @@ jobs:
               - "cmd/bootstrap/**"
               - "things/policies/postgres/polices.go"
               - "things/policies/api/grpc/client.go"
+          
+            certs:
+                - "certs/**"
+                - "cmd/certs/**"
+                - "things/api/grpc/**"
+                - "auth/service.go"
+                - "auth/api/grpc/client.go"
+            
 
       - name: Run bootstrap Test
         if: steps.changes.outputs.bootstrap == 'true'
         run: |
           cd bootstrap
+          make test_and_cover
+
+      - name: Run certs Test
+        if: steps.changes.outputs.certs == 'true'
+        run: |
+          cd certs
           make test_and_cover
 
       - name: Upload coverage
