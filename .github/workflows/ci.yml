@@ -65,16 +65,18 @@ jobs:
               - "things/api/grpc/**"
               - "auth/service.go"
               - "auth/api/grpc/client.go"
-              
+
             cli:
               - "cli/**"
               - "cmd/cli/**"
+
             coap:
               - "coap/**"
               - "cmd/coap/**"
               - "things/api/grpc/**"
               - "auth/service.go"
               - "auth/api/grpc/client.go"
+
             consumers:
               - "consumers/**"
               - "cmd/cassandra-writer/**"
@@ -87,36 +89,45 @@ jobs:
               - "things/api/grpc/**"
               - "auth/service.go"
               - "auth/api/grpc/client.go"
+
             http:
               - "http/**"
               - "cmd/http/**"
               - "things/api/grpc/**"
               - "auth/service.go"
               - "auth/api/grpc/client.go"
+
             internal:
               - "internal/**"
+
             lora:
               - "lora/**"
               - "cmd/lora/**"
+              
             logger:
               - "logger/**"
+
             mqtt:
               - "mqtt/**"
               - "cmd/mqtt/**"
               - "things/api/grpc/**"
               - "auth/service.go"
               - "auth/api/grpc/client.go"
+
             opcua:
               - "opcua/**"
               - "cmd/opcua/**"
               - "things/api/grpc/**"
               - "auth/service.go"
               - "auth/api/grpc/client.go"
+
             pkg:
               - "pkg/**"
+
             provision:
               - "provision/**"
               - "cmd/provision/**"
+
             readers:
               - "readers/**"
               - "cmd/cassandra-reader/**"
@@ -127,24 +138,29 @@ jobs:
               - "things/api/grpc/**"
               - "auth/service.go"
               - "auth/api/grpc/client.go"
+
             things:
               - "things/**"
               - "cmd/things/**"
               - "auth/service.go"
               - "auth/api/grpc/client.go"
+
             twins:
               - "twins/**"
               - "cmd/twins/**"
               - "things/api/grpc/**"
               - "auth/service.go"
               - "auth/api/grpc/client.go"
+
             tools:
               - "tools/**"
+
             users:
               - "users/**"
               - "cmd/users/**"
               - "auth/service.go"
               - "auth/api/grpc/client.go"
+
             ws:
               - "ws/**"
               - "cmd/ws/**"
@@ -155,127 +171,109 @@ jobs:
       - name: Run bootstrap Test
         if: steps.changes.outputs.bootstrap == 'true'
         run: |
-          cd bootstrap
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./bootstrap/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run certs Test
         if: steps.changes.outputs.certs == 'true'
         run: |
-          cd certs
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./certs/...        
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run cli Test
         if: steps.changes.outputs.cli == 'true'
         run: |
-          cd cli
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./cli/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run coap Test
         if: steps.changes.outputs.coap == 'true'
         run: |
-          cd coap
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./coap/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run consumers Test
         if: steps.changes.outputs.consumers == 'true'
         run: |
-          cd consumers
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./consumers/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run http Test
         if: steps.changes.outputs.http == 'true'
         run: |
-          cd http
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./http/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run internal Test
         if: steps.changes.outputs.internal == 'true'
         run: |
-          cd internal
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./internal/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run lora Test
         if: steps.changes.outputs.lora == 'true'
         run: |
-          cd lora
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./lora/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run logger Test
         if: steps.changes.outputs.logger == 'true'
         run: |
-          cd logger
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./logger/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run mqtt Test
         if: steps.changes.outputs.mqtt == 'true'
         run: |
-          cd mqtt
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./mqtt/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run opcua Test
         if: steps.changes.outputs.opcua == 'true'
         run: |
-          cd opcua
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./opcua/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run pkg Test
         if: steps.changes.outputs.pkg == 'true'
         run: |
-          cd pkg
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./pkg/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run provision Test
         if: steps.changes.outputs.provision == 'true'
         run: |
-          cd provision
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./provision/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run readers Test
         if: steps.changes.outputs.readers == 'true'
         run: |
-          cd readers
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./readers/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run things Test
         if: steps.changes.outputs.things == 'true'
         run: |
-          cd things
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./things/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run twins Test
         if: steps.changes.outputs.twins == 'true'
         run: |
-          cd twins
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./twins/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run tools Test
         if: steps.changes.outputs.tools == 'true'
         run: |
-          cd tools
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./tools/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Run users Test
         if: steps.changes.outputs.users == 'true'
         run: |
-          cd users
-          go test ./... --race -v -coverprofile=coverage.out
+          go test --race -v -count=1 ./users/...
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Upload coverage

@@ -1,0 +1,142 @@
+# Copyright (c) Abstract Machines
+# SPDX-License-Identifier: Apache-2.0
+
+name: Test
+
+on:
+  workflow_call:
+    inputs:
+      service:
+        required: true
+        type: string
+    secrets:
+      CODECOV:
+        required: true
+
+jobs:
+  lint-and-build:
+    name: Lint and Build
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21.x
+          cache-dependency-path: "go.sum"
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v3
+        with:
+          version: latest
+
+      - name: Compile check for rabbitmq
+        run: |
+          MG_MESSAGE_BROKER_TYPE=rabbitmq make mqtt
+
+      - name: Compile check for redis
+        run: |
+          MG_ES_TYPE=redis make mqtt
+
+      - name: Check for changes in 'tools' directory
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any:
+              - 'tools/e2e/**'
+
+  run-tests:
+    name: Run ${{ matrix.service.name }}Tests
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    strategy:
+      matrix:
+        service:
+          - name: users
+            paths: "users/** cmd/users/** auth/service.go auth/api/grpc/client.go"
+
+          - name: things
+            paths: "things/** cmd/things/** auth/service.go auth/api/grpc/client.go"
+
+          - name: coap
+            paths: "coap/** cmd/coap/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
+
+          - name: http
+            paths: "http/** cmd/http/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
+
+          - name: mqtt
+            paths: "mqtt/** cmd/mqtt/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
+
+          - name: ws
+            paths: "ws/** cmd/ws/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
+
+          - name: certs
+            paths: "certs/** cmd/certs/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
+
+          - name: provision
+            paths: "provision/** cmd/provision/**"
+
+          - name: cli
+            paths: "cli/** cmd/cli/**"
+
+          - name: lora
+            paths: "lora/** cmd/lora/**"
+
+          - name: opcua
+            paths: "opcua/** cmd/opcua/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
+
+          - name: logger
+            paths: "logger/**"
+
+          - name: tools
+            paths: "tools/**"
+
+          - name: internal
+            paths: "internal/**"
+
+          - name: pkg
+            paths: "pkg/**"
+
+          - name: readers
+            paths: "readers/** cmd/cassandra-reader/** cmd/influxdb-reader/** cmd/mongodb-reader/** cmd/postgres-reader/** cmd/timescale-reader/* things/api/grpc/** auth/service.go auth/api/grpc/client.go"
+
+          - name: consumers
+            paths: "consumers/** cmd/cassandra-writer/** cmd/influxdb-writer/** cmd/mongodb-writer/** cmd/postgres-writer/** cmd/timescale-writer/** cmd/smpp-notifier/** cmd/smtp-notifier/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
+
+          - name: twins
+            paths: "twins/** cmd/twins/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
+
+          - name: bootstrap
+            paths: "bootstrap/** cmd/bootstrap/** things/policies/postgres/polices.go things/policies/api/grpc/client.go"
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            any: 
+                - '${{ matrix.service.paths }}/**'
+
+      - name: Run ${{ matrix.service.name}} tests
+        run: |
+          cd ${{ matrix.service.name }}
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v3
+        with:
+          token: ${{ secrets.CODECOV }}
+          name: codecov-umbrella
+          verbose: true
