@@ -35,11 +35,6 @@ jobs:
       - name: Compile check for redis
         run: |
           MG_ES_TYPE=redis make mqtt
-       
-      - name: Build Binaries
-        run: |
-          make all -j $(nproc)
-          make dockers_dev -j $(nproc)
 
   run-tests:
     name: Run ${{ matrix.service.name }} Tests
