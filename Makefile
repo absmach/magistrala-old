@@ -127,7 +127,7 @@ test:
 
 test_and_cover:
 	go test ./... --race -v -coverprofile=coverage.out
-    go tool cover -html=coverage.out -o coverage.html
+	go tool cover -html=coverage.out -o coverage.html
 
 proto:
 	protoc -I. --go_out=. --go_opt=paths=source_relative pkg/messaging/*.proto
