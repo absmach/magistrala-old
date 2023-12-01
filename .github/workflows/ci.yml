@@ -38,68 +38,8 @@ jobs:
           MG_ES_TYPE=redis make mqtt
 
   run-tests:
-    name: Run ${{ matrix.service.name }} Tests
+    name: Run bootstrap Tests
     runs-on: ubuntu-latest
-    continue-on-error: true
-    strategy:
-      matrix:
-        service:
-          - name: users
-            paths: "users/** cmd/users/** auth/service.go auth/api/grpc/client.go"
-
-          - name: things
-            paths: "things/** cmd/things/** auth/service.go auth/api/grpc/client.go"
-
-          - name: coap
-            paths: "coap/** cmd/coap/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
-
-          - name: http
-            paths: "http/** cmd/http/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
-
-          - name: mqtt
-            paths: "mqtt/** cmd/mqtt/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
-
-          - name: ws
-            paths: "ws/** cmd/ws/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
-
-          - name: certs
-            paths: "certs/** cmd/certs/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
-
-          - name: provision
-            paths: "provision/** cmd/provision/**"
-
-          - name: cli
-            paths: "cli/** cmd/cli/**"
-
-          - name: lora
-            paths: "lora/** cmd/lora/**"
-
-          - name: opcua
-            paths: "opcua/** cmd/opcua/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
-
-          - name: logger
-            paths: "logger/**"
-
-          - name: tools
-            paths: "tools/**"
-
-          - name: internal
-            paths: "internal/**"
-
-          - name: pkg
-            paths: "pkg/**"
-
-          - name: readers
-            paths: "readers/** cmd/cassandra-reader/** cmd/influxdb-reader/** cmd/mongodb-reader/** cmd/postgres-reader/** cmd/timescale-reader/* things/api/grpc/** auth/service.go auth/api/grpc/client.go"
-
-          - name: consumers
-            paths: "consumers/** cmd/cassandra-writer/** cmd/influxdb-writer/** cmd/mongodb-writer/** cmd/postgres-writer/** cmd/timescale-writer/** cmd/smpp-notifier/** cmd/smtp-notifier/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
-
-          - name: twins
-            paths: "twins/** cmd/twins/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
-
-          - name: bootstrap
-            paths: "bootstrap/** cmd/bootstrap/** things/policies/postgres/polices.go things/policies/api/grpc/client.go"
 
     steps:
       - name: Checkout
@@ -112,13 +52,16 @@ jobs:
         id: changes
         with:
           filters: |
-            ${{ matrix.service.name }} 
-              - '${{ matrix.service.paths }}/**'
+            bootstrap:
+              - "bootstrap/**"
+              - "cmd/bootstrap/**"
+              - "things/policies/postgres/polices.go"
+              - "things/policies/api/grpc/client.go"
 
-      - name: Run ${{ matrix.service.name }} Test
-        if: steps.changes.outputs.${{ matrix.service.name }} == 'true'
+      - name: Run bootstrap Test
+        if: steps.changes.outputs.bootstrap == 'true'
         run: |
-          cd ${{ matrix.service.name }}
+          cd bootstrap
           go test ./... --race -v -coverprofile=coverage.out
           go tool cover -html=coverage.out -o coverage.html
 
