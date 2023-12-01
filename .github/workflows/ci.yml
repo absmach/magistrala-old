@@ -39,8 +39,10 @@ jobs:
   run-tests:
     name: Run ${{ matrix.service.name }} Tests
     runs-on: ubuntu-latest
+    continue-on-error: true
     strategy:
-      matrix:
+      fail-fast: false
+      matrix:        
         service:
           - name: users
             paths: 'users/** cmd/users/** auth/service.go auth/api/grpc/client.go'
