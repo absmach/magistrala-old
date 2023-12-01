@@ -62,8 +62,7 @@ jobs:
         if: steps.changes.outputs.bootstrap == 'true'
         run: |
           cd bootstrap
-          go test ./... --race -v -coverprofile=coverage.out
-          go tool cover -html=coverage.out -o coverage.html
+          make test_and_cover
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3
