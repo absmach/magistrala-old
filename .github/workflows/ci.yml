@@ -155,109 +155,127 @@ jobs:
         if: steps.changes.outputs.bootstrap == 'true'
         run: |
           cd bootstrap
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run certs Test
         if: steps.changes.outputs.certs == 'true'
         run: |
           cd certs
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run cli Test
         if: steps.changes.outputs.cli == 'true'
         run: |
           cd cli
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run coap Test
         if: steps.changes.outputs.coap == 'true'
         run: |
           cd coap
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run consumers Test
         if: steps.changes.outputs.consumers == 'true'
         run: |
           cd consumers
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run http Test
         if: steps.changes.outputs.http == 'true'
         run: |
           cd http
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run internal Test
         if: steps.changes.outputs.internal == 'true'
         run: |
           cd internal
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run lora Test
         if: steps.changes.outputs.lora == 'true'
         run: |
           cd lora
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run logger Test
         if: steps.changes.outputs.logger == 'true'
         run: |
           cd logger
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run mqtt Test
         if: steps.changes.outputs.mqtt == 'true'
         run: |
           cd mqtt
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run opcua Test
         if: steps.changes.outputs.opcua == 'true'
         run: |
           cd opcua
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run pkg Test
         if: steps.changes.outputs.pkg == 'true'
         run: |
           cd pkg
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run provision Test
         if: steps.changes.outputs.provision == 'true'
         run: |
           cd provision
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run readers Test
         if: steps.changes.outputs.readers == 'true'
         run: |
           cd readers
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run things Test
         if: steps.changes.outputs.things == 'true'
         run: |
           cd things
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run twins Test
         if: steps.changes.outputs.twins == 'true'
         run: |
           cd twins
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run tools Test
         if: steps.changes.outputs.tools == 'true'
         run: |
           cd tools
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Run users Test
         if: steps.changes.outputs.users == 'true'
         run: |
           cd users
-          make test_and_cover
+          go test ./... --race -v -coverprofile=coverage.out
+          go tool cover -html=coverage.out -o coverage.html
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3
