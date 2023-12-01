@@ -86,6 +86,9 @@ jobs:
           - name: tools
             paths: 'tools/**'
 
+          - name: bootstrap
+            paths: 'bootstrap/** cmd/bootstrap/** things/policies/postgres/policies.go things/policies/api/grpc/client.go'
+
     steps: 
       - name: Checkout
         uses: actions/checkout@v4
