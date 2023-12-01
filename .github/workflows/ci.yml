@@ -65,6 +65,7 @@ jobs:
               - "things/api/grpc/**"
               - "auth/service.go"
               - "auth/api/grpc/client.go"
+              
             cli:
               - "cli/**"
               - "cmd/cli/**"
