@@ -42,7 +42,7 @@ jobs:
           make dockers_dev -j $(nproc)
 
   run-tests:
-    name: Run Tests
+    name: Run ${{ matrix.service.name }} Tests
     runs-on: ubuntu-latest
     strategy:
       matrix:
