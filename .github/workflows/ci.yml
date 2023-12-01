@@ -107,7 +107,7 @@ jobs:
             any: 
               - '${{ matrix.service.paths }}/**'
 
-      - name: Test ${{ matrix.service.name }}
+      - name: Run ${{ matrix.service.name }} Test
         run: |
           cd ${{ matrix.service.name }}
           go test ./... --race -v -coverprofile=coverage.out
