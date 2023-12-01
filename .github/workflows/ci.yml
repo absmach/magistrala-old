@@ -18,7 +18,7 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name : Setup Go
+      - name: Setup Go
         uses: actions/setup-go@v4
         with:
           go-version: 1.21.x
@@ -42,84 +42,81 @@ jobs:
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
-      matrix:        
+      matrix:
         service:
           - name: users
-            paths: 'users/** cmd/users/** auth/service.go auth/api/grpc/client.go'
+            paths: "users/** cmd/users/** auth/service.go auth/api/grpc/client.go"
 
           - name: things
-            paths: 'things/** cmd/things/** auth/service.go auth/api/grpc/client.go'
+            paths: "things/** cmd/things/** auth/service.go auth/api/grpc/client.go"
 
           - name: coap
-            paths: 'coap/** cmd/coap/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+            paths: "coap/** cmd/coap/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
 
           - name: http
-            paths: 'http/** cmd/http/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+            paths: "http/** cmd/http/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
 
           - name: mqtt
-            paths: 'mqtt/** cmd/mqtt/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
-            
+            paths: "mqtt/** cmd/mqtt/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
+
           - name: ws
-            paths: 'ws/** cmd/ws/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+            paths: "ws/** cmd/ws/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
 
           - name: certs
-            paths:  'certs/** cmd/certs/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+            paths: "certs/** cmd/certs/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
 
           - name: provision
-            paths: 'provision/** cmd/provision/**'
+            paths: "provision/** cmd/provision/**"
 
           - name: cli
-            paths: 'cli/** cmd/cli/**'
+            paths: "cli/** cmd/cli/**"
 
           - name: lora
-            paths: 'lora/** cmd/lora/**'
+            paths: "lora/** cmd/lora/**"
 
           - name: opcua
-            paths: 'opcua/** cmd/opcua/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+            paths: "opcua/** cmd/opcua/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
 
           - name: logger
-            paths: 'logger/**'
+            paths: "logger/**"
 
           - name: tools
-            paths: 'tools/**'
+            paths: "tools/**"
 
           - name: internal
-            paths: 'internal/**'
+            paths: "internal/**"
 
           - name: pkg
-            paths: 'pkg/**'
+            paths: "pkg/**"
 
           - name: readers
-            paths: 'readers/** cmd/cassandra-reader/** cmd/influxdb-reader/** cmd/mongodb-reader/** cmd/postgres-reader/** cmd/timescale-reader/* things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+            paths: "readers/** cmd/cassandra-reader/** cmd/influxdb-reader/** cmd/mongodb-reader/** cmd/postgres-reader/** cmd/timescale-reader/* things/api/grpc/** auth/service.go auth/api/grpc/client.go"
 
           - name: consumers
-            paths: 'consumers/** cmd/cassandra-writer/** cmd/influxdb-writer/** cmd/mongodb-writer/** cmd/postgres-writer/** cmd/timescale-writer/** cmd/smpp-notifier/** cmd/smtp-notifier/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+            paths: "consumers/** cmd/cassandra-writer/** cmd/influxdb-writer/** cmd/mongodb-writer/** cmd/postgres-writer/** cmd/timescale-writer/** cmd/smpp-notifier/** cmd/smtp-notifier/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
 
           - name: twins
-            paths: 'twins/** cmd/twins/** things/api/grpc/** auth/service.go auth/api/grpc/client.go'
+            paths: "twins/** cmd/twins/** things/api/grpc/** auth/service.go auth/api/grpc/client.go"
 
           - name: bootstrap
-            paths: 'bootstrap/** cmd/bootstrap/** things/policies/postgres/polices.go things/policies/api/grpc/client.go'
-            
-    steps: 
+            paths: "bootstrap/** cmd/bootstrap/** things/policies/postgres/polices.go things/policies/api/grpc/client.go"
+
+    steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
-      - name: Get changed files
-        id: changed-files
-        uses: tj-actions/changed-files@v40
-
       - name: Check for changes in specific paths
         uses: dorny/paths-filter@v2
         id: changes
-        with: 
+        with:
           filters: |
-            any: 
+            ${{ matrix.service.name }} 
               - '${{ matrix.service.paths }}/**'
 
       - name: Run ${{ matrix.service.name }} Test
+        if: steps.changes.outputs.${{ matrix.service.name }} == 'true'
         run: |
           cd ${{ matrix.service.name }}
           go test ./... --race -v -coverprofile=coverage.out
