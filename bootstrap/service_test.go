@@ -110,7 +110,7 @@ func enc(in []byte) ([]byte, error) {
 }
 
 func TestAdd(t *testing.T) {
-	tsvc, gsvc, repo, chrepo, auth := newThingsService()
+	tsvc, gsvc, trepo, chrepo, auth := newThingsService()
 	ts := newThingsServer(tsvc, gsvc)
 	svc := newService(ts.URL, auth)
 	neID := config
