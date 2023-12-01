@@ -282,6 +282,7 @@ func TestClientsRetrieveNames(t *testing.T) {
 		require.Nil(t, err, fmt.Sprintf("save client unexpected error: %s", err))
 
 		users[i] = mgclients.Client{
+			ID:   client.ID,
 			Name: client.Name,
 		}
 	}
