@@ -51,7 +51,7 @@ jobs:
               - 'tools/e2e/**'
 
   run-tests:
-    name: Run ${{ matrix.service.name }}Tests
+    name: Run ${{ matrix.service.name }} Tests
     runs-on: ubuntu-latest
     continue-on-error: true
     strategy:
