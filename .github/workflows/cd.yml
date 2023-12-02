@@ -17,10 +17,6 @@ jobs:
     secrets: inherit
 
   test:
-    strategy:
-      matrix:
-        service: [users, things, coap, http, mqtt, ws, certs, provision, cli, lora, opcua, logger, tools, internal, pkg, readers, consumers, twins, bootstrap]
-
     uses: ./.github/workflows/test.yml
     secrets: inherit 
     with:
