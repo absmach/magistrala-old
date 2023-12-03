@@ -14,9 +14,9 @@ on:
 jobs:
   build:
     uses: ./.github/workflows/build.yml
-    secrets: 
-      password: ${{ secrets.DOCKER_TOKEN }}
-      username: ${{ secrets.DOCKER_USERNAME }}
+    secrets:
+      DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
+      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
 
   test:
     uses: ./.github/workflows/test.yml
