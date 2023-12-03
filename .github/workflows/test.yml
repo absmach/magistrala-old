@@ -10,7 +10,7 @@ on:
         required: true
         type: string
     secrets:
-      CODECOV:
+      token:
         required: true
 
 jobs:

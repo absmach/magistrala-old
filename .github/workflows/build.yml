@@ -6,9 +6,9 @@ name: Build
 on:
   workflow_call:
     secrets:
-       DOCKER_USERNAME:
+       username:
             required: true
-       DOCKER_TOKEN:
+       password:
             required: true
 
 jobs:

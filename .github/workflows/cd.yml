@@ -7,14 +7,20 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
     uses: ./.github/workflows/build.yml
-    secrets: inherit
+    secrets: 
+      password: ${{ secrets.DOCKER_TOKEN }}
+      username: ${{ secrets.DOCKER_USERNAME }}
 
   test:
     uses: ./.github/workflows/test.yml
-    secrets: inherit 
     with:
       service: ${{ matrix.service }}
+    secrets:
+      token: ${{ secrets.CODECOV }}
