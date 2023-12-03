@@ -41,15 +41,7 @@ jobs:
       - name: Compile check for redis
         run: |
           MG_ES_TYPE=redis make mqtt
-
-      - name: Check for changes in 'tools' directory
-        uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            any:
-              - 'tools/e2e/**'
-
+          
   run-tests:
     name: Run ${{ matrix.service.name }} Tests
     runs-on: ubuntu-latest

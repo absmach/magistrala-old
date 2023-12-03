@@ -9,6 +9,13 @@ on:
       - main
 
 jobs:
+  test:
+    uses: ./.github/workflows/test.yml
+    with:
+      service: ${{ matrix.service }}
+    secrets:
+      CODECOV: ${{ secrets.CODECOV }}
+
   build-and-push:
     name: Build and Push
     runs-on: ubuntu-latest
@@ -45,10 +52,3 @@ jobs:
       - name: Build and push Dockers
         run: |
           make latest -j $(nproc)
-
-  test:
-    uses: ./.github/workflows/test.yml
-    with:
-      service: ${{ matrix.service }}
-    secrets:
-      CODECOV: ${{ secrets.CODECOV }}

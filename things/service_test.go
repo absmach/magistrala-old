@@ -283,6 +283,8 @@ func TestViewClient(t *testing.T) {
 		{
 			desc:     "view client with an invalid token",
 			response: mgclients.Client{},
+			token:    authmocks.InvalidValue,
+			clientID: "",
 			err:      errors.ErrAuthorization,
 		},
 		{
