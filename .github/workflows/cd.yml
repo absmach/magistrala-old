@@ -12,15 +12,46 @@ on:
       - main
 
 jobs:
-  build:
-    uses: ./.github/workflows/build.yml
-    secrets:
-      DOCKER_TOKEN: ${{ secrets.DOCKER_TOKEN }}
-      DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+  build-and-push:
+    name: Build and Push
+    runs-on: ubuntu-latest
+    continue-on-error: true
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: 1.21.x
+          cache-dependency-path: "go.sum"
+
+      - name: Compile check for rabbitmq
+        run: |
+          MG_MESSAGE_BROKER_TYPE=rabbitmq make mqtt
+
+      - name: Compile check for redis
+        run: |
+          MG_ES_TYPE=redis make mqtt
+
+      - name: Set up Docker Build
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          registry: docker.io
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_TOKEN }}
+
+      - name: Build and push Dockers
+        run: |
+          make latest -j $(nproc)
 
   test:
     uses: ./.github/workflows/test.yml
     with:
       service: ${{ matrix.service }}
     secrets:
-      token: ${{ secrets.CODECOV }}
+      CODECOV: ${{ secrets.CODECOV }}
