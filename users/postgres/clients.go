@@ -204,7 +204,7 @@ func (repo clientRepo) UpdateRole(ctx context.Context, client mgclients.Client) 
 func (repo clientRepo) RetrieveNames(ctx context.Context, pm mgclients.Page) (mgclients.ClientsPage, error) {
 	sq, tq := constructQuery(pm)
 
-	q := fmt.Sprintf("SELECT id, name FROM clients %s LIMIT :limit OFFSET :offset", sq)
+	q := fmt.Sprintf("SELECT id, name FROM clients %s LIMIT :limit OFFSET :offset;", sq)
 
 	dbPage, err := pgclients.ToDBClientsPage(pm)
 	if err != nil {
@@ -254,11 +254,12 @@ func constructQuery(pm mgclients.Page) (string, string) {
 	var query []string
 	var emq string
 	var tq string
+
 	if pm.Name != "" {
-		query = append(query, fmt.Sprintf("name ILIKE '%%%s%%'", pm.Name))
+		query = append(query, "name ~ :name")
 	}
 	if pm.Identity != "" {
-		query = append(query, fmt.Sprintf("identity ILIKE '%%%s%%'", pm.Identity))
+		query = append(query, "identity ~ :identity")
 	}
 
 	if len(query) > 0 {
