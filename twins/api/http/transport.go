@@ -52,12 +52,6 @@ func MakeHandler(svc twins.Service, logger logger.Logger, instanceID string) htt
 			encodeResponse,
 			opts...,
 		), "list_twins").ServeHTTP)
-		r.Put("/", otelhttp.NewHandler(kithttp.NewServer(
-			updateTwinEndpoint(svc),
-			decodeTwinUpdate,
-			encodeResponse,
-			opts...,
-		), "update_twin").ServeHTTP)
 		r.Put("/{twinID}", otelhttp.NewHandler(kithttp.NewServer(
 			updateTwinEndpoint(svc),
 			decodeTwinUpdate,
@@ -70,12 +64,6 @@ func MakeHandler(svc twins.Service, logger logger.Logger, instanceID string) htt
 			encodeResponse,
 			opts...,
 		), "view_twin").ServeHTTP)
-		r.Delete("/", otelhttp.NewHandler(kithttp.NewServer(
-			removeTwinEndpoint(svc),
-			decodeView,
-			encodeResponse,
-			opts...,
-		), "remove_twin").ServeHTTP)
 		r.Delete("/{twinID}", otelhttp.NewHandler(kithttp.NewServer(
 			removeTwinEndpoint(svc),
 			decodeView,
