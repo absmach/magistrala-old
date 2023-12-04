@@ -23,7 +23,7 @@ jobs:
           go-version: 1.21.x
           cache-dependency-path: "go.sum"
 
-      - name: Run Tests
+      - name: Run tests
         run: |
           make test
           go tool cover -html=coverage.out -o coverage.html
