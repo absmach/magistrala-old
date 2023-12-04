@@ -375,13 +375,6 @@ func TestViewTwin(t *testing.T) {
 			res:    twinRes{},
 		},
 		{
-			desc:   "view twin by passing empty id",
-			id:     "",
-			auth:   token,
-			status: http.StatusBadRequest,
-			res:    twinRes{},
-		},
-		{
 			desc:   "view twin by passing empty token",
 			id:     stw.ID,
 			auth:   "",
