@@ -62,6 +62,7 @@ func (page InvitationPage) MarshalJSON() ([]byte, error) {
 	return json.Marshal(a)
 }
 
+// Service is an interface that defines methods for managing invitations.
 type Service interface {
 	// SendInvitation sends an invitation to the email address associated with the given user.
 	SendInvitation(ctx context.Context, token, host string, invitation Invitation) (err error)
@@ -96,6 +97,8 @@ type Repository interface {
 	Delete(ctx context.Context, userID, domain string) (err error)
 }
 
+// CheckRelation checks if the given relation is valid.
+// It returns an error if the relation is empty or invalid.
 func CheckRelation(relation string) error {
 	if relation == "" {
 		return errMissingRelation
