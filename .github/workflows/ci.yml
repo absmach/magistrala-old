@@ -164,111 +164,116 @@ jobs:
               - "auth/service.go"
               - "auth/api/grpc/client.go"
 
+      - name: Create coverage directory
+        run: |
+          mkdir coverage
+
       - name: Run bootstrap Test
         if: steps.changes.outputs.bootstrap == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./bootstrap/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/bootstrap.out ./bootstrap/...
+          go tool cover -html=coverage/bootstrap.out -o coverage/bootstrap.html
 
       - name: Run certs Test
         if: steps.changes.outputs.certs == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./certs/...        
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/certs.out ./certs/...        
+          go tool cover -html=coverage/certs.out -o coverage/certs.html
 
       - name: Run CoAP Test
         if: steps.changes.outputs.coap == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./coap/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/coap.out ./coap/...
+          go tool cover -html=coverage/coap.out -o coverage/coap.html
 
       - name: Run consumers Test
         if: steps.changes.outputs.consumers == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./consumers/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/consumers.out ./consumers/...
+          go tool cover -html=coverage/consumers.out -o coverage/consumers.html
 
       - name: Run HTTP Test
         if: steps.changes.outputs.http == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./http/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/http.out ./http/...
+          go tool cover -html=coverage/http.out -o coverage/http.html
 
       - name: Run internal Test
         if: steps.changes.outputs.internal == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./internal/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/internal.out ./internal/...
+          go tool cover -html=coverage/internal.out -o coverage/internal.html
 
       - name: Run logger Test
         if: steps.changes.outputs.logger == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./logger/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/logger.out ./logger/...
+          go tool cover -html=coverage/logger.out -o coverage/logger.html
 
       - name: Run LoRa Test
         if: steps.changes.outputs.lora == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./lora/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/lora.out ./lora/...
+          go tool cover -html=coverage/lora.out -o coverage/lora.html
 
       - name: Run MQTT Test
         if: steps.changes.outputs.mqtt == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./mqtt/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/mqtt.out ./mqtt/...
+          go tool cover -html=coverage/mqtt.out -o coverage/mqtt.html
 
       - name: Run OPC-UA Test
         if: steps.changes.outputs.opcua == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./opcua/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/opcua.out ./opcua/...
+          go tool cover -html=coverage/opcua.out -o coverage/opcua.html
 
       - name: Run pkg Test
         if: steps.changes.outputs.pkg == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./pkg/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/pkg.out ./pkg/...
+          go tool cover -html=coverage/pkg.out -o coverage/pkg.html
 
       - name: Run provision Test
         if: steps.changes.outputs.provision == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./provision/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/provision.out ./provision/...
+          go tool cover -html=coverage/provision.out -o coverage/provision.html
 
       - name: Run readers Test
         if: steps.changes.outputs.readers == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./readers/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/readers.out ./readers/...
+          go tool cover -html=coverage/readers.out -o coverage/readers.html
 
       - name: Run things Test
         if: steps.changes.outputs.things == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./things/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/things.out ./things/...
+          go tool cover -html=coverage/things.out -o coverage/things.html
 
       - name: Run twins Test
         if: steps.changes.outputs.twins == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./twins/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/twins.out ./twins/...
+          go tool cover -html=coverage/twins.out -o coverage/twins.html
 
       - name: Run users Test
         if: steps.changes.outputs.users == 'true'
         run: |
-          go test --race -v -count=1 -coverprofile=coverage.out ./users/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 -coverprofile=coverage/users.out ./users/...
+          go tool cover -html=coverage/users.out -o coverage/users.html
 
       - name: Run WebSocket Test
         if: steps.changes.outputs.ws == 'true'
         run: |
-          go test --race -v -count=1 =coverprofile=coverage.out ./ws/...
-          go tool cover -html=coverage.out -o coverage.html
+          go test --race -v -count=1 =coverprofile=coverage/ws.out ./ws/...
+          go tool cover -html=coverage/ws.out -o coverage/ws.html
 
       - name: Upload coverage
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV }}
+          directory: ./coverage/
           name: codecov-umbrella
           verbose: true
