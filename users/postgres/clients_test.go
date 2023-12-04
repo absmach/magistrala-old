@@ -268,11 +268,12 @@ func TestClientsRetrieveNames(t *testing.T) {
 	name := namesgen.Generate()
 
 	for i := 0; i < nusers; i++ {
+		username := fmt.Sprintf("%s-%d@example.com", name, i)
 		client := mgclients.Client{
 			ID:   testsutil.GenerateUUID(t),
-			Name: fmt.Sprintf("%s-%d", name, i),
+			Name: username,
 			Credentials: mgclients.Credentials{
-				Identity: fmt.Sprintf("%s-%d@example.com", name, i),
+				Identity: username,
 				Secret:   password,
 			},
 			Metadata: mgclients.Metadata{},
@@ -365,7 +366,7 @@ func TestClientsRetrieveNames(t *testing.T) {
 				Limit:  10,
 			},
 			response: mgclients.ClientsPage{
-				Clients: findClient(users, users[0].Name[:1], true, false, 0, 10),
+				Clients: findClients(users, users[0].Name[:1], 0, 10),
 				Page: mgclients.Page{
 					Total:  uint64(nusers),
 					Offset: 0,
@@ -382,9 +383,77 @@ func TestClientsRetrieveNames(t *testing.T) {
 				Limit:  10,
 			},
 			response: mgclients.ClientsPage{
-				Clients: findClient(users, users[0].Name[:4], true, false, 0, 10),
+				Clients: findClients(users, users[0].Name[:4], 0, 10),
 				Page: mgclients.Page{
 					Total:  uint64(nusers),
+					Offset: 0,
+					Limit:  10,
+				},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve all clients with name with SQL injection",
+			page: mgclients.Page{
+				Name:   fmt.Sprintf("%s' OR '1'='1", users[0].Name[:1]),
+				Offset: 0,
+				Limit:  10,
+			},
+			response: mgclients.ClientsPage{
+				Clients: []mgclients.Client(nil),
+				Page: mgclients.Page{
+					Total:  0,
+					Offset: 0,
+					Limit:  10,
+				},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve all clients with Identity",
+			page: mgclients.Page{
+				Identity: users[0].Name[:1],
+				Offset:   0,
+				Limit:    10,
+			},
+			response: mgclients.ClientsPage{
+				Clients: findClients(users, users[0].Name[:1], 0, 10),
+				Page: mgclients.Page{
+					Total:  uint64(nusers),
+					Offset: 0,
+					Limit:  10,
+				},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve all clients with Identity",
+			page: mgclients.Page{
+				Identity: users[0].Name[:4],
+				Offset:   0,
+				Limit:    10,
+			},
+			response: mgclients.ClientsPage{
+				Clients: findClients(users, users[0].Name[:4], 0, 10),
+				Page: mgclients.Page{
+					Total:  uint64(nusers),
+					Offset: 0,
+					Limit:  10,
+				},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve all clients with Identity with SQL injection",
+			page: mgclients.Page{
+				Identity: fmt.Sprintf("%s' OR '1'='1", users[0].Name[:1]),
+				Offset:   0,
+				Limit:    10,
+			},
+			response: mgclients.ClientsPage{
+				Clients: []mgclients.Client(nil),
+				Page: mgclients.Page{
+					Total:  0,
 					Offset: 0,
 					Limit:  10,
 				},
@@ -395,6 +464,23 @@ func TestClientsRetrieveNames(t *testing.T) {
 			desc: "retrieve all clients unknown name",
 			page: mgclients.Page{
 				Name:   "unknown",
+				Offset: 0,
+				Limit:  10,
+			},
+			response: mgclients.ClientsPage{
+				Clients: []mgclients.Client(nil),
+				Page: mgclients.Page{
+					Total:  0,
+					Offset: 0,
+					Limit:  10,
+				},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve all clients unknown name with SQL injection",
+			page: mgclients.Page{
+				Name:   "unknown' OR '1'='1",
 				Offset: 0,
 				Limit:  10,
 			},
@@ -430,6 +516,7 @@ func TestClientsRetrieveNames(t *testing.T) {
 			page: mgclients.Page{
 				Order:  "name",
 				Dir:    "asc",
+				Name:   users[0].Name[:1],
 				Offset: 0,
 				Limit:  10,
 			},
@@ -441,6 +528,7 @@ func TestClientsRetrieveNames(t *testing.T) {
 			page: mgclients.Page{
 				Order:  "name",
 				Dir:    "desc",
+				Name:   users[0].Name[:1],
 				Offset: 0,
 				Limit:  10,
 			},
@@ -450,10 +538,11 @@ func TestClientsRetrieveNames(t *testing.T) {
 		{
 			desc: "retrieve all clients with order",
 			page: mgclients.Page{
-				Order:  "identity",
-				Dir:    "asc",
-				Offset: 0,
-				Limit:  10,
+				Order:    "identity",
+				Dir:      "asc",
+				Identity: users[0].Name[:1],
+				Offset:   0,
+				Limit:    10,
 			},
 			response: mgclients.ClientsPage{},
 			err:      nil,
@@ -461,10 +550,11 @@ func TestClientsRetrieveNames(t *testing.T) {
 		{
 			desc: "retrieve all clients with order",
 			page: mgclients.Page{
-				Order:  "identity",
-				Dir:    "desc",
-				Offset: 0,
-				Limit:  10,
+				Order:    "identity",
+				Dir:      "desc",
+				Identity: users[0].Name[:1],
+				Offset:   0,
+				Limit:    10,
 			},
 			response: mgclients.ClientsPage{},
 			err:      nil,
@@ -482,13 +572,10 @@ func TestClientsRetrieveNames(t *testing.T) {
 	}
 }
 
-func findClient(clients []mgclients.Client, query string, name, email bool, offset, limit uint64) []mgclients.Client {
+func findClients(clients []mgclients.Client, query string, offset, limit uint64) []mgclients.Client {
 	clis := []mgclients.Client{}
 	for _, client := range clients {
-		if name && strings.Contains(client.Name, query) {
-			clis = append(clis, client)
-		}
-		if email && strings.Contains(client.Credentials.Identity, query) {
+		if strings.Contains(client.Name, query) {
 			clis = append(clis, client)
 		}
 	}
