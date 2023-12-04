@@ -25,17 +25,16 @@ body:
       description: A clear and concise description of what you want to happen.
     validations:
       required: true
-  - type: checkboxes
+  - type: dropdown
     attributes:
       label: Indicate the importance of this feature to you.
       description: This will help us prioritize the feature request.
       options:
-        - label: Must-have
-          required: false
-        - label: Should-have
-          required: false
-        - label: Nice-to-have
-          required: false
+        - Must-have
+        - Should-have
+        - Nice-to-have
+    validations:
+      required: true
   - type: textarea
     attributes:
       label: Anything else?
