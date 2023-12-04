@@ -3,8 +3,8 @@
 
 name: Bug Report
 description: File a bug/issue
-title: "[BUG] <title>"
-labels: ["bug", "needs-review", "needs-reproduction"]
+title: "Bug: <title>"
+labels: ["bug", "needs-review", "help wanted"]
 body:
   - type: checkboxes
     attributes:

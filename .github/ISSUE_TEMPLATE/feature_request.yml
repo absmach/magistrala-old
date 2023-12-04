@@ -3,8 +3,8 @@
 
 name: Feature Request
 description: File a feature request
-title: "[FEATURE] <title>"
-labels: ["feature", "needs-review"]
+title: "Feature: <title>"
+labels: ["enchancement", "needs-review"]
 body:
   - type: checkboxes
     attributes:
