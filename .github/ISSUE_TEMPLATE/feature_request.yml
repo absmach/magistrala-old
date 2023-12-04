@@ -2,17 +2,10 @@
 # SPDX-License-Identifier: Apache-2.0
 
 name: Feature Request
-description: File a feature request
+description: File a feature request. Make sure to search to see if a request already exists for the feature you are requesting.
 title: "Feature: <title>"
 labels: ["enchancement", "needs-review"]
 body:
-  - type: checkboxes
-    attributes:
-      label: Is there an existing feature request for this?
-      description: Please search to see if a request already exists for the feature that you are requesting.
-      options:
-        - label: I have searched the existing feature requests
-          required: true
   - type: textarea
     attributes:
       label: Is your feature request related to a problem? Please describe.
