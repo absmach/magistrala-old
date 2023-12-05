@@ -119,7 +119,6 @@ func (repo domainRepo) RetrievePermissions(ctx context.Context, subject, id stri
 		}
 	}
 	return permissions, nil
-
 }
 
 // RetrieveAllByIDs retrieves for given Domain IDs .

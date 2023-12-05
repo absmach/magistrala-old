@@ -81,7 +81,7 @@ type DomainsRepository interface {
 	// RetrieveByID retrieves Domain by its unique ID.
 	RetrieveByID(ctx context.Context, id string) (Domain, error)
 
-	//RetrievePermissions retrieves Domain permission
+	// RetrievePermissions retrieves domain permissions.
 	RetrievePermissions(ctx context.Context, subject, id string) ([]string, error)
 
 	// RetrieveAllByIDs retrieves for given Domain IDs .
