@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/absmach/magistrala/logger"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/lora"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -30,7 +29,7 @@ type broker struct {
 }
 
 // NewBroker returns new MQTT broker instance.
-func NewBroker(svc lora.Service, client mqtt.Client, t time.Duration, log logger.Logger) Subscriber {
+func NewBroker(svc lora.Service, client mqtt.Client, t time.Duration, log mglog.Logger) Subscriber {
 	return broker{
 		svc:     svc,
 		client:  client,

@@ -29,7 +29,7 @@ func LoggingMiddleware(svc lora.Service, logger mglog.Logger) lora.Service {
 	}
 }
 
-func (lm loggingMiddleware) CreateThing(ctx context.Context, thingID string, loraDevEUI string) (err error) {
+func (lm loggingMiddleware) CreateThing(ctx context.Context, thingID, loraDevEUI string) (err error) {
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("create_thing for thing %s and lora-dev-eui %s took %s to complete", thingID, loraDevEUI, time.Since(begin))
 		if err != nil {
@@ -42,7 +42,7 @@ func (lm loggingMiddleware) CreateThing(ctx context.Context, thingID string, lor
 	return lm.svc.CreateThing(ctx, thingID, loraDevEUI)
 }
 
-func (lm loggingMiddleware) UpdateThing(ctx context.Context, thingID string, loraDevEUI string) (err error) {
+func (lm loggingMiddleware) UpdateThing(ctx context.Context, thingID, loraDevEUI string) (err error) {
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("update_thing for thing %s and lora-dev-eui %s took %s to complete", thingID, loraDevEUI, time.Since(begin))
 		if err != nil {

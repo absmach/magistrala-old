@@ -215,7 +215,7 @@ func main() {
 	}
 }
 
-func newService(ctx context.Context, db *sqlx.DB, dbConfig pgclient.Config, auth magistrala.AuthServiceClient, cacheClient *redis.Client, keyDuration time.Duration, esURL string, tracer trace.Tracer, logger mglog.Logger) (things.Service, groups.Service, error) {
+func newService(ctx context.Context, db *sqlx.DB, dbConfig pgclient.Config, authClient magistrala.AuthServiceClient, cacheClient *redis.Client, keyDuration time.Duration, esURL string, tracer trace.Tracer, logger mglog.Logger) (things.Service, groups.Service, error) {
 	database := postgres.NewDatabase(db, dbConfig, tracer)
 	cRepo := thingspg.NewRepository(database)
 	gRepo := gpostgres.New(database)
@@ -224,8 +224,8 @@ func newService(ctx context.Context, db *sqlx.DB, dbConfig pgclient.Config, auth
 
 	thingCache := thcache.NewCache(cacheClient, keyDuration)
 
-	csvc := things.NewService(auth, cRepo, gRepo, thingCache, idp)
-	gsvc := mggroups.NewService(gRepo, idp, auth)
+	csvc := things.NewService(authClient, cRepo, gRepo, thingCache, idp)
+	gsvc := mggroups.NewService(gRepo, idp, authClient)
 
 	csvc, err := thevents.NewEventStoreMiddleware(ctx, csvc, esURL)
 	if err != nil {

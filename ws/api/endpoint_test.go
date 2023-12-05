@@ -47,8 +47,8 @@ func newHTTPServer(svc ws.Service) *httptest.Server {
 }
 
 func newProxyHTPPServer(svc session.Handler, targetServer *httptest.Server) (*httptest.Server, error) {
-	url := strings.ReplaceAll(targetServer.URL, "http", "ws")
-	mp, err := websockets.NewProxy("", url, mglog.NewMock(), svc)
+	turl := strings.ReplaceAll(targetServer.URL, "http", "ws")
+	mp, err := websockets.NewProxy("", turl, mglog.NewMock(), svc)
 	if err != nil {
 		return nil, err
 	}
@@ -83,8 +83,8 @@ func handshake(tsURL, chanID, subtopic, thingKey string, addHeader bool) (*webso
 		header.Add("Authorization", thingKey)
 	}
 
-	url, _ := makeURL(tsURL, chanID, subtopic, thingKey, addHeader)
-	conn, res, errRet := websocket.DefaultDialer.Dial(url, header)
+	turl, _ := makeURL(tsURL, chanID, subtopic, thingKey, addHeader)
+	conn, res, errRet := websocket.DefaultDialer.Dial(turl, header)
 
 	return conn, res, errRet
 }

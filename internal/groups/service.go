@@ -33,11 +33,11 @@ type service struct {
 }
 
 // NewService returns a new Clients service implementation.
-func NewService(g groups.Repository, idp magistrala.IDProvider, auth magistrala.AuthServiceClient) groups.Service {
+func NewService(g groups.Repository, idp magistrala.IDProvider, authClient magistrala.AuthServiceClient) groups.Service {
 	return service{
 		groups:     g,
 		idProvider: idp,
-		auth:       auth,
+		auth:       authClient,
 	}
 }
 
@@ -452,16 +452,16 @@ func (svc service) Assign(ctx context.Context, token, groupID, relation, memberK
 }
 
 func (svc service) assignParentGroup(ctx context.Context, domain, parentGroupID string, groupIDs []string) (err error) {
-	groups, err := svc.groups.RetrieveByIDs(ctx, groups.Page{PageMeta: groups.PageMeta{Limit: 1<<63 - 1}}, groupIDs...)
+	groupsList, err := svc.groups.RetrieveByIDs(ctx, groups.Page{PageMeta: groups.PageMeta{Limit: 1<<63 - 1}}, groupIDs...)
 	if err != nil {
 		return errors.Wrap(errRetrieveGroups, err)
 	}
-	if len(groups.Groups) == 0 {
+	if len(groupsList.Groups) == 0 {
 		return errGroupIDs
 	}
 	var addPolicies magistrala.AddPoliciesReq
 	var deletePolicies magistrala.DeletePoliciesReq
-	for _, group := range groups.Groups {
+	for _, group := range groupsList.Groups {
 		if group.Parent != "" {
 			return fmt.Errorf("%s group already have parent", group.ID)
 		}
@@ -498,16 +498,16 @@ func (svc service) assignParentGroup(ctx context.Context, domain, parentGroupID 
 }
 
 func (svc service) unassignParentGroup(ctx context.Context, domain, parentGroupID string, groupIDs []string) error {
-	groups, err := svc.groups.RetrieveByIDs(ctx, groups.Page{PageMeta: groups.PageMeta{Limit: 1<<63 - 1}}, groupIDs...)
+	groupsList, err := svc.groups.RetrieveByIDs(ctx, groups.Page{PageMeta: groups.PageMeta{Limit: 1<<63 - 1}}, groupIDs...)
 	if err != nil {
 		return errors.Wrap(errRetrieveGroups, err)
 	}
-	if len(groups.Groups) == 0 {
+	if len(groupsList.Groups) == 0 {
 		return errGroupIDs
 	}
 	var addPolicies magistrala.AddPoliciesReq
 	var deletePolicies magistrala.DeletePoliciesReq
-	for _, group := range groups.Groups {
+	for _, group := range groupsList.Groups {
 		if group.Parent != "" && group.Parent != parentGroupID {
 			return fmt.Errorf("%s group doesn't have same parent", group.ID)
 		}
