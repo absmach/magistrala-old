@@ -84,6 +84,9 @@ type Repository interface {
 	// Create creates an invitation.
 	Create(ctx context.Context, invitation Invitation) (err error)
 
+	// Retrieve returns an invitation.
+	Retrieve(ctx context.Context, userID, domainID string) (Invitation, error)
+
 	// RetrieveAll returns a list of invitations based on the given page.
 	RetrieveAll(ctx context.Context, withToken bool, page Page) (invitations InvitationPage, err error)
 
@@ -94,7 +97,7 @@ type Repository interface {
 	UpdateConfirmation(ctx context.Context, invitation Invitation) (err error)
 
 	// Delete deletes an invitation.
-	Delete(ctx context.Context, userID, domain string) (err error)
+	Delete(ctx context.Context, userID, domainID string) (err error)
 }
 
 // CheckRelation checks if the given relation is valid.
