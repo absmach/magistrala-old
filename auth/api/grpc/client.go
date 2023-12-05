@@ -665,8 +665,8 @@ func encodeCountSubjectsRequest(_ context.Context, grpcReq interface{}) (interfa
 }
 
 func (client grpcClient) ListPermissions(ctx context.Context, in *magistrala.ListPermissionsReq, opts ...grpc.CallOption) (*magistrala.ListPermissionsRes, error) {
-	ctx, close := context.WithTimeout(ctx, client.timeout)
-	defer close()
+	ctx, cancel := context.WithTimeout(ctx, client.timeout)
+	defer cancel()
 
 	res, err := client.listPermissions(ctx, listPermissionsReq{
 		Domain:            in.GetDomain(),

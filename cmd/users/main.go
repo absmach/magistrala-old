@@ -203,7 +203,7 @@ func newService(ctx context.Context, authClient magistrala.AuthServiceClient, db
 		logger.Error(fmt.Sprintf("failed to configure e-mailing util: %s", err.Error()))
 	}
 
-	csvc := users.NewService(cRepo, authClient, emailer, hsr, idp, c.PassRegex, c.SelfRegister)
+	csvc := users.NewService(cRepo, authClient, emailerClient, hsr, idp, c.PassRegex, c.SelfRegister)
 	gsvc := mggroups.NewService(gRepo, idp, authClient)
 
 	csvc, err = uevents.NewEventStoreMiddleware(ctx, csvc, c.ESURL)

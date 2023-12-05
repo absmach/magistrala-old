@@ -54,7 +54,7 @@ func (ms *metricsMiddleware) ViewClientPerms(ctx context.Context, token, id stri
 	return ms.svc.ViewClientPerms(ctx, token, id)
 }
 
-func (ms *metricsMiddleware) ListClients(ctx context.Context, token string, reqUserID string, pm mgclients.Page) (mgclients.ClientsPage, error) {
+func (ms *metricsMiddleware) ListClients(ctx context.Context, token, reqUserID string, pm mgclients.Page) (mgclients.ClientsPage, error) {
 	defer func(begin time.Time) {
 		ms.counter.With("method", "list_things").Add(1)
 		ms.latency.With("method", "list_things").Observe(time.Since(begin).Seconds())

@@ -115,7 +115,7 @@ func (svc service) ViewGroup(ctx context.Context, token, id string) (groups.Grou
 	return svc.groups.RetrieveByID(ctx, id)
 }
 
-func (svc service) ViewGroupPerms(ctx context.Context, token string, id string) ([]string, error) {
+func (svc service) ViewGroupPerms(ctx context.Context, token, id string) ([]string, error) {
 	res, err := svc.identify(ctx, token)
 	if err != nil {
 		return nil, err
