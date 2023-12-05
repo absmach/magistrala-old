@@ -93,15 +93,15 @@ func (repo domainRepo) RetrieveByID(ctx context.Context, id string) (auth.Domain
 }
 
 func (repo domainRepo) RetrievePermissions(ctx context.Context, subject, id string) ([]string, error) {
-	q := fmt.Sprintf(`SELECT pc.relation as relation
+	q := `SELECT pc.relation as relation
 	FROM domains as d
 	JOIN policies pc
 	ON pc.object_id = d.id
-	WHERE d.id = '%s'
-	AND pc.subject_id = '%s'
-	`, id, subject)
+	WHERE d.id = $1
+	AND pc.subject_id = $2
+	`
 
-	rows, err := repo.db.QueryxContext(ctx, q)
+	rows, err := repo.db.QueryxContext(ctx, q, id, subject)
 	if err != nil {
 		return []string{}, errors.Wrap(postgres.ErrFailedToRetrieveAll, err)
 	}
