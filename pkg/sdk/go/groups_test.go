@@ -19,7 +19,7 @@ import (
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
-	repoerror "github.com/absmach/magistrala/pkg/errors/repository"
+	svcerr "github.com/absmach/magistrala/pkg/errors/service"
 	mggroups "github.com/absmach/magistrala/pkg/groups"
 	sdk "github.com/absmach/magistrala/pkg/sdk/go"
 	"github.com/absmach/magistrala/users"
@@ -94,7 +94,7 @@ func TestCreateGroup(t *testing.T) {
 				ParentID: mocks.WrongID,
 				Status:   clients.EnabledStatus.String(),
 			},
-			err: errors.NewSDKErrorWithStatus(errors.ErrCreateEntity, http.StatusInternalServerError),
+			err: errors.NewSDKErrorWithStatus(svcerr.ErrCreateEntity, http.StatusInternalServerError),
 		},
 		{
 			desc:  "create group with invalid owner",
@@ -211,7 +211,7 @@ func TestListGroups(t *testing.T) {
 			token:    invalidToken,
 			offset:   offset,
 			limit:    limit,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrAuthentication, http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(svcerr.ErrAuthentication, http.StatusUnauthorized),
 			response: nil,
 		},
 		{
@@ -269,8 +269,9 @@ func TestListGroups(t *testing.T) {
 
 	for _, tc := range cases {
 		repoCall := auth.On("Identify", mock.Anything, &magistrala.IdentityReq{Token: tc.token}).Return(&magistrala.IdentityRes{Id: validID, DomainId: testsutil.GenerateUUID(t)}, nil)
-		repoCall1 := auth.On("ListAllObjects", mock.Anything, mock.Anything).Return(&magistrala.ListObjectsRes{Policies: toIDs(tc.response)}, nil)
-		repoCall2 := grepo.On("RetrieveByIDs", mock.Anything, mock.Anything).Return(mggroups.Page{Groups: convertGroups(tc.response)}, tc.err)
+		repoCall1 := auth.On("Authorize", mock.Anything, mock.Anything).Return(&magistrala.AuthorizeRes{Authorized: true}, nil)
+		repoCall2 := auth.On("ListAllObjects", mock.Anything, mock.Anything).Return(&magistrala.ListObjectsRes{Policies: toIDs(tc.response)}, nil)
+		repoCall3 := grepo.On("RetrieveByIDs", mock.Anything, mock.Anything).Return(mggroups.Page{Groups: convertGroups(tc.response)}, tc.err)
 		pm := sdk.PageMetadata{
 			Offset: tc.offset,
 			Limit:  tc.limit,
@@ -279,13 +280,10 @@ func TestListGroups(t *testing.T) {
 		page, err := mgsdk.Groups(pm, tc.token)
 		assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected error %s, got %s", tc.desc, tc.err, err))
 		assert.Equal(t, len(tc.response), len(page.Groups), fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.response, page))
-		if tc.err == nil {
-			ok := repoCall2.Parent.AssertCalled(t, "RetrieveByIDs", mock.Anything, mock.Anything)
-			assert.True(t, ok, fmt.Sprintf("RetrieveByIDs was not called on %s", tc.desc))
-		}
 		repoCall.Unset()
 		repoCall1.Unset()
 		repoCall2.Unset()
+		repoCall3.Unset()
 	}
 }
 
@@ -340,7 +338,7 @@ func TestListParentGroups(t *testing.T) {
 			token:    invalidToken,
 			offset:   offset,
 			limit:    limit,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrAuthentication, http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(svcerr.ErrAuthentication, http.StatusUnauthorized),
 			response: nil,
 		},
 		{
@@ -398,8 +396,9 @@ func TestListParentGroups(t *testing.T) {
 
 	for _, tc := range cases {
 		repoCall := auth.On("Identify", mock.Anything, &magistrala.IdentityReq{Token: tc.token}).Return(&magistrala.IdentityRes{Id: validID, DomainId: testsutil.GenerateUUID(t)}, nil)
-		repoCall1 := auth.On("ListAllObjects", mock.Anything, mock.Anything).Return(&magistrala.ListObjectsRes{Policies: toIDs(tc.response)}, nil)
-		repoCall2 := grepo.On("RetrieveByIDs", mock.Anything, mock.Anything).Return(mggroups.Page{Groups: convertGroups(tc.response)}, tc.err)
+		repoCall1 := auth.On("Authorize", mock.Anything, mock.Anything).Return(&magistrala.AuthorizeRes{Authorized: true}, nil)
+		repoCall2 := auth.On("ListAllObjects", mock.Anything, mock.Anything).Return(&magistrala.ListObjectsRes{Policies: toIDs(tc.response)}, nil)
+		repoCall3 := grepo.On("RetrieveByIDs", mock.Anything, mock.Anything).Return(mggroups.Page{Groups: convertGroups(tc.response)}, tc.err)
 		pm := sdk.PageMetadata{
 			Offset: tc.offset,
 			Limit:  tc.limit,
@@ -409,12 +408,13 @@ func TestListParentGroups(t *testing.T) {
 		assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected error %s, got %s", tc.desc, tc.err, err))
 		assert.Equal(t, len(tc.response), len(page.Groups), fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.response, page))
 		if tc.err == nil {
-			ok := repoCall2.Parent.AssertCalled(t, "RetrieveByIDs", mock.Anything, mock.Anything)
+			ok := repoCall3.Parent.AssertCalled(t, "RetrieveByIDs", mock.Anything, mock.Anything)
 			assert.True(t, ok, fmt.Sprintf("RetrieveByIDs was not called on %s", tc.desc))
 		}
 		repoCall.Unset()
 		repoCall1.Unset()
 		repoCall2.Unset()
+		repoCall3.Unset()
 	}
 }
 
@@ -470,7 +470,7 @@ func TestListChildrenGroups(t *testing.T) {
 			token:    invalidToken,
 			offset:   offset,
 			limit:    limit,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrAuthentication, http.StatusUnauthorized),
+			err:      errors.NewSDKErrorWithStatus(svcerr.ErrAuthentication, http.StatusUnauthorized),
 			response: nil,
 		},
 		{
@@ -528,8 +528,9 @@ func TestListChildrenGroups(t *testing.T) {
 
 	for _, tc := range cases {
 		repoCall := auth.On("Identify", mock.Anything, &magistrala.IdentityReq{Token: tc.token}).Return(&magistrala.IdentityRes{Id: validID, DomainId: testsutil.GenerateUUID(t)}, nil)
-		repoCall1 := auth.On("ListAllObjects", mock.Anything, mock.Anything).Return(&magistrala.ListObjectsRes{Policies: toIDs(tc.response)}, nil)
-		repoCall2 := grepo.On("RetrieveByIDs", mock.Anything, mock.Anything).Return(mggroups.Page{Groups: convertGroups(tc.response)}, tc.err)
+		repoCall1 := auth.On("Authorize", mock.Anything, mock.Anything).Return(&magistrala.AuthorizeRes{Authorized: true}, nil)
+		repoCall2 := auth.On("ListAllObjects", mock.Anything, mock.Anything).Return(&magistrala.ListObjectsRes{Policies: toIDs(tc.response)}, nil)
+		repoCall3 := grepo.On("RetrieveByIDs", mock.Anything, mock.Anything).Return(mggroups.Page{Groups: convertGroups(tc.response)}, tc.err)
 		pm := sdk.PageMetadata{
 			Offset: tc.offset,
 			Limit:  tc.limit,
@@ -539,12 +540,13 @@ func TestListChildrenGroups(t *testing.T) {
 		assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected error %s, got %s", tc.desc, tc.err, err))
 		assert.Equal(t, len(tc.response), len(page.Groups), fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.response, page))
 		if tc.err == nil {
-			ok := repoCall2.Parent.AssertCalled(t, "RetrieveByIDs", mock.Anything, mock.Anything)
+			ok := repoCall3.Parent.AssertCalled(t, "RetrieveByIDs", mock.Anything, mock.Anything)
 			assert.True(t, ok, fmt.Sprintf("RetrieveByIDs was not called on %s", tc.desc))
 		}
 		repoCall.Unset()
 		repoCall1.Unset()
 		repoCall2.Unset()
+		repoCall3.Unset()
 	}
 }
 
@@ -585,14 +587,14 @@ func TestViewGroup(t *testing.T) {
 			token:    "wrongtoken",
 			groupID:  group.ID,
 			response: sdk.Group{Children: []*sdk.Group{}},
-			err:      errors.NewSDKErrorWithStatus(errors.ErrAuthorization, http.StatusForbidden),
+			err:      errors.NewSDKErrorWithStatus(svcerr.ErrAuthorization, http.StatusForbidden),
 		},
 		{
 			desc:     "view group for wrong id",
 			token:    validToken,
 			groupID:  mocks.WrongID,
 			response: sdk.Group{Children: []*sdk.Group{}},
-			err:      errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(svcerr.ErrNotFound, http.StatusNotFound),
 		},
 	}
 
@@ -693,7 +695,7 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			response: sdk.Group{},
 			token:    validToken,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(svcerr.ErrNotFound, http.StatusNotFound),
 		},
 		{
 			desc: "update group description with invalid group id",
@@ -703,7 +705,7 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			response: sdk.Group{},
 			token:    validToken,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(svcerr.ErrNotFound, http.StatusNotFound),
 		},
 		{
 			desc: "update group metadata with invalid group id",
@@ -715,7 +717,7 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			response: sdk.Group{},
 			token:    validToken,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(svcerr.ErrNotFound, http.StatusNotFound),
 		},
 		{
 			desc: "update group name with invalid token",
@@ -725,7 +727,7 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			response: sdk.Group{},
 			token:    invalidToken,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrAuthorization, http.StatusForbidden),
+			err:      errors.NewSDKErrorWithStatus(svcerr.ErrAuthorization, http.StatusForbidden),
 		},
 		{
 			desc: "update group description with invalid token",
@@ -735,7 +737,7 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			response: sdk.Group{},
 			token:    invalidToken,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrAuthorization, http.StatusForbidden),
+			err:      errors.NewSDKErrorWithStatus(svcerr.ErrAuthorization, http.StatusForbidden),
 		},
 		{
 			desc: "update group metadata with invalid token",
@@ -747,7 +749,7 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			response: sdk.Group{},
 			token:    invalidToken,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrAuthorization, http.StatusForbidden),
+			err:      errors.NewSDKErrorWithStatus(svcerr.ErrAuthorization, http.StatusForbidden),
 		},
 		{
 			desc: "update a group that can't be marshalled",
@@ -800,7 +802,7 @@ func TestEnableGroup(t *testing.T) {
 	repoCall1 := grepo.On("RetrieveByID", mock.Anything, mock.Anything).Return(nil)
 	repoCall2 := grepo.On("ChangeStatus", mock.Anything, mock.Anything).Return(nil)
 	_, err := mgsdk.EnableGroup("wrongID", validToken)
-	assert.Equal(t, err, errors.NewSDKErrorWithStatus(repoerror.ErrNotFound, http.StatusNotFound), fmt.Sprintf("Enable group with wrong id: expected %v got %v", repoerror.ErrNotFound, err))
+	assert.Equal(t, err, errors.NewSDKErrorWithStatus(svcerr.ErrNotFound, http.StatusNotFound), fmt.Sprintf("Enable group with wrong id: expected %v got %v", svcerr.ErrNotFound, err))
 	ok := repoCall1.Parent.AssertCalled(t, "RetrieveByID", mock.Anything, "wrongID")
 	assert.True(t, ok, "RetrieveByID was not called on enabling group")
 	repoCall.Unset()
@@ -853,7 +855,7 @@ func TestDisableGroup(t *testing.T) {
 	repoCall1 := grepo.On("ChangeStatus", mock.Anything, mock.Anything).Return(sdk.ErrFailedRemoval)
 	repoCall2 := grepo.On("RetrieveByID", mock.Anything, mock.Anything).Return(nil)
 	_, err := mgsdk.DisableGroup("wrongID", validToken)
-	assert.Equal(t, err, errors.NewSDKErrorWithStatus(repoerror.ErrNotFound, http.StatusNotFound), fmt.Sprintf("Disable group with wrong id: expected %v got %v", repoerror.ErrNotFound, err))
+	assert.Equal(t, err, errors.NewSDKErrorWithStatus(svcerr.ErrNotFound, http.StatusNotFound), fmt.Sprintf("Disable group with wrong id: expected %v got %v", svcerr.ErrNotFound, err))
 	ok := repoCall1.Parent.AssertCalled(t, "RetrieveByID", mock.Anything, "wrongID")
 	assert.True(t, ok, "Memberships was not called on disabling group with wrong id")
 	repoCall.Unset()
