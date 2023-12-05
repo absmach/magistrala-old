@@ -87,7 +87,7 @@ func (sdk mgSDK) Domain(domainID, token string) (Domain, errors.SDKError) {
 }
 
 func (sdk mgSDK) DomainPermissions(domainID, token string) (Domain, errors.SDKError) {
-	url := fmt.Sprintf("%s/%s/%s/permissions", sdk.domainsURL, domainsEndpoint, domainID)
+	url := fmt.Sprintf("%s/%s/%s/%s", sdk.domainsURL, domainsEndpoint, domainID, permissionsEndpoint)
 
 	_, body, sdkerr := sdk.processRequest(http.MethodGet, url, token, nil, nil, http.StatusOK)
 	if sdkerr != nil {
