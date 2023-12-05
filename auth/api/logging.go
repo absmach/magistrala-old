@@ -256,7 +256,7 @@ func (lm *loggingMiddleware) RetrieveDomain(ctx context.Context, token, id strin
 	return lm.svc.RetrieveDomain(ctx, token, id)
 }
 
-func (lm *loggingMiddleware) RetrieveDomainPermissions(ctx context.Context, token string, id string) (permissions []string, err error) {
+func (lm *loggingMiddleware) RetrieveDomainPermissions(ctx context.Context, token string, id string) (permissions auth.Permissions, err error) {
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method retrieve_domain_permissions for domain id %s took %s to complete", id, time.Since(begin))
 		if err != nil {

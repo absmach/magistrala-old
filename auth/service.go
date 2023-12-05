@@ -519,7 +519,7 @@ func (svc service) RetrieveDomain(ctx context.Context, token, id string) (Domain
 	return svc.domains.RetrieveByID(ctx, id)
 }
 
-func (svc service) RetrieveDomainPermissions(ctx context.Context, token string, id string) ([]string, error) {
+func (svc service) RetrieveDomainPermissions(ctx context.Context, token string, id string) (Permissions, error) {
 	res, err := svc.Identify(ctx, token)
 	if err != nil {
 		return []string{}, errors.Wrap(svcerr.ErrAuthentication, err)
@@ -531,12 +531,21 @@ func (svc service) RetrieveDomainPermissions(ctx context.Context, token string, 
 		SubjectKind: UsersKind,
 		Object:      id,
 		ObjectType:  DomainType,
-		Permission:  ViewPermission,
+		Permission:  MembershipPermission,
 	}); err != nil {
 		return []string{}, errors.Wrap(svcerr.ErrAuthorization, err)
 	}
 
-	return svc.domains.RetrievePermissions(ctx, res.User, id)
+	lp, err := svc.ListPermissions(ctx, PolicyReq{
+		SubjectType: UserType,
+		Subject:     res.Subject,
+		Object:      id,
+		ObjectType:  DomainType,
+	}, []string{AdminPermission, EditPermission, ViewPermission, MembershipPermission})
+	if err != nil {
+		return []string{}, err
+	}
+	return lp, nil
 }
 
 func (svc service) UpdateDomain(ctx context.Context, token, id string, d DomainReq) (Domain, error) {
