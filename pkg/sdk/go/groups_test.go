@@ -280,6 +280,10 @@ func TestListGroups(t *testing.T) {
 		page, err := mgsdk.Groups(pm, tc.token)
 		assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected error %s, got %s", tc.desc, tc.err, err))
 		assert.Equal(t, len(tc.response), len(page.Groups), fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.response, page))
+		if tc.err == nil {
+			ok := repoCall3.Parent.AssertCalled(t, "RetrieveByIDs", mock.Anything, mock.Anything)
+			assert.True(t, ok, fmt.Sprintf("RetrieveByIDs was not called on %s", tc.desc))
+		}
 		repoCall.Unset()
 		repoCall1.Unset()
 		repoCall2.Unset()
