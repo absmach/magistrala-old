@@ -123,7 +123,7 @@ install:
 	done
 
 test:
-	go test -v --race -count 1 -tags test -coverprofile=coverage.out $(shell go list ./... | grep -v 'vendor\|cmd')
+	go test -p 4 -v --race -count 1 -tags test -coverprofile=coverage.out $(shell go list ./... | grep -v 'cmd')
 
 proto:
 	protoc -I. --go_out=. --go_opt=paths=source_relative pkg/messaging/*.proto
