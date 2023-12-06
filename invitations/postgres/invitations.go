@@ -58,9 +58,14 @@ func (repo *repository) Retrieve(ctx context.Context, userID, domainID string) (
 	return invitations.Invitation{}, repoerr.ErrNotFound
 }
 
-func (repo *repository) RetrieveAll(ctx context.Context, page invitations.Page) (invitations.InvitationPage, error) {
+func (repo *repository) RetrieveAll(ctx context.Context, withToken bool, page invitations.Page) (invitations.InvitationPage, error) {
 	query := pageQuery(page)
-	q := fmt.Sprintf(`SELECT invited_by, user_id, domain, relation, created_at, updated_at, confirmed_at FROM invitations %s LIMIT :limit OFFSET :offset`, query)
+
+	queryColumns := "invited_by, user_id, domain, relation, created_at, updated_at, confirmed_at"
+	if withToken {
+		queryColumns += ", token"
+	}
+	q := fmt.Sprintf("SELECT %s FROM invitations %s LIMIT :limit OFFSET :offset", queryColumns, query)
 
 	rows, err := repo.db.NamedQueryContext(ctx, q, page)
 	if err != nil {

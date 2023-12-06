@@ -288,10 +288,11 @@ func TestInvitationRetrieveAll(t *testing.T) {
 	}
 
 	cases := []struct {
-		desc     string
-		page     invitations.Page
-		response invitations.InvitationPage
-		err      error
+		desc      string
+		page      invitations.Page
+		withToken bool
+		response  invitations.InvitationPage
+		err       error
 	}{
 		{
 			desc: "retrieve invitations successfully",
@@ -304,6 +305,21 @@ func TestInvitationRetrieveAll(t *testing.T) {
 				Offset:      0,
 				Limit:       10,
 				Invitations: items[:10],
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve invitations with token",
+			page: invitations.Page{
+				Offset: 0,
+				Limit:  10,
+			},
+			withToken: true,
+			response: invitations.InvitationPage{
+				Total:       uint64(num),
+				Offset:      0,
+				Limit:       10,
+				Invitations: addToken(items[:10]),
 			},
 			err: nil,
 		},
@@ -587,7 +603,7 @@ func TestInvitationRetrieveAll(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
-		page, err := repo.RetrieveAll(context.Background(), tc.page)
+		page, err := repo.RetrieveAll(context.Background(), tc.withToken, tc.page)
 		assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		assert.Equal(t, tc.response, page, fmt.Sprintf("desc: %s\n", tc.desc))
 	}
@@ -763,4 +779,13 @@ func generateUUID(t *testing.T) string {
 	ulid, err := idProvider.ID()
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 	return ulid
+}
+
+func addToken(invs []invitations.Invitation) []invitations.Invitation {
+	invscopy := make([]invitations.Invitation, len(invs))
+	copy(invscopy, invs)
+	for i := range invscopy {
+		invscopy[i].Token = validToken
+	}
+	return invscopy
 }
