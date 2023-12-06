@@ -185,12 +185,13 @@ func dec(in []byte) ([]byte, error) {
 }
 
 func newService(url string, auth magistrala.AuthServiceClient) bootstrap.Service {
+	thingsRepo := mocks.NewConfigsRepository()
 	config := mgsdk.Config{
 		ThingsURL: url,
 	}
 
 	sdk := mgsdk.NewSDK(config)
-	return bootstrap.New(auth, mocks.NewConfigsRepository(), sdk, encKey)
+	return bootstrap.New(auth, thingsRepo, sdk, encKey)
 }
 
 func newThingsService() (things.Service, mggroups.Service, *thmocks.Repository, *chmocks.Repository, *authmocks.Service) {
