@@ -85,7 +85,7 @@ type Repository interface {
 	Create(ctx context.Context, invitation Invitation) (err error)
 
 	// RetrieveAll returns a list of invitations based on the given page.
-	RetrieveAll(ctx context.Context, page Page) (invitations InvitationPage, err error)
+	RetrieveAll(ctx context.Context, withToken bool, page Page) (invitations InvitationPage, err error)
 
 	// UpdateToken updates an invitation by setting the token.
 	UpdateToken(ctx context.Context, invitation Invitation) (err error)
