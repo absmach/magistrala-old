@@ -51,9 +51,6 @@ func (req *listInvitationsReq) validate() error {
 	if req.Page.Limit > maxLimitSize || req.Page.Limit < 1 {
 		return apiutil.ErrLimitSize
 	}
-	if req.Page.Domain == "" {
-		return errMissingDomain
-	}
 
 	return nil
 }

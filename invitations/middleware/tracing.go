@@ -42,7 +42,7 @@ func (tm *tracing) ViewInvitation(ctx context.Context, token, userID, domain str
 	return tm.svc.ViewInvitation(ctx, token, userID, domain)
 }
 
-func (tm *tracing) ListInvitations(ctx context.Context, token string, page invitations.Page) (invitations invitations.InvitationPage, err error) {
+func (tm *tracing) ListInvitations(ctx context.Context, token string, page invitations.Page) (invs invitations.InvitationPage, err error) {
 	ctx, span := tm.tracer.Start(ctx, "list_invitations", trace.WithAttributes(
 		attribute.Int("limit", int(page.Limit)),
 		attribute.Int("offset", int(page.Offset)),
@@ -64,7 +64,7 @@ func (tm *tracing) AcceptInvitation(ctx context.Context, token string) (domains 
 	return tm.svc.AcceptInvitation(ctx, token)
 }
 
-func (tm *tracing) DeleteInvitation(ctx context.Context, token string, userID, domain string) (err error) {
+func (tm *tracing) DeleteInvitation(ctx context.Context, token, userID, domain string) (err error) {
 	ctx, span := tm.tracer.Start(ctx, "delete_invitation", trace.WithAttributes(
 		attribute.String("user_id", userID),
 		attribute.String("domain", domain),

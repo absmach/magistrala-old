@@ -35,7 +35,7 @@ func (lm *logging) SendInvitation(ctx context.Context, token string, invitation 
 	return lm.svc.SendInvitation(ctx, token, invitation)
 }
 
-func (lm *logging) ViewInvitation(ctx context.Context, token string, userID, domain string) (invitation invitations.Invitation, err error) {
+func (lm *logging) ViewInvitation(ctx context.Context, token, userID, domain string) (invitation invitations.Invitation, err error) {
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method view_invitation took %s to complete", time.Since(begin))
 		if err != nil {
@@ -47,7 +47,7 @@ func (lm *logging) ViewInvitation(ctx context.Context, token string, userID, dom
 	return lm.svc.ViewInvitation(ctx, token, userID, domain)
 }
 
-func (lm *logging) ListInvitations(ctx context.Context, token string, page invitations.Page) (invitations invitations.InvitationPage, err error) {
+func (lm *logging) ListInvitations(ctx context.Context, token string, page invitations.Page) (invs invitations.InvitationPage, err error) {
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method list_invitations took %s to complete", time.Since(begin))
 		if err != nil {
@@ -71,7 +71,7 @@ func (lm *logging) AcceptInvitation(ctx context.Context, token string) (domains 
 	return lm.svc.AcceptInvitation(ctx, token)
 }
 
-func (lm *logging) DeleteInvitation(ctx context.Context, token string, userID, domain string) (err error) {
+func (lm *logging) DeleteInvitation(ctx context.Context, token, userID, domain string) (err error) {
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method delete_invitation took %s to complete", time.Since(begin))
 		if err != nil {

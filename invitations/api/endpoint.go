@@ -23,9 +23,10 @@ func sendInvitationEndpoint(svc invitations.Service) endpoint.Endpoint {
 		}
 
 		invitation := invitations.Invitation{
-			UserID: req.UserID,
-			Domain: req.Domain,
-			Resend: req.Resend,
+			UserID:   req.UserID,
+			Domain:   req.Domain,
+			Relation: req.Relation,
+			Resend:   req.Resend,
 		}
 
 		if err := svc.SendInvitation(ctx, req.token, invitation); err != nil {

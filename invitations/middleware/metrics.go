@@ -43,7 +43,7 @@ func (mm *metricsmw) ViewInvitation(ctx context.Context, token, userID, domain s
 	return mm.svc.ViewInvitation(ctx, token, userID, domain)
 }
 
-func (mm *metricsmw) ListInvitations(ctx context.Context, token string, page invitations.Page) (invitations invitations.InvitationPage, err error) {
+func (mm *metricsmw) ListInvitations(ctx context.Context, token string, page invitations.Page) (invs invitations.InvitationPage, err error) {
 	defer func(begin time.Time) {
 		mm.counter.With("method", "list_invitations").Add(1)
 		mm.latency.With("method", "list_invitations").Observe(time.Since(begin).Seconds())
@@ -59,7 +59,7 @@ func (mm *metricsmw) AcceptInvitation(ctx context.Context, token string) (domain
 	return mm.svc.AcceptInvitation(ctx, token)
 }
 
-func (mm *metricsmw) DeleteInvitation(ctx context.Context, token string, userID, domain string) (err error) {
+func (mm *metricsmw) DeleteInvitation(ctx context.Context, token, userID, domain string) (err error) {
 	defer func(begin time.Time) {
 		mm.counter.With("method", "delete_invitation").Add(1)
 		mm.latency.With("method", "delete_invitation").Observe(time.Since(begin).Seconds())
