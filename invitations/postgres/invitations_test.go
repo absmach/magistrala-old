@@ -12,7 +12,7 @@ import (
 
 	"github.com/absmach/magistrala/invitations"
 	"github.com/absmach/magistrala/invitations/postgres"
-	"github.com/absmach/magistrala/pkg/errors"
+	repoerr "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -74,7 +74,7 @@ func TestInvitationCreate(t *testing.T) {
 				Relation:  relation,
 				CreatedAt: time.Now(),
 			},
-			err: errors.ErrConflict,
+			err: repoerr.ErrConflict,
 		},
 		{
 			desc: "add invitation with invalid invitation invited_by",
@@ -86,7 +86,19 @@ func TestInvitationCreate(t *testing.T) {
 				Relation:  relation,
 				CreatedAt: time.Now(),
 			},
-			err: errors.ErrMalformedEntity,
+			err: repoerr.ErrMalformedEntity,
+		},
+		{
+			desc: "add invitation with invalid invitation relation",
+			invitation: invitations.Invitation{
+				InvitedBy: generateUUID(t),
+				UserID:    generateUUID(t),
+				Domain:    generateUUID(t),
+				Token:     validToken,
+				Relation:  strings.Repeat("a", 255),
+				CreatedAt: time.Now(),
+			},
+			err: repoerr.ErrMalformedEntity,
 		},
 		{
 			desc: "add invitation with invalid invitation domain",
@@ -98,7 +110,7 @@ func TestInvitationCreate(t *testing.T) {
 				Relation:  relation,
 				CreatedAt: time.Now(),
 			},
-			err: errors.ErrMalformedEntity,
+			err: repoerr.ErrMalformedEntity,
 		},
 		{
 			desc: "add invitation with invalid invitation user id",
@@ -110,7 +122,7 @@ func TestInvitationCreate(t *testing.T) {
 				Relation:  relation,
 				CreatedAt: time.Now(),
 			},
-			err: errors.ErrMalformedEntity,
+			err: repoerr.ErrMalformedEntity,
 		},
 		{
 			desc: "add invitation with empty invitation domain",
@@ -158,8 +170,12 @@ func TestInvitationCreate(t *testing.T) {
 		},
 	}
 	for _, tc := range cases {
-		err := repo.Create(context.Background(), tc.invitation)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+		switch err := repo.Create(context.Background(), tc.invitation); {
+		case err == nil:
+			assert.Nil(t, err, fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+		default:
+			assert.ErrorIs(t, err, tc.err, fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+		}
 	}
 }
 
@@ -201,47 +217,47 @@ func TestInvitationRetrieve(t *testing.T) {
 			userID:   generateUUID(t),
 			domainID: invitation.Domain,
 			response: invitations.Invitation{},
-			err:      errors.ErrNotFound,
+			err:      repoerr.ErrNotFound,
 		},
 		{
 			desc:     "retrieve invitations with invalid invitation domain",
 			userID:   invitation.UserID,
 			domainID: generateUUID(t),
 			response: invitations.Invitation{},
-			err:      errors.ErrNotFound,
+			err:      repoerr.ErrNotFound,
 		},
 		{
 			desc:     "retrieve invitations with invalid invitation user id and domain",
 			userID:   generateUUID(t),
 			domainID: generateUUID(t),
 			response: invitations.Invitation{},
-			err:      errors.ErrNotFound,
+			err:      repoerr.ErrNotFound,
 		},
 		{
 			desc:     "retrieve invitations with empty invitation user id",
 			userID:   "",
 			domainID: invitation.Domain,
 			response: invitations.Invitation{},
-			err:      errors.ErrNotFound,
+			err:      repoerr.ErrNotFound,
 		},
 		{
 			desc:     "retrieve invitations with empty invitation domain",
 			userID:   invitation.UserID,
 			domainID: "",
 			response: invitations.Invitation{},
-			err:      errors.ErrNotFound,
+			err:      repoerr.ErrNotFound,
 		},
 		{
 			desc:     "retrieve invitations with empty invitation user id and domain",
 			userID:   "",
 			domainID: "",
 			response: invitations.Invitation{},
-			err:      errors.ErrNotFound,
+			err:      repoerr.ErrNotFound,
 		},
 	}
 	for _, tc := range cases {
 		page, err := repo.Retrieve(context.Background(), tc.userID, tc.domainID)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+		assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		assert.Equal(t, tc.response, page, fmt.Sprintf("desc: %s\n", tc.desc))
 	}
 }
@@ -572,7 +588,7 @@ func TestInvitationRetrieveAll(t *testing.T) {
 	}
 	for _, tc := range cases {
 		page, err := repo.RetrieveAll(context.Background(), tc.page)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+		assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		assert.Equal(t, tc.response, page, fmt.Sprintf("desc: %s\n", tc.desc))
 	}
 }
@@ -610,19 +626,29 @@ func TestInvitationUpdateToken(t *testing.T) {
 			err: nil,
 		},
 		{
-			desc: "update invitation with invalid invitation id",
+			desc: "update invitation with invalid user id",
 			invitation: invitations.Invitation{
 				UserID:    generateUUID(t),
+				Domain:    invitation.Domain,
+				Token:     validToken,
+				UpdatedAt: time.Now(),
+			},
+			err: repoerr.ErrNotFound,
+		},
+		{
+			desc: "update invitation with invalid domain",
+			invitation: invitations.Invitation{
+				UserID:    invitation.UserID,
 				Domain:    generateUUID(t),
 				Token:     validToken,
 				UpdatedAt: time.Now(),
 			},
-			err: nil,
+			err: repoerr.ErrNotFound,
 		},
 	}
 	for _, tc := range cases {
 		err := repo.UpdateToken(context.Background(), tc.invitation)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+		assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 	}
 }
 
@@ -658,18 +684,27 @@ func TestInvitationUpdateConfirmation(t *testing.T) {
 			err: nil,
 		},
 		{
-			desc: "update invitation with invalid invitation id",
+			desc: "update invitation with invalid user id",
 			invitation: invitations.Invitation{
 				UserID:      generateUUID(t),
+				Domain:      invitation.UserID,
+				ConfirmedAt: time.Now(),
+			},
+			err: repoerr.ErrNotFound,
+		},
+		{
+			desc: "update invitation with invalid domain",
+			invitation: invitations.Invitation{
+				UserID:      invitation.UserID,
 				Domain:      generateUUID(t),
 				ConfirmedAt: time.Now(),
 			},
-			err: nil,
+			err: repoerr.ErrNotFound,
 		},
 	}
 	for _, tc := range cases {
 		err := repo.UpdateConfirmation(context.Background(), tc.invitation)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+		assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 	}
 }
 
@@ -709,17 +744,17 @@ func TestInvitationDelete(t *testing.T) {
 				UserID: generateUUID(t),
 				Domain: generateUUID(t),
 			},
-			err: nil,
+			err: repoerr.ErrNotFound,
 		},
 		{
 			desc:       "delete invitation with empty invitation id",
 			invitation: invitations.Invitation{},
-			err:        nil,
+			err:        repoerr.ErrNotFound,
 		},
 	}
 	for _, tc := range cases {
 		err := repo.Delete(context.Background(), tc.invitation.UserID, tc.invitation.Domain)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+		assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 	}
 }
 

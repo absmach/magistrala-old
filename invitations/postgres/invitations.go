@@ -5,13 +5,12 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 	"strings"
 
 	"github.com/absmach/magistrala/internal/postgres"
 	"github.com/absmach/magistrala/invitations"
-	"github.com/absmach/magistrala/pkg/errors"
+	repoerr "github.com/absmach/magistrala/pkg/errors/repository"
 )
 
 type repository struct {
@@ -27,7 +26,7 @@ func (repo *repository) Create(ctx context.Context, invitation invitations.Invit
 		VALUES (:invited_by, :user_id, :domain, :token, :relation, :created_at, :updated_at, :confirmed_at)`
 
 	if _, err = repo.db.NamedExecContext(ctx, q, invitation); err != nil {
-		return postgres.HandleError(errors.ErrCreateEntity, err)
+		return postgres.HandleError(repoerr.ErrCreateEntity, err)
 	}
 
 	return nil
@@ -43,24 +42,20 @@ func (repo *repository) Retrieve(ctx context.Context, userID, domainID string) (
 
 	rows, err := repo.db.NamedQueryContext(ctx, q, inv)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return invitations.Invitation{}, errors.ErrNotFound
-		}
-
-		return invitations.Invitation{}, postgres.HandleError(errors.ErrViewEntity, err)
+		return invitations.Invitation{}, postgres.HandleError(repoerr.ErrViewEntity, err)
 	}
 	defer rows.Close()
 
 	var item invitations.Invitation
 	if rows.Next() {
 		if err = rows.StructScan(&item); err != nil {
-			return invitations.Invitation{}, postgres.HandleError(errors.ErrViewEntity, err)
+			return invitations.Invitation{}, postgres.HandleError(repoerr.ErrViewEntity, err)
 		}
 
 		return item, nil
 	}
 
-	return invitations.Invitation{}, errors.ErrNotFound
+	return invitations.Invitation{}, repoerr.ErrNotFound
 }
 
 func (repo *repository) RetrieveAll(ctx context.Context, page invitations.Page) (invitations.InvitationPage, error) {
@@ -69,7 +64,7 @@ func (repo *repository) RetrieveAll(ctx context.Context, page invitations.Page) 
 
 	rows, err := repo.db.NamedQueryContext(ctx, q, page)
 	if err != nil {
-		return invitations.InvitationPage{}, postgres.HandleError(errors.ErrViewEntity, err)
+		return invitations.InvitationPage{}, postgres.HandleError(repoerr.ErrViewEntity, err)
 	}
 	defer rows.Close()
 
@@ -77,7 +72,7 @@ func (repo *repository) RetrieveAll(ctx context.Context, page invitations.Page) 
 	for rows.Next() {
 		var item invitations.Invitation
 		if err = rows.StructScan(&item); err != nil {
-			return invitations.InvitationPage{}, postgres.HandleError(errors.ErrViewEntity, err)
+			return invitations.InvitationPage{}, postgres.HandleError(repoerr.ErrViewEntity, err)
 		}
 		items = append(items, item)
 	}
@@ -86,7 +81,7 @@ func (repo *repository) RetrieveAll(ctx context.Context, page invitations.Page) 
 
 	total, err := postgres.Total(ctx, repo.db, tq, page)
 	if err != nil {
-		return invitations.InvitationPage{}, postgres.HandleError(errors.ErrViewEntity, err)
+		return invitations.InvitationPage{}, postgres.HandleError(repoerr.ErrViewEntity, err)
 	}
 
 	invPage := invitations.InvitationPage{
@@ -102,8 +97,12 @@ func (repo *repository) RetrieveAll(ctx context.Context, page invitations.Page) 
 func (repo *repository) UpdateToken(ctx context.Context, invitation invitations.Invitation) (err error) {
 	q := `UPDATE invitations SET token = :token, updated_at = :updated_at WHERE user_id = :user_id AND domain = :domain`
 
-	if _, err = repo.db.NamedExecContext(ctx, q, invitation); err != nil {
-		return postgres.HandleError(errors.ErrUpdateEntity, err)
+	result, err := repo.db.NamedExecContext(ctx, q, invitation)
+	if err != nil {
+		return postgres.HandleError(repoerr.ErrUpdateEntity, err)
+	}
+	if rows, _ := result.RowsAffected(); rows == 0 {
+		return repoerr.ErrNotFound
 	}
 
 	return nil
@@ -112,8 +111,12 @@ func (repo *repository) UpdateToken(ctx context.Context, invitation invitations.
 func (repo *repository) UpdateConfirmation(ctx context.Context, invitation invitations.Invitation) (err error) {
 	q := `UPDATE invitations SET confirmed_at = :confirmed_at WHERE user_id = :user_id AND domain = :domain`
 
-	if _, err = repo.db.NamedExecContext(ctx, q, invitation); err != nil {
-		return postgres.HandleError(errors.ErrUpdateEntity, err)
+	result, err := repo.db.NamedExecContext(ctx, q, invitation)
+	if err != nil {
+		return postgres.HandleError(repoerr.ErrUpdateEntity, err)
+	}
+	if rows, _ := result.RowsAffected(); rows == 0 {
+		return repoerr.ErrNotFound
 	}
 
 	return nil
@@ -122,8 +125,12 @@ func (repo *repository) UpdateConfirmation(ctx context.Context, invitation invit
 func (repo *repository) Delete(ctx context.Context, userID, domain string) (err error) {
 	q := `DELETE FROM invitations WHERE user_id = $1 AND domain = $2`
 
-	if _, err = repo.db.ExecContext(ctx, q, userID, domain); err != nil {
-		return postgres.HandleError(errors.ErrRemoveEntity, err)
+	result, err := repo.db.ExecContext(ctx, q, userID, domain)
+	if err != nil {
+		return postgres.HandleError(repoerr.ErrRemoveEntity, err)
+	}
+	if rows, _ := result.RowsAffected(); rows == 0 {
+		return repoerr.ErrNotFound
 	}
 
 	return nil
