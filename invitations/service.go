@@ -22,10 +22,10 @@ type service struct {
 	sdk  mgsdk.SDK
 }
 
-func NewService(repo Repository, auth magistrala.AuthServiceClient, sdk mgsdk.SDK) Service {
+func NewService(repo Repository, authClient magistrala.AuthServiceClient, sdk mgsdk.SDK) Service {
 	return &service{
 		repo: repo,
-		auth: auth,
+		auth: authClient,
 		sdk:  sdk,
 	}
 }
@@ -94,7 +94,7 @@ func (svc *service) ListInvitations(ctx context.Context, token string, page Page
 	}
 
 	if err := svc.authorize(ctx, auth.UserType, auth.UsersKind, userID, auth.AdminPermission, auth.PlatformType, auth.MagistralaObject); err == nil {
-		return svc.repo.RetrieveAll(ctx, page)
+		return svc.repo.RetrieveAll(ctx, false, page)
 	}
 
 	if page.Domain != "" {
@@ -102,12 +102,12 @@ func (svc *service) ListInvitations(ctx context.Context, token string, page Page
 			return InvitationPage{}, err
 		}
 
-		return svc.repo.RetrieveAll(ctx, page)
+		return svc.repo.RetrieveAll(ctx, false, page)
 	}
 
 	page.InvitedBy = userID
 
-	return svc.repo.RetrieveAll(ctx, page)
+	return svc.repo.RetrieveAll(ctx, false, page)
 }
 
 func (svc *service) AcceptInvitation(ctx context.Context, token string) ([]string, error) {
@@ -116,13 +116,13 @@ func (svc *service) AcceptInvitation(ctx context.Context, token string) ([]strin
 		return nil, err
 	}
 
-	page, err := svc.repo.RetrieveAll(ctx, Page{UserID: userID, Offset: 0, Limit: defLimit})
+	page, err := svc.repo.RetrieveAll(ctx, true, Page{UserID: userID, Offset: 0, Limit: defLimit})
 	if err != nil {
 		return nil, err
 	}
 	if page.Total > defLimit {
 		for i := uint64(defLimit); i < page.Total; i += defLimit {
-			p, err := svc.repo.RetrieveAll(ctx, Page{UserID: userID, Offset: i, Limit: defLimit})
+			p, err := svc.repo.RetrieveAll(ctx, true, Page{UserID: userID, Offset: i, Limit: defLimit})
 			if err != nil {
 				return nil, err
 			}
