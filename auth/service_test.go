@@ -299,7 +299,7 @@ func TestIdentify(t *testing.T) {
 			desc: "identify invalid key",
 			key:  "invalid",
 			idt:  "",
-			err:  errors.ErrAuthentication,
+			err:  svcerr.ErrAuthentication,
 		},
 	}
 
