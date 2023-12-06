@@ -107,19 +107,6 @@ func TestSendInvitation(t *testing.T) {
 			req:         validInvitation,
 			err:         svcerr.ErrAuthorization,
 			authNErr:    nil,
-			domainErr:   nil,
-			adminErr:    svcerr.ErrAuthorization,
-			authorised:  false,
-			issueErr:    nil,
-			repoErr:     nil,
-		},
-		{
-			desc:        "error during domain and platform admin check",
-			token:       validToken,
-			tokenUserID: testsutil.GenerateUUID(t),
-			req:         validInvitation,
-			err:         svcerr.ErrAuthorization,
-			authNErr:    nil,
 			domainErr:   svcerr.ErrAuthorization,
 			adminErr:    svcerr.ErrAuthorization,
 			authorised:  false,
@@ -131,11 +118,11 @@ func TestSendInvitation(t *testing.T) {
 			token:       validToken,
 			tokenUserID: testsutil.GenerateUUID(t),
 			req:         validInvitation,
-			err:         svcerr.ErrAuthorization,
+			err:         svcerr.ErrAuthentication,
 			authNErr:    nil,
 			domainErr:   nil,
 			adminErr:    nil,
-			authorised:  false,
+			authorised:  true,
 			issueErr:    svcerr.ErrAuthentication,
 			repoErr:     nil,
 		},
@@ -179,19 +166,18 @@ func TestSendInvitation(t *testing.T) {
 			Object:      auth.MagistralaObject,
 		}
 		platformcall := authsvc.On("Authorize", context.Background(), &platformReq).Return(&magistrala.AuthorizeRes{Authorized: tc.authorised}, tc.adminErr)
-
-		repocall3 := authsvc.On("Issue", context.Background(), mock.Anything).Return(&magistrala.Token{AccessToken: tc.req.Token}, tc.issueErr)
-		repocall4 := repo.On("Create", context.Background(), mock.Anything).Return(tc.repoErr)
+		repocall1 := authsvc.On("Issue", context.Background(), mock.Anything).Return(&magistrala.Token{AccessToken: tc.req.Token}, tc.issueErr)
+		repocall2 := repo.On("Create", context.Background(), mock.Anything).Return(tc.repoErr)
 		if tc.req.Resend {
-			repocall4 = repo.On("UpdateToken", context.Background(), mock.Anything).Return(tc.repoErr)
+			repocall2 = repo.On("UpdateToken", context.Background(), mock.Anything).Return(tc.repoErr)
 		}
 		err := svc.SendInvitation(context.Background(), tc.token, tc.req)
 		assert.Equal(t, tc.err, err, tc.desc)
 		repocall.Unset()
 		domaincall.Unset()
 		platformcall.Unset()
-		repocall3.Unset()
-		repocall4.Unset()
+		repocall1.Unset()
+		repocall2.Unset()
 	}
 }
 
@@ -224,7 +210,7 @@ func TestViewInvitation(t *testing.T) {
 		repoErr     error
 	}{
 		{
-			desc:        "send invitation successful",
+			desc:        "view invitation successful",
 			token:       validToken,
 			tokenUserID: testsutil.GenerateUUID(t),
 			userID:      validInvitation.UserID,
@@ -250,6 +236,20 @@ func TestViewInvitation(t *testing.T) {
 			adminErr:    nil,
 			authorised:  false,
 			repoErr:     nil,
+		},
+		{
+			desc:        "error retrieving invitation",
+			token:       validToken,
+			tokenUserID: testsutil.GenerateUUID(t),
+			userID:      validInvitation.UserID,
+			domainID:    validInvitation.Domain,
+			resp:        invitations.Invitation{},
+			err:         svcerr.ErrNotFound,
+			authNErr:    nil,
+			domainErr:   nil,
+			adminErr:    nil,
+			authorised:  true,
+			repoErr:     svcerr.ErrNotFound,
 		},
 		{
 			desc:        "valid invitation for the same user",
@@ -321,20 +321,6 @@ func TestViewInvitation(t *testing.T) {
 			authorised:  false,
 			repoErr:     nil,
 		},
-		{
-			desc:        "error retrieving invitation",
-			token:       validToken,
-			tokenUserID: testsutil.GenerateUUID(t),
-			userID:      validInvitation.UserID,
-			domainID:    validInvitation.Domain,
-			resp:        invitations.Invitation{},
-			err:         svcerr.ErrNotFound,
-			authNErr:    nil,
-			domainErr:   nil,
-			adminErr:    nil,
-			authorised:  true,
-			repoErr:     svcerr.ErrNotFound,
-		},
 	}
 
 	for _, tc := range cases {
@@ -357,14 +343,14 @@ func TestViewInvitation(t *testing.T) {
 			Object:      auth.MagistralaObject,
 		}
 		platformcall := authsvc.On("Authorize", context.Background(), &platformReq).Return(&magistrala.AuthorizeRes{Authorized: tc.authorised}, tc.adminErr)
-		repocall2 := repo.On("Retrieve", context.Background(), mock.Anything, mock.Anything).Return(tc.resp, tc.repoErr)
+		repocall1 := repo.On("Retrieve", context.Background(), mock.Anything, mock.Anything).Return(tc.resp, tc.repoErr)
 		inv, err := svc.ViewInvitation(context.Background(), tc.token, tc.userID, tc.domainID)
 		assert.Equal(t, tc.err, err, tc.desc)
 		assert.Equal(t, tc.resp, inv, tc.desc)
 		repocall.Unset()
 		domaincall.Unset()
 		platformcall.Unset()
-		repocall2.Unset()
+		repocall1.Unset()
 	}
 }
 
@@ -432,16 +418,29 @@ func TestListInvitations(t *testing.T) {
 			repoErr:     nil,
 		},
 		{
-			desc:        "error during domain admin check",
+			desc:        "error during platform admin check",
 			token:       validToken,
 			tokenUserID: testsutil.GenerateUUID(t),
 			page:        validPage,
 			err:         nil,
 			resp:        invitations.InvitationPage{},
 			authNErr:    nil,
-			domainErr:   svcerr.ErrAuthorization,
-			adminErr:    nil,
+			domainErr:   nil,
+			adminErr:    svcerr.ErrAuthorization,
 			authorised:  false,
+			repoErr:     nil,
+		},
+		{
+			desc:        "list invitations with admin successful",
+			token:       validToken,
+			tokenUserID: testsutil.GenerateUUID(t),
+			page:        invitations.Page{Domain: testsutil.GenerateUUID(t)},
+			resp:        validResp,
+			err:         nil,
+			authNErr:    nil,
+			domainErr:   nil,
+			adminErr:    nil,
+			authorised:  true,
 			repoErr:     nil,
 		},
 		{
@@ -450,7 +449,7 @@ func TestListInvitations(t *testing.T) {
 			tokenUserID: testsutil.GenerateUUID(t),
 			page:        validPage,
 			err:         nil,
-			resp:        invitations.InvitationPage{},
+			resp:        validResp,
 			authNErr:    nil,
 			domainErr:   nil,
 			adminErr:    svcerr.ErrAuthorization,
@@ -466,7 +465,7 @@ func TestListInvitations(t *testing.T) {
 			err:         nil,
 			authNErr:    nil,
 			domainErr:   nil,
-			adminErr:    nil,
+			adminErr:    svcerr.ErrAuthorization,
 			authorised:  true,
 			repoErr:     nil,
 		},
@@ -479,7 +478,7 @@ func TestListInvitations(t *testing.T) {
 			resp:        invitations.InvitationPage{},
 			authNErr:    nil,
 			domainErr:   svcerr.ErrAuthorization,
-			adminErr:    nil,
+			adminErr:    svcerr.ErrAuthorization,
 			authorised:  false,
 			repoErr:     nil,
 		},
@@ -518,14 +517,14 @@ func TestListInvitations(t *testing.T) {
 			Object:      auth.MagistralaObject,
 		}
 		platformcall := authsvc.On("Authorize", context.Background(), &platformReq).Return(&magistrala.AuthorizeRes{Authorized: tc.authorised}, tc.adminErr)
-		repocall2 := repo.On("RetrieveAll", context.Background(), mock.Anything).Return(tc.resp, tc.repoErr)
+		repocall1 := repo.On("RetrieveAll", context.Background(), mock.Anything).Return(tc.resp, tc.repoErr)
 		resp, err := svc.ListInvitations(context.Background(), tc.token, tc.page)
 		assert.Equal(t, tc.err, err, tc.desc)
 		assert.Equal(t, tc.resp, resp, tc.desc)
 		repocall.Unset()
 		domaincall.Unset()
 		platformcall.Unset()
-		repocall2.Unset()
+		repocall1.Unset()
 	}
 }
 
@@ -550,7 +549,18 @@ func TestAcceptInvitation(t *testing.T) {
 		repoErr     error
 	}{
 		{
-			desc:        "list invitations successful",
+			desc:        "invalid token",
+			token:       "invalid",
+			tokenUserID: "",
+			err:         svcerr.ErrAuthentication,
+			authNErr:    svcerr.ErrAuthentication,
+			domainErr:   nil,
+			adminErr:    nil,
+			authorised:  false,
+			repoErr:     nil,
+		},
+		{
+			desc:        "list invitations successful that have been confirmed",
 			token:       validToken,
 			tokenUserID: userID,
 			domains:     []string{},
@@ -575,15 +585,32 @@ func TestAcceptInvitation(t *testing.T) {
 			repoErr:    nil,
 		},
 		{
-			desc:        "invalid token",
-			token:       "invalid",
-			tokenUserID: "",
-			err:         svcerr.ErrAuthentication,
-			authNErr:    svcerr.ErrAuthentication,
+			desc:        "list more than one page of invitations",
+			token:       validToken,
+			tokenUserID: userID,
+			domains:     []string{},
+			resp: invitations.InvitationPage{
+				Total:       101,
+				Offset:      0,
+				Invitations: []invitations.Invitation{},
+			},
+			err:        nil,
+			authNErr:   nil,
+			domainErr:  nil,
+			adminErr:   nil,
+			authorised: true,
+			repoErr:    nil,
+		},
+		{
+			desc:        "list invitations with failed to retrieve all",
+			token:       validToken,
+			tokenUserID: userID,
+			err:         svcerr.ErrNotFound,
+			authNErr:    nil,
 			domainErr:   nil,
 			adminErr:    nil,
 			authorised:  false,
-			repoErr:     nil,
+			repoErr:     svcerr.ErrNotFound,
 		},
 	}
 
@@ -618,7 +645,7 @@ func TestDeleteInvitation(t *testing.T) {
 		repoErr     error
 	}{
 		{
-			desc:        "list invitations successful",
+			desc:        "delete invitations successful",
 			token:       validToken,
 			tokenUserID: testsutil.GenerateUUID(t),
 			userID:      testsutil.GenerateUUID(t),
@@ -645,7 +672,7 @@ func TestDeleteInvitation(t *testing.T) {
 			repoErr:     nil,
 		},
 		{
-			desc:        "list invitations for the same user",
+			desc:        "delete invitations for the same user",
 			token:       validToken,
 			tokenUserID: validInvitation.UserID,
 			userID:      validInvitation.UserID,
@@ -659,7 +686,7 @@ func TestDeleteInvitation(t *testing.T) {
 			repoErr:     nil,
 		},
 		{
-			desc:        "list invitations for the invited user",
+			desc:        "delete invitations for the invited user",
 			token:       validToken,
 			tokenUserID: validInvitation.InvitedBy,
 			userID:      validInvitation.UserID,
@@ -709,7 +736,7 @@ func TestDeleteInvitation(t *testing.T) {
 			resp:        invitations.Invitation{},
 			err:         svcerr.ErrAuthorization,
 			authNErr:    nil,
-			domainErr:   nil,
+			domainErr:   svcerr.ErrAuthorization,
 			adminErr:    svcerr.ErrAuthorization,
 			authorised:  false,
 			repoErr:     nil,
