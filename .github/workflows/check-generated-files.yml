@@ -1,31 +1,18 @@
 # Copyright (c) Abstract Machines
 # SPDX-License-Identifier: Apache-2.0
 
-name: Check Proto File Consistency
+name: Check the consistency of generated files
 
 on:
   push:
     branches:
       - main
-    paths:
-      - ".github/workflows/check-proto.yml"
-      - "auth.proto"
-      - "auth/*.pb.go"
-      - "pkg/messaging/message.proto"
-      - "pkg/messaging/*.pb.go"
-
   pull_request:
     branches:
       - main
-    paths:
-      - ".github/workflows/check-proto.yml"
-      - "auth.proto"
-      - "auth/*.pb.go"
-      - "pkg/messaging/message.proto"
-      - "pkg/messaging/*.pb.go"
 
 jobs:
-  check-proto:
+  check-generated-files:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -37,7 +24,24 @@ jobs:
           go-version: 1.21.x
           cache-dependency-path: "go.sum"
 
+      - name: Check for changes in specific paths
+        uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            proto:
+              - ".github/workflows/check-generated-files.yml"
+              - "auth.proto"
+              - "auth/*.pb.go"
+              - "pkg/messaging/message.proto"
+              - "pkg/messaging/*.pb.go"
+
+            sdk:
+              - ".github/workflows/check-generated-files.yml"
+              - "pkg/sdk/go/sdk.go"
+
       - name: Set up protoc
+        if: steps.changes.outputs.proto == 'true'
         run: |
           PROTOC_VERSION=25.1
           PROTOC_GEN_VERSION=v1.31.0
@@ -58,7 +62,8 @@ jobs:
           # Add protoc to the PATH
           export PATH=$PATH:/usr/local/bin/protoc
 
-      - name: Check Protobuf
+      - name: Check Protobuf is up to Date
+        if: steps.changes.outputs.proto == 'true'
         run: |
           for p in $(find . -name "*.pb.go"); do
             mv $p $p.tmp
@@ -72,3 +77,18 @@ jobs:
               exit 1
             fi
           done
+
+      - name: Check SDK is up to Date
+        if: steps.changes.outputs.sdk == 'true'
+        run: |
+          MOCKERY_VERSION=v2.38.0
+          go install github.com/vektra/mockery/v2@$MOCKERY_VERSION
+           
+          mv ./pkg/sdk/go/mocks.go ./pkg/sdk/go/mocks.go.tmp
+
+          go generate ./...
+
+          if ! cmp -s ./pkg/sdk/go/mocks.go ./pkg/sdk/go/mocks.go.tmp; then
+            echo "Generated mocks for SDK ./pkg/sdk/go/mocks.go are out of sync! Please run 'go generate ./...' and commit the changes."
+            exit 1
+          fi
