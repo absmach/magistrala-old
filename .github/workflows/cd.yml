@@ -27,6 +27,10 @@ jobs:
       - name: Run tests
         run: |
           make test
+          echo "mode: atomic" > coverage.txt
+          for f in ./coverage/*.out; do
+            tail -n +2 "$f" >> coverage.txt
+          done
           go tool cover -html=coverage.out -o coverage.html
 
       - name: Upload coverage

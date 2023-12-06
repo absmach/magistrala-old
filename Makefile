@@ -123,7 +123,14 @@ install:
 	done
 
 test:
-	go test -p 4 -v --race -count 1 -tags test -coverprofile=coverage.out $(shell go list ./... | grep -v 'cmd')
+	mkdir -p coverage
+	go test -v --race -count 1 -tags test -coverprofile=coverage/cassandra.out $(shell go list ./... | grep 'cassandra' | grep -v 'cmd')
+	go test -v --race -count 1 -tags test -coverprofile=coverage/consumers.out $(shell go list ./... | grep 'consumers' | grep -v 'cmd')
+	go test -v --race -count 1 -tags test -coverprofile=coverage/readers.out $(shell go list ./... | grep 'readers' | grep -v 'cmd')
+	go test -v --race -count 1 -tags test -coverprofile=coverage/postgres.out $(shell go list ./... | grep 'postgres' | grep -v 'cmd')
+	go test -v --race -count 1 -tags test -coverprofile=coverage/internal.out $(shell go list ./... | grep 'internal' | grep -v 'cmd')
+	go test -v --race -count 1 -tags test -coverprofile=coverage/opcua.out $(shell go list ./... | grep 'opcua' | grep -v 'cmd')
+	go test -v --race -count 1 -tags test -coverprofile=coverage/coverage.out $(shell go list ./... | grep -v 'postgres\|internal\|opcua\|cassandra\|pkg\|consumers\|readers\|cmd')
 
 proto:
 	protoc -I. --go_out=. --go_opt=paths=source_relative pkg/messaging/*.proto
