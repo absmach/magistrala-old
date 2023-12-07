@@ -539,8 +539,8 @@ func TestAcceptInvitation(t *testing.T) {
 		desc        string
 		token       string
 		tokenUserID string
-		domains     []string
-		resp        invitations.InvitationPage
+		domain      string
+		resp        invitations.Invitation
 		err         error
 		authNErr    error
 		domainErr   error
@@ -563,36 +563,13 @@ func TestAcceptInvitation(t *testing.T) {
 			desc:        "list invitations successful that have been confirmed",
 			token:       validToken,
 			tokenUserID: userID,
-			domains:     []string{},
-			resp: invitations.InvitationPage{
-				Total:  1,
-				Offset: 0,
-				Invitations: []invitations.Invitation{
-					{
-						UserID:      userID,
-						Domain:      testsutil.GenerateUUID(t),
-						Token:       validToken,
-						Relation:    auth.ViewerRelation,
-						ConfirmedAt: time.Now().Add(-time.Second * time.Duration(rand.Intn(100))),
-					},
-				},
-			},
-			err:        nil,
-			authNErr:   nil,
-			domainErr:  nil,
-			adminErr:   nil,
-			authorised: true,
-			repoErr:    nil,
-		},
-		{
-			desc:        "list more than one page of invitations",
-			token:       validToken,
-			tokenUserID: userID,
-			domains:     []string{},
-			resp: invitations.InvitationPage{
-				Total:       101,
-				Offset:      0,
-				Invitations: []invitations.Invitation{},
+			domain:      "",
+			resp: invitations.Invitation{
+				UserID:      userID,
+				Domain:      testsutil.GenerateUUID(t),
+				Token:       validToken,
+				Relation:    auth.ViewerRelation,
+				ConfirmedAt: time.Now().Add(-time.Second * time.Duration(rand.Intn(100))),
 			},
 			err:        nil,
 			authNErr:   nil,
@@ -616,10 +593,9 @@ func TestAcceptInvitation(t *testing.T) {
 
 	for _, tc := range cases {
 		repocall := authsvc.On("Identify", context.Background(), &magistrala.IdentityReq{Token: tc.token}).Return(&magistrala.IdentityRes{UserId: tc.tokenUserID}, tc.authNErr)
-		repocall1 := repo.On("RetrieveAll", context.Background(), mock.Anything).Return(tc.resp, tc.repoErr)
-		domains, err := svc.AcceptInvitation(context.Background(), tc.token)
+		repocall1 := repo.On("Retrieve", context.Background(), mock.Anything, tc.domain).Return(tc.resp, tc.repoErr)
+		err := svc.AcceptInvitation(context.Background(), tc.token, tc.domain)
 		assert.Equal(t, tc.err, err, tc.desc)
-		assert.Equal(t, tc.domains, domains, tc.desc)
 		repocall.Unset()
 		repocall1.Unset()
 	}

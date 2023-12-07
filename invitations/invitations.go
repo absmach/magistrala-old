@@ -86,8 +86,7 @@ type Service interface {
 	ListInvitations(ctx context.Context, token string, page Page) (invitations InvitationPage, err error)
 
 	// AcceptInvitation accepts an invitation by adding the user to the domain.
-	// It returns the user ID and the list of domains the user has been added to.
-	AcceptInvitation(ctx context.Context, token string) (domains []string, err error)
+	AcceptInvitation(ctx context.Context, token, domain string) (err error)
 
 	// DeleteInvitation deletes an invitation.
 	// People who can delete invitations are:
@@ -106,7 +105,7 @@ type Repository interface {
 	Retrieve(ctx context.Context, userID, domainID string) (Invitation, error)
 
 	// RetrieveAll returns a list of invitations based on the given page.
-	RetrieveAll(ctx context.Context, withToken bool, page Page) (invitations InvitationPage, err error)
+	RetrieveAll(ctx context.Context, page Page) (invitations InvitationPage, err error)
 
 	// UpdateToken updates an invitation by setting the token.
 	UpdateToken(ctx context.Context, invitation Invitation) (err error)
