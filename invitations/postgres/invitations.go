@@ -156,6 +156,9 @@ func pageQuery(pm invitations.Page) string {
 	if pm.Relation != "" {
 		query = append(query, "relation = :relation")
 	}
+	if pm.InvitedByOrUserID != "" {
+		query = append(query, "(invited_by = :invited_by_or_user_id OR user_id = :invited_by_or_user_id)")
+	}
 
 	if len(query) > 0 {
 		emq = fmt.Sprintf("WHERE %s", strings.Join(query, " AND "))

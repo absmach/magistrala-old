@@ -31,12 +31,13 @@ type Invitation struct {
 
 // Page is a page of invitations.
 type Page struct {
-	Offset    uint64 `json:"offset" db:"offset"`
-	Limit     uint64 `json:"limit" db:"limit"`
-	InvitedBy string `json:"invited_by,omitempty" db:"invited_by,omitempty"`
-	UserID    string `json:"user_id,omitempty" db:"user_id,omitempty"`
-	Domain    string `json:"domain,omitempty" db:"domain,omitempty"`
-	Relation  string `json:"relation,omitempty" db:"relation,omitempty"`
+	Offset            uint64 `json:"offset" db:"offset"`
+	Limit             uint64 `json:"limit" db:"limit"`
+	InvitedBy         string `json:"invited_by,omitempty" db:"invited_by,omitempty"`
+	UserID            string `json:"user_id,omitempty" db:"user_id,omitempty"`
+	Domain            string `json:"domain,omitempty" db:"domain,omitempty"`
+	Relation          string `json:"relation,omitempty" db:"relation,omitempty"`
+	InvitedByOrUserID string `db:"invited_by_or_user_id,omitempty"`
 }
 
 // InvitationPage is a page of invitations.

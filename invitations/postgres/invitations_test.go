@@ -454,6 +454,20 @@ func TestInvitationRetrieveAll(t *testing.T) {
 			},
 		},
 		{
+			desc: "retrieve invitations with invited_by_or_user_id",
+			page: invitations.Page{
+				InvitedByOrUserID: items[0].UserID,
+				Offset:            0,
+				Limit:             10,
+			},
+			response: invitations.InvitationPage{
+				Total:       1,
+				Offset:      0,
+				Limit:       10,
+				Invitations: []invitations.Invitation{items[0]},
+			},
+		},
+		{
 			desc: "retrieve invitations with relation",
 			page: invitations.Page{
 				Relation: relation + "-0",
