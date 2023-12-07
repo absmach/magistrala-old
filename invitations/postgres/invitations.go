@@ -114,7 +114,7 @@ func (repo *repository) UpdateToken(ctx context.Context, invitation invitations.
 }
 
 func (repo *repository) UpdateConfirmation(ctx context.Context, invitation invitations.Invitation) (err error) {
-	q := `UPDATE invitations SET confirmed_at = :confirmed_at WHERE user_id = :user_id AND domain = :domain`
+	q := `UPDATE invitations SET confirmed_at = :confirmed_at, updated_at = :updated_at WHERE user_id = :user_id AND domain = :domain`
 
 	result, err := repo.db.NamedExecContext(ctx, q, invitation)
 	if err != nil {
