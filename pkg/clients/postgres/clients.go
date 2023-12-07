@@ -525,9 +525,10 @@ func constructSearchQuery(pm clients.Page) (string, string) {
 
 	tq = emq
 
-	if pm.Order != "" && (pm.Order == "name" || pm.Order == "identity" || pm.Order == "created_at" || pm.Order == "updated_at") {
+	switch pm.Order {
+	case "name", "identity", "created_at", "updated_at":
 		emq = fmt.Sprintf("%s ORDER BY %s", emq, pm.Order)
-		if pm.Dir != "" && (pm.Dir == api.AscDir || pm.Dir == api.DescDir) {
+		if pm.Dir == api.AscDir || pm.Dir == api.DescDir {
 			emq = fmt.Sprintf("%s %s", emq, pm.Dir)
 		}
 	}
