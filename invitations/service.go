@@ -41,7 +41,7 @@ func (svc *service) SendInvitation(ctx context.Context, token string, invitation
 	}
 	invitation.InvitedBy = userID
 
-	if err := svc.checkDomainOrPlatformAdmin(ctx, userID, invitation.Domain); err != nil {
+	if err := svc.checkAdmin(ctx, userID, invitation.Domain); err != nil {
 		return err
 	}
 
@@ -80,7 +80,7 @@ func (svc *service) ViewInvitation(ctx context.Context, token, userID, domain st
 		return inv, nil
 	}
 
-	if err := svc.checkDomainOrPlatformAdmin(ctx, tokenUserID, domain); err != nil {
+	if err := svc.checkAdmin(ctx, tokenUserID, domain); err != nil {
 		return Invitation{}, err
 	}
 
@@ -98,7 +98,7 @@ func (svc *service) ListInvitations(ctx context.Context, token string, page Page
 	}
 
 	if page.Domain != "" {
-		if err := svc.checkDomainOrPlatformAdmin(ctx, userID, page.Domain); err != nil {
+		if err := svc.checkAdmin(ctx, userID, page.Domain); err != nil {
 			return InvitationPage{}, err
 		}
 
@@ -170,7 +170,7 @@ func (svc *service) DeleteInvitation(ctx context.Context, token, userID, domainI
 		return svc.repo.Delete(ctx, userID, domainID)
 	}
 
-	if err := svc.checkDomainOrPlatformAdmin(ctx, tokenUserID, domainID); err != nil {
+	if err := svc.checkAdmin(ctx, tokenUserID, domainID); err != nil {
 		return err
 	}
 
@@ -207,8 +207,8 @@ func (svc *service) authorize(ctx context.Context, subjType, subjKind, subj, per
 	return nil
 }
 
-// checkDomainOrPlatformAdmin checks if the given user is a domain or platform administrator.
-func (svc *service) checkDomainOrPlatformAdmin(ctx context.Context, userID, domainID string) error {
+// checkAdmin checks if the given user is a domain or platform administrator.
+func (svc *service) checkAdmin(ctx context.Context, userID, domainID string) error {
 	if err := svc.authorize(ctx, auth.UserType, auth.UsersKind, userID, auth.AdminPermission, auth.DomainType, domainID); err == nil {
 		return nil
 	}
