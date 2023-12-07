@@ -105,7 +105,7 @@ func (svc *service) ListInvitations(ctx context.Context, token string, page Page
 		return svc.repo.RetrieveAll(ctx, false, page)
 	}
 
-	page.InvitedBy = userID
+	page.InvitedByOrUserID = userID
 
 	return svc.repo.RetrieveAll(ctx, false, page)
 }

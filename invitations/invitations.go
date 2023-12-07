@@ -82,7 +82,7 @@ type Service interface {
 	// People who can list invitations are:
 	// - platform administrators can list all invitations
 	// - domain administrators can list invitations for their domain
-	// - the user who sent the invitation
+	// By default, it will list invitations the current user has sent or received.
 	ListInvitations(ctx context.Context, token string, page Page) (invitations InvitationPage, err error)
 
 	// AcceptInvitation accepts an invitation by adding the user to the domain.
