@@ -55,13 +55,6 @@ func clientsHandler(svc users.Service, r *chi.Mux, logger mglog.Logger) http.Han
 			opts...,
 		), "list_clients").ServeHTTP)
 
-		r.Get("/search", otelhttp.NewHandler(kithttp.NewServer(
-			searchClientsEndpoint(svc),
-			decodeListClients,
-			api.EncodeResponse,
-			opts...,
-		), "search_clients").ServeHTTP)
-
 		r.Patch("/secret", otelhttp.NewHandler(kithttp.NewServer(
 			updateClientSecretEndpoint(svc),
 			decodeUpdateClientSecret,

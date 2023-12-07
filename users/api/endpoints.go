@@ -80,44 +80,10 @@ func listClientsEndpoint(svc users.Service) endpoint.Endpoint {
 			Tag:      req.tag,
 			Metadata: req.metadata,
 			Identity: req.identity,
-		}
-		page, err := svc.ListClients(ctx, req.token, pm)
-		if err != nil {
-			return nil, err
-		}
-
-		res := clientsPageRes{
-			pageRes: pageRes{
-				Total:  page.Total,
-				Offset: page.Offset,
-				Limit:  page.Limit,
-			},
-			Clients: []viewClientRes{},
-		}
-		for _, client := range page.Clients {
-			res.Clients = append(res.Clients, viewClientRes{Client: client})
-		}
-
-		return res, nil
-	}
-}
-
-func searchClientsEndpoint(svc users.Service) endpoint.Endpoint {
-	return func(ctx context.Context, request interface{}) (interface{}, error) {
-		req := request.(listClientsReq)
-		if err := req.validate(); err != nil {
-			return nil, errors.Wrap(apiutil.ErrValidation, err)
-		}
-
-		pm := mgclients.Page{
-			Offset:   req.offset,
-			Limit:    req.limit,
-			Name:     req.name,
-			Identity: req.identity,
 			Order:    req.order,
 			Dir:      req.dir,
 		}
-		page, err := svc.SearchClients(ctx, req.token, pm)
+		page, err := svc.ListClients(ctx, req.token, pm)
 		if err != nil {
 			return nil, err
 		}

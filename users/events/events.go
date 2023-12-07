@@ -21,7 +21,6 @@ const (
 	clientView         = clientPrefix + "view"
 	profileView        = clientPrefix + "view_profile"
 	clientList         = clientPrefix + "list"
-	clientSearch       = clientPrefix + "search"
 	clientListByGroup  = clientPrefix + "list_by_group"
 	clientIdentify     = clientPrefix + "identify"
 	generateResetToken = clientPrefix + "generate_reset_token"
@@ -243,12 +242,11 @@ func (vpe viewProfileEvent) Encode() (map[string]interface{}, error) {
 
 type listClientEvent struct {
 	mgclients.Page
-	operation string
 }
 
 func (lce listClientEvent) Encode() (map[string]interface{}, error) {
 	val := map[string]interface{}{
-		"operation": lce.operation,
+		"operation": clientList,
 		"total":     lce.Total,
 		"offset":    lce.Offset,
 		"limit":     lce.Limit,
