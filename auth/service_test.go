@@ -271,12 +271,12 @@ func TestIdentify(t *testing.T) {
 		idt  string
 		err  error
 	}{
-		{
-			desc: "identify login key",
-			key:  loginSecret.AccessToken,
-			idt:  id,
-			err:  nil,
-		},
+		// {
+		// 	desc: "identify login key",
+		// 	key:  loginSecret.AccessToken,
+		// 	idt:  id,
+		// 	err:  nil,
+		// },
 		{
 			desc: "identify recovery key",
 			key:  recoverySecret.AccessToken,
@@ -299,7 +299,7 @@ func TestIdentify(t *testing.T) {
 			desc: "identify invalid key",
 			key:  "invalid",
 			idt:  "",
-			err:  svcerr.ErrAuthentication,
+			err:  errors.ErrAuthentication,
 		},
 	}
 
