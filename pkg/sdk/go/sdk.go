@@ -95,7 +95,7 @@ type PageMetadata struct {
 	ListPermissions string   `json:"list_perms,omitempty"`
 	InvitedBy       string   `json:"invited_by,omitempty"`
 	UserID          string   `json:"user_id,omitempty"`
-	Domain          string   `json:"domain,omitempty"`
+	DomainID        string   `json:"domain_id,omitempty"`
 	Relation        string   `json:"relation,omitempty"`
 }
 
@@ -1113,7 +1113,7 @@ type SDK interface {
 	// Invitations returns a list of invitations.
 	//
 	// For example:
-	//  invitations, _ := sdk.Invitations(PageMetadata{Offset: 0, Limit: 10, Domain: "domain"}, "token")
+	//  invitations, _ := sdk.Invitations(PageMetadata{Offset: 0, Limit: 10, Domain: "domainID"}, "token")
 	//  fmt.Println(invitations)
 	Invitations(pm PageMetadata, token string) (invitations InvitationPage, err error)
 
@@ -1122,7 +1122,7 @@ type SDK interface {
 	// For example:
 	//  err := sdk.AcceptInvitation("domainID", "token")
 	//  fmt.Println(err)
-	AcceptInvitation(domain, token string) (err error)
+	AcceptInvitation(domainID, token string) (err error)
 
 	// DeleteInvitation deletes an invitation.
 	//
@@ -1313,8 +1313,8 @@ func (pm PageMetadata) query() (string, error) {
 	if pm.UserID != "" {
 		q.Add("user_id", pm.UserID)
 	}
-	if pm.Domain != "" {
-		q.Add("domain", pm.Domain)
+	if pm.DomainID != "" {
+		q.Add("domain_id", pm.DomainID)
 	}
 	if pm.Relation != "" {
 		q.Add("relation", pm.Relation)

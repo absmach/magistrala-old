@@ -107,7 +107,7 @@ paths:
         "500":
           $ref: "#/components/responses/ServiceError"
 
-  /invitations/{userID}/{domainID}:
+  /invitations/{user_id}/{domain_id}:
     get:
       summary: Retrieves a specific invitation
       description: |
@@ -172,12 +172,12 @@ components:
     SendInvitationReqObj:
       type: object
       properties:
-        userID:
+        user_id:
           type: string
           format: uuid
           example: bb7edb32-2eac-4aad-aebe-ed96fe073879
           description: User unique identifier.
-        domain:
+        domain_id:
           type: string
           format: uuid
           example: bb7edb32-2eac-4aad-aebe-ed96fe073879
@@ -201,8 +201,8 @@ components:
           example: true
           description: Resend invitation.
       required:
-        - userID
-        - domain
+        - user_id
+        - domain_id
         - relation
 
     Invitation:
@@ -218,7 +218,7 @@ components:
           format: uuid
           example: bb7edb32-2eac-4aad-aebe-ed96fe073879
           description: User unique identifier.
-        domain:
+        domain_id:
           type: string
           format: uuid
           example: bb7edb32-2eac-4aad-aebe-ed96fe073879
@@ -338,7 +338,7 @@ components:
       example: "10"
 
     UserID:
-      name: userID
+      name: user_id
       description: Unique user identifier.
       in: query
       schema:
@@ -348,7 +348,7 @@ components:
       example: bb7edb32-2eac-4aad-aebe-ed96fe073879
 
     user_id:
-      name: userID
+      name: user_id
       description: Unique user identifier.
       in: path
       schema:
@@ -358,7 +358,7 @@ components:
       example: bb7edb32-2eac-4aad-aebe-ed96fe073879
 
     DomainID:
-      name: domainID
+      name: domain_id
       description: Unique identifier for a domain.
       in: query
       schema:
@@ -368,7 +368,7 @@ components:
       example: bb7edb32-2eac-4aad-aebe-ed96fe073879
 
     domain_id:
-      name: domainID
+      name: domain_id
       description: Unique identifier for a domain.
       in: path
       schema:
@@ -378,7 +378,7 @@ components:
       example: bb7edb32-2eac-4aad-aebe-ed96fe073879
 
     InvitedBy:
-      name: invitedBy
+      name: invited_by
       description: Unique identifier for a user that invited the user.
       in: query
       schema:
@@ -423,13 +423,13 @@ components:
           schema:
             type: object
             properties:
-              domain:
+              domain_id:
                 type: string
                 format: uuid
                 example: bb7edb32-2eac-4aad-aebe-ed96fe073879
                 description: Domain unique identifier.
             required:
-              - domain
+              - domain_id
 
   responses:
     InvitationRes:

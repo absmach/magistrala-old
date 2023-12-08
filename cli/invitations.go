@@ -10,7 +10,7 @@ import (
 
 var cmdInvitations = []cobra.Command{
 	{
-		Use:   "send <userID> <domainID> <relation> <user_auth_token>",
+		Use:   "send <user_id> <domain_id> <relation> <user_auth_token>",
 		Short: "Send invitation",
 		Long: "Send invitation to user\n" +
 			"For example:\n" +
@@ -22,7 +22,7 @@ var cmdInvitations = []cobra.Command{
 			}
 			inv := mgxsdk.Invitation{
 				UserID:   args[0],
-				Domain:   args[1],
+				DomainID: args[1],
 				Relation: args[2],
 			}
 			if err := sdk.SendInvitation(inv, args[3]); err != nil {

@@ -17,14 +17,14 @@ const (
 )
 
 type Invitation struct {
-	InvitedBy   string    `json:"invited_by" db:"invited_by"`
-	UserID      string    `json:"user_id" db:"user_id"`
-	Domain      string    `json:"domain" db:"domain"`
-	Token       string    `json:"token,omitempty" db:"token"`
-	Relation    string    `json:"relation,omitempty" db:"relation"`
-	CreatedAt   time.Time `json:"created_at" db:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at,omitempty" db:"updated_at,omitempty"`
-	ConfirmedAt time.Time `json:"confirmed_at,omitempty" db:"confirmed_at,omitempty"`
+	InvitedBy   string    `json:"invited_by"`
+	UserID      string    `json:"user_id"`
+	DomainID    string    `json:"domain_id"`
+	Token       string    `json:"token,omitempty"`
+	Relation    string    `json:"relation,omitempty"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at,omitempty"`
+	ConfirmedAt time.Time `json:"confirmed_at,omitempty"`
 	Resend      bool      `json:"resend,omitempty"`
 }
 
@@ -82,11 +82,11 @@ func (sdk mgSDK) Invitations(pm PageMetadata, token string) (invitations Invitat
 	return invPage, nil
 }
 
-func (sdk mgSDK) AcceptInvitation(domain, token string) (err error) {
+func (sdk mgSDK) AcceptInvitation(domainID, token string) (err error) {
 	req := struct {
-		Domain string `json:"domain"`
+		DomainID string `json:"domain_id"`
 	}{
-		Domain: domain,
+		DomainID: domainID,
 	}
 	data, err := json.Marshal(req)
 	if err != nil {
@@ -100,8 +100,8 @@ func (sdk mgSDK) AcceptInvitation(domain, token string) (err error) {
 	return sdkerr
 }
 
-func (sdk mgSDK) DeleteInvitation(userID, domain, token string) (err error) {
-	url := sdk.invitationsURL + "/" + invitationsEndpoint + "/" + userID + "/" + domain
+func (sdk mgSDK) DeleteInvitation(userID, domainID, token string) (err error) {
+	url := sdk.invitationsURL + "/" + invitationsEndpoint + "/" + userID + "/" + domainID
 
 	_, _, sdkerr := sdk.processRequest(http.MethodDelete, url, token, nil, nil, http.StatusNoContent)
 

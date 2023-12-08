@@ -130,6 +130,7 @@ func (svc *service) AcceptInvitation(ctx context.Context, token, domainID string
 		}
 
 		inv.ConfirmedAt = time.Now()
+		inv.UpdatedAt = time.Now()
 		if err := svc.repo.UpdateConfirmation(ctx, inv); err != nil {
 			return err
 		}
