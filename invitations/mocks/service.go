@@ -20,17 +20,17 @@ type Service struct {
 func (svc *Service) SendInvitation(ctx context.Context, token string, invitation invitations.Invitation) (err error) {
 	ret := svc.Called(ctx, token, invitation)
 
-	if token == Invalid || invitation.UserID == Invalid || invitation.Domain == Invalid || invitation.InvitedBy == Invalid {
+	if token == Invalid || invitation.UserID == Invalid || invitation.DomainID == Invalid || invitation.InvitedBy == Invalid {
 		return errors.ErrNotFound
 	}
 
 	return ret.Error(0)
 }
 
-func (svc *Service) ViewInvitation(ctx context.Context, token, userID, domain string) (invitation invitations.Invitation, err error) {
-	ret := svc.Called(ctx, token, userID, domain)
+func (svc *Service) ViewInvitation(ctx context.Context, token, userID, domainID string) (invitation invitations.Invitation, err error) {
+	ret := svc.Called(ctx, token, userID, domainID)
 
-	if token == Invalid || invitation.UserID == Invalid || invitation.Domain == Invalid || invitation.InvitedBy == Invalid {
+	if token == Invalid || userID == Invalid || domainID == Invalid {
 		return invitations.Invitation{}, errors.ErrNotFound
 	}
 
@@ -47,8 +47,8 @@ func (svc *Service) ListInvitations(ctx context.Context, token string, page invi
 	return ret.Get(0).(invitations.InvitationPage), ret.Error(1)
 }
 
-func (svc *Service) AcceptInvitation(ctx context.Context, token, domain string) (err error) {
-	ret := svc.Called(ctx, token, domain)
+func (svc *Service) AcceptInvitation(ctx context.Context, token, domainID string) (err error) {
+	ret := svc.Called(ctx, token, domainID)
 
 	if token == Invalid {
 		return errors.ErrAuthentication
@@ -57,14 +57,14 @@ func (svc *Service) AcceptInvitation(ctx context.Context, token, domain string) 
 	return ret.Error(0)
 }
 
-func (svc *Service) DeleteInvitation(ctx context.Context, token, userID, domain string) (err error) {
-	ret := svc.Called(ctx, token, userID, domain)
+func (svc *Service) DeleteInvitation(ctx context.Context, token, userID, domainID string) (err error) {
+	ret := svc.Called(ctx, token, userID, domainID)
 
 	if token == Invalid {
 		return errors.ErrAuthentication
 	}
 
-	if userID == Invalid || domain == Invalid {
+	if userID == Invalid || domainID == Invalid {
 		return errors.ErrNotFound
 	}
 

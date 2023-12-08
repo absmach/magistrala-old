@@ -35,12 +35,12 @@ func (mm *metricsmw) SendInvitation(ctx context.Context, token string, invitatio
 	return mm.svc.SendInvitation(ctx, token, invitation)
 }
 
-func (mm *metricsmw) ViewInvitation(ctx context.Context, token, userID, domain string) (invitation invitations.Invitation, err error) {
+func (mm *metricsmw) ViewInvitation(ctx context.Context, token, userID, domainID string) (invitation invitations.Invitation, err error) {
 	defer func(begin time.Time) {
 		mm.counter.With("method", "view_invitation").Add(1)
 		mm.latency.With("method", "view_invitation").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return mm.svc.ViewInvitation(ctx, token, userID, domain)
+	return mm.svc.ViewInvitation(ctx, token, userID, domainID)
 }
 
 func (mm *metricsmw) ListInvitations(ctx context.Context, token string, page invitations.Page) (invs invitations.InvitationPage, err error) {
@@ -51,18 +51,18 @@ func (mm *metricsmw) ListInvitations(ctx context.Context, token string, page inv
 	return mm.svc.ListInvitations(ctx, token, page)
 }
 
-func (mm *metricsmw) AcceptInvitation(ctx context.Context, token, domain string) (err error) {
+func (mm *metricsmw) AcceptInvitation(ctx context.Context, token, domainID string) (err error) {
 	defer func(begin time.Time) {
 		mm.counter.With("method", "accept_invitation").Add(1)
 		mm.latency.With("method", "accept_invitation").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return mm.svc.AcceptInvitation(ctx, token, domain)
+	return mm.svc.AcceptInvitation(ctx, token, domainID)
 }
 
-func (mm *metricsmw) DeleteInvitation(ctx context.Context, token, userID, domain string) (err error) {
+func (mm *metricsmw) DeleteInvitation(ctx context.Context, token, userID, domainID string) (err error) {
 	defer func(begin time.Time) {
 		mm.counter.With("method", "delete_invitation").Add(1)
 		mm.latency.With("method", "delete_invitation").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return mm.svc.DeleteInvitation(ctx, token, userID, domain)
+	return mm.svc.DeleteInvitation(ctx, token, userID, domainID)
 }

@@ -17,7 +17,7 @@ var errMissingDomain = errors.New("missing domain")
 type sendInvitationReq struct {
 	token    string
 	UserID   string `json:"user_id,omitempty"`
-	Domain   string `json:"domain,omitempty"`
+	DomainID string `json:"domain_id,omitempty"`
 	Relation string `json:"relation,omitempty"`
 	Resend   bool   `json:"resend,omitempty"`
 }
@@ -29,7 +29,7 @@ func (req *sendInvitationReq) validate() error {
 	if req.UserID == "" {
 		return apiutil.ErrMissingID
 	}
-	if req.Domain == "" {
+	if req.DomainID == "" {
 		return errMissingDomain
 	}
 	if err := invitations.CheckRelation(req.Relation); err != nil {
@@ -56,15 +56,15 @@ func (req *listInvitationsReq) validate() error {
 }
 
 type acceptInvitationReq struct {
-	token  string
-	Domain string `json:"domain,omitempty"`
+	token    string
+	DomainID string `json:"domain_id,omitempty"`
 }
 
 func (req *acceptInvitationReq) validate() error {
 	if req.token == "" {
 		return apiutil.ErrBearerToken
 	}
-	if req.Domain == "" {
+	if req.DomainID == "" {
 		return errMissingDomain
 	}
 
@@ -72,9 +72,9 @@ func (req *acceptInvitationReq) validate() error {
 }
 
 type invitationReq struct {
-	token  string
-	userID string
-	domain string
+	token    string
+	userID   string
+	domainID string
 }
 
 func (req *invitationReq) validate() error {
@@ -84,7 +84,7 @@ func (req *invitationReq) validate() error {
 	if req.userID == "" {
 		return apiutil.ErrMissingID
 	}
-	if req.domain == "" {
+	if req.domainID == "" {
 		return errMissingDomain
 	}
 

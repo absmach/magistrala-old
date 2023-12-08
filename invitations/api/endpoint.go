@@ -24,7 +24,7 @@ func sendInvitationEndpoint(svc invitations.Service) endpoint.Endpoint {
 
 		invitation := invitations.Invitation{
 			UserID:   req.UserID,
-			Domain:   req.Domain,
+			DomainID: req.DomainID,
 			Relation: req.Relation,
 			Resend:   req.Resend,
 		}
@@ -46,7 +46,7 @@ func viewInvitationEndpoint(svc invitations.Service) endpoint.Endpoint {
 			return nil, errors.Wrap(apiutil.ErrValidation, err)
 		}
 
-		invitation, err := svc.ViewInvitation(ctx, req.token, req.userID, req.domain)
+		invitation, err := svc.ViewInvitation(ctx, req.token, req.userID, req.domainID)
 		if err != nil {
 			return nil, err
 		}
@@ -82,7 +82,7 @@ func acceptInvitationEndpoint(svc invitations.Service) endpoint.Endpoint {
 			return nil, errors.Wrap(apiutil.ErrValidation, err)
 		}
 
-		if err := svc.AcceptInvitation(ctx, req.token, req.Domain); err != nil {
+		if err := svc.AcceptInvitation(ctx, req.token, req.DomainID); err != nil {
 			return nil, err
 		}
 
@@ -97,7 +97,7 @@ func deleteInvitationEndpoint(svc invitations.Service) endpoint.Endpoint {
 			return nil, errors.Wrap(apiutil.ErrValidation, err)
 		}
 
-		if err := svc.DeleteInvitation(ctx, req.token, req.userID, req.domain); err != nil {
+		if err := svc.DeleteInvitation(ctx, req.token, req.userID, req.domainID); err != nil {
 			return nil, err
 		}
 

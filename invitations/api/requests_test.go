@@ -31,7 +31,7 @@ func TestSendInvitationReqValidation(t *testing.T) {
 			req: sendInvitationReq{
 				token:    valid,
 				UserID:   valid,
-				Domain:   valid,
+				DomainID: valid,
 				Relation: auth.DomainRelation,
 				Resend:   true,
 			},
@@ -42,7 +42,7 @@ func TestSendInvitationReqValidation(t *testing.T) {
 			req: sendInvitationReq{
 				token:    "",
 				UserID:   valid,
-				Domain:   valid,
+				DomainID: valid,
 				Relation: auth.DomainRelation,
 				Resend:   true,
 			},
@@ -53,18 +53,18 @@ func TestSendInvitationReqValidation(t *testing.T) {
 			req: sendInvitationReq{
 				token:    valid,
 				UserID:   "",
-				Domain:   valid,
+				DomainID: valid,
 				Relation: auth.DomainRelation,
 				Resend:   true,
 			},
 			err: apiutil.ErrMissingID,
 		},
 		{
-			desc: "empty domain",
+			desc: "empty domain_id",
 			req: sendInvitationReq{
 				token:    valid,
 				UserID:   valid,
-				Domain:   "",
+				DomainID: "",
 				Relation: auth.DomainRelation,
 				Resend:   true,
 			},
@@ -75,7 +75,7 @@ func TestSendInvitationReqValidation(t *testing.T) {
 			req: sendInvitationReq{
 				token:    valid,
 				UserID:   valid,
-				Domain:   valid,
+				DomainID: valid,
 				Relation: "",
 				Resend:   true,
 			},
@@ -86,7 +86,7 @@ func TestSendInvitationReqValidation(t *testing.T) {
 			req: sendInvitationReq{
 				token:    valid,
 				UserID:   valid,
-				Domain:   valid,
+				DomainID: valid,
 				Relation: "invalid",
 				Resend:   true,
 			},
@@ -147,8 +147,8 @@ func TestAcceptInvitationReq(t *testing.T) {
 		{
 			desc: "valid request",
 			req: acceptInvitationReq{
-				token:  valid,
-				Domain: valid,
+				token:    valid,
+				DomainID: valid,
 			},
 			err: nil,
 		},
@@ -160,10 +160,10 @@ func TestAcceptInvitationReq(t *testing.T) {
 			err: apiutil.ErrBearerToken,
 		},
 		{
-			desc: "empty domain",
+			desc: "empty domain_id",
 			req: acceptInvitationReq{
-				token:  valid,
-				Domain: "",
+				token:    valid,
+				DomainID: "",
 			},
 			err: errMissingDomain,
 		},
@@ -184,36 +184,36 @@ func TestInvitationReqValidation(t *testing.T) {
 		{
 			desc: "valid request",
 			req: invitationReq{
-				token:  valid,
-				userID: valid,
-				domain: valid,
+				token:    valid,
+				userID:   valid,
+				domainID: valid,
 			},
 			err: nil,
 		},
 		{
 			desc: "empty token",
 			req: invitationReq{
-				token:  "",
-				userID: valid,
-				domain: valid,
+				token:    "",
+				userID:   valid,
+				domainID: valid,
 			},
 			err: apiutil.ErrBearerToken,
 		},
 		{
 			desc: "empty user ID",
 			req: invitationReq{
-				token:  valid,
-				userID: "",
-				domain: valid,
+				token:    valid,
+				userID:   "",
+				domainID: valid,
 			},
 			err: apiutil.ErrMissingID,
 		},
 		{
 			desc: "empty domain",
 			req: invitationReq{
-				token:  valid,
-				userID: valid,
-				domain: "",
+				token:    valid,
+				userID:   valid,
+				domainID: "",
 			},
 			err: errMissingDomain,
 		},

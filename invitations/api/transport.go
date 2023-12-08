@@ -23,7 +23,7 @@ import (
 
 const (
 	userIDKey    = "user_id"
-	domainKey    = "domain"
+	domainIDKey  = "domain_id"
 	invitedByKey = "invited_by"
 	relationKey  = "relation"
 )
@@ -48,7 +48,7 @@ func MakeHandler(svc invitations.Service, logger mglog.Logger, instanceID string
 			api.EncodeResponse,
 			opts...,
 		), "list_invitations").ServeHTTP)
-		r.Route("/{user_id}/{domain}", func(r chi.Router) {
+		r.Route("/{user_id}/{domain_id}", func(r chi.Router) {
 			r.Get("/", otelhttp.NewHandler(kithttp.NewServer(
 				viewInvitationEndpoint(svc),
 				decodeInvitationReq,
@@ -111,7 +111,7 @@ func decodeListInvitationsReq(_ context.Context, r *http.Request) (interface{}, 
 	if err != nil {
 		return nil, errors.Wrap(apiutil.ErrValidation, err)
 	}
-	domain, err := apiutil.ReadStringQuery(r, domainKey, "")
+	domainID, err := apiutil.ReadStringQuery(r, domainIDKey, "")
 	if err != nil {
 		return nil, errors.Wrap(apiutil.ErrValidation, err)
 	}
@@ -124,7 +124,7 @@ func decodeListInvitationsReq(_ context.Context, r *http.Request) (interface{}, 
 			InvitedBy: invitedBy,
 			UserID:    userID,
 			Relation:  relation,
-			Domain:    domain,
+			DomainID:  domainID,
 		},
 	}
 
@@ -147,9 +147,9 @@ func decodeAcceptInvitationReq(_ context.Context, r *http.Request) (interface{},
 
 func decodeInvitationReq(_ context.Context, r *http.Request) (interface{}, error) {
 	req := invitationReq{
-		token:  apiutil.ExtractBearerToken(r),
-		userID: chi.URLParam(r, "user_id"),
-		domain: chi.URLParam(r, "domain"),
+		token:    apiutil.ExtractBearerToken(r),
+		userID:   chi.URLParam(r, "user_id"),
+		domainID: chi.URLParam(r, "domain_id"),
 	}
 
 	return req, nil
