@@ -71,24 +71,23 @@ var cmdInvitations = []cobra.Command{
 		},
 	},
 	{
-		Use:   "accept <user_auth_token>",
+		Use:   "accept <domain_id> <user_auth_token>",
 		Short: "Accept invitation",
-		Long: "Accept invitation\n" +
+		Long: "Accept invitation to domain\n" +
 			"Usage:\n" +
-			"\tmagistrala-cli invitations accept $USERTOKEN\n",
+			"\tmagistrala-cli invitations accept 39f97daf-d6b6-40f4-b229-2697be8006ef $USERTOKEN\n",
 		Run: func(cmd *cobra.Command, args []string) {
-			if len(args) != 1 {
+			if len(args) != 2 {
 				logUsage(cmd.Use)
 				return
 			}
 
-			domains, err := sdk.AcceptInvitation(args[0])
-			if err != nil {
+			if err := sdk.AcceptInvitation(args[0], args[1]); err != nil {
 				logError(err)
 				return
 			}
 
-			logJSON(domains)
+			logOK()
 		},
 	},
 	{

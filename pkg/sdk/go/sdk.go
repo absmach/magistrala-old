@@ -1120,9 +1120,9 @@ type SDK interface {
 	// AcceptInvitation accepts an invitation by adding the user to the domain that they were invited to.
 	//
 	// For example:
-	//  err := sdk.AcceptInvitation("token")
+	//  err := sdk.AcceptInvitation("domainID", "token")
 	//  fmt.Println(err)
-	AcceptInvitation(token string) (domains []string, err error)
+	AcceptInvitation(domain, token string) (err error)
 
 	// DeleteInvitation deletes an invitation.
 	//

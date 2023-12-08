@@ -87,7 +87,7 @@ paths:
           $ref: "#/components/responses/ServiceError"
 
   /invitations/accept:
-    get:
+    post:
       summary: Accept invitation
       description: |
         Current logged in user accepts invitation to join domain.
@@ -95,9 +95,11 @@ paths:
         - Invitations
       security:
         - bearerAuth: []
+      requestBody:
+        $ref: "#/components/requestBodies/AcceptInvitationReq"
       responses:
         "200":
-          $ref: "#/components/responses/AcceptInvitationRes"
+          description: Invitation accepted.
         "400":
           description: Failed due to malformed query parameters.
         "401":
@@ -278,21 +280,6 @@ components:
         - total
         - offset
 
-    AcceptInvitationRes:
-      type: object
-      properties:
-        domains:
-          type: array
-          minItems: 0
-          uniqueItems: true
-          items:
-            type: string
-            format: uuid
-            example: bb7edb32-2eac-4aad-aebe-ed96fe073879
-            description: Domain unique identifier.
-          example: ["bb7edb32-2eac-4aad-aebe-ed96fe073879"]
-          description: User domains.
-
     Error:
       type: object
       properties:
@@ -428,6 +415,22 @@ components:
           schema:
             $ref: "#/components/schemas/SendInvitationReqObj"
 
+    AcceptInvitationReq:
+      description: JSON-formatted document describing request for accepting invitation
+      required: true
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              domain:
+                type: string
+                format: uuid
+                example: bb7edb32-2eac-4aad-aebe-ed96fe073879
+                description: Domain unique identifier.
+            required:
+              - domain
+
   responses:
     InvitationRes:
       description: Data retrieved.
@@ -442,13 +445,6 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/InvitationPage"
-
-    AcceptInvitationRes:
-      description: Data retrieved.
-      content:
-        application/json:
-          schema:
-            $ref: "#/components/schemas/AcceptInvitationRes"
 
     HealthRes:
       description: Service Health Check.

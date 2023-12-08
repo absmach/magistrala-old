@@ -82,26 +82,26 @@ func (sdk mgSDK) Invitations(pm PageMetadata, token string) (invitations Invitat
 	return invPage, nil
 }
 
-func (sdk mgSDK) AcceptInvitation(token string) (domains []string, err error) {
+func (sdk mgSDK) AcceptInvitation(domain, token string) (err error) {
+	req := struct {
+		Domain string `json:"domain"`
+	}{
+		Domain: domain,
+	}
+	data, err := json.Marshal(req)
+	if err != nil {
+		return errors.NewSDKError(err)
+	}
+
 	url := sdk.invitationsURL + "/" + invitationsEndpoint + "/" + acceptEndpoint
 
-	_, body, sdkerr := sdk.processRequest(http.MethodPost, url, token, nil, nil, http.StatusOK)
-	if sdkerr != nil {
-		return nil, sdkerr
-	}
+	_, _, sdkerr := sdk.processRequest(http.MethodPost, url, token, data, nil, http.StatusOK)
 
-	var resp struct {
-		Domains []string `json:"domains"`
-	}
-	if err := json.Unmarshal(body, &resp); err != nil {
-		return nil, errors.NewSDKError(err)
-	}
-
-	return resp.Domains, nil
+	return sdkerr
 }
 
 func (sdk mgSDK) DeleteInvitation(userID, domain, token string) (err error) {
-	url := sdk.invitationsURL + "/" + invitationsEndpoint + "/" + domain + "/" + userID
+	url := sdk.invitationsURL + "/" + invitationsEndpoint + "/" + userID + "/" + domain
 
 	_, _, sdkerr := sdk.processRequest(http.MethodDelete, url, token, nil, nil, http.StatusNoContent)
 
