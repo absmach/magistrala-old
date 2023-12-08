@@ -55,7 +55,12 @@ func startContainer() (client, error) {
 	}
 	cli.pool = pool
 
-	container, err := cli.pool.Run("redis", "7.2.0-alpine", nil)
+	opts := dockertest.RunOptions{
+		Name:       "REDIS_EVENTS_PKG",
+		Repository: "redis",
+		Tag:        "7.2.0-alpine",
+	}
+	container, err := cli.pool.RunWithOptions(&opts)
 	if err != nil {
 		return client{}, fmt.Errorf("Could not start container: %s", err)
 	}
@@ -64,13 +69,13 @@ func startContainer() (client, error) {
 	handleInterrupt(cli.pool, cli.container)
 
 	cli.url = fmt.Sprintf("redis://localhost:%s/0", cli.container.GetPort("6379/tcp"))
-	opts, err := redis.ParseURL(cli.url)
+	ropts, err := redis.ParseURL(cli.url)
 	if err != nil {
 		return client{}, fmt.Errorf("Could not parse redis URL: %s", err)
 	}
 
 	if err := pool.Retry(func() error {
-		cli.Client = redis.NewClient(opts)
+		cli.Client = redis.NewClient(ropts)
 
 		return cli.Client.Ping(ctx).Err()
 	}); err != nil {

@@ -66,7 +66,12 @@ func startContainer() (client, error) {
 		return client{}, fmt.Errorf("Could not connect to docker: %s", err)
 	}
 
-	cli.container, err = cli.pool.Run("rabbitmq", "3.9.20", []string{})
+	opts := dockertest.RunOptions{
+		Name:       "RABBIT_EVENTS_PKG",
+		Repository: "rabbitmq",
+		Tag:        "3.9.20",
+	}
+	cli.container, err = cli.pool.RunWithOptions(&opts)
 	if err != nil {
 		log.Fatalf("Could not start container: %s", err)
 	}
