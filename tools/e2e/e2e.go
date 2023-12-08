@@ -27,6 +27,7 @@ const (
 	batchSize   = 99
 	usersPort   = "9002"
 	thingsPort  = "9000"
+	domainsPort = "8189"
 )
 
 var (
@@ -66,6 +67,7 @@ func Test(conf Config) {
 	sdkConf := sdk.Config{
 		ThingsURL:       fmt.Sprintf("http://%s:%s", conf.Host, thingsPort),
 		UsersURL:        fmt.Sprintf("http://%s:%s", conf.Host, usersPort),
+		DomainsURL:      fmt.Sprintf("http://%s:%s", conf.Host, domainsPort),
 		HTTPAdapterURL:  fmt.Sprintf("http://%s/http", conf.Host),
 		MsgContentType:  sdk.CTJSONSenML,
 		TLSVerification: false,
@@ -134,19 +136,48 @@ func errExit(err error) {
 
 func createUser(s sdk.SDK, conf Config) (string, error) {
 	user := sdk.User{
-		Name: fmt.Sprintf("%s-%s", conf.Prefix, namesgenerator.Generate()),
+		Name: fmt.Sprintf("%s%s", conf.Prefix, namesgenerator.Generate()),
 		Credentials: sdk.Credentials{
-			Identity: fmt.Sprintf("%s-%s@email.com", conf.Prefix, namesgenerator.Generate()),
+			Identity: fmt.Sprintf("%s%s@email.com", conf.Prefix, namesgenerator.Generate()),
 			Secret:   defPass,
 		},
 		Status: sdk.EnabledStatus,
+		Role:   "admin",
 	}
 
 	if _, err := s.CreateUser(user, ""); err != nil {
 		return "", fmt.Errorf("unable to create user: %w", err)
 	}
 
-	token, err := s.CreateToken(sdk.Login{Identity: user.Credentials.Identity, Secret: user.Credentials.Secret})
+	login := sdk.Login{
+		Identity: user.Credentials.Identity,
+		Secret:   user.Credentials.Secret,
+	}
+	token, err := s.CreateToken(login)
+	if err != nil {
+		return "", fmt.Errorf("unable to login user: %w", err)
+	}
+
+	dname := fmt.Sprintf("%s%s", conf.Prefix, namesgenerator.Generate())
+	domain := sdk.Domain{
+		Name:       dname,
+		Alias:      strings.ToLower(dname),
+		Permission: "admin",
+	}
+
+	time.Sleep(5 * time.Second)
+
+	domain, err = s.CreateDomain(domain, token.AccessToken)
+	if err != nil {
+		return "", fmt.Errorf("unable to create domain: %w", err)
+	}
+
+	login = sdk.Login{
+		Identity: user.Credentials.Identity,
+		Secret:   user.Credentials.Secret,
+		DomainID: domain.ID,
+	}
+	token, err = s.CreateToken(login)
 	if err != nil {
 		return "", fmt.Errorf("unable to login user: %w", err)
 	}
@@ -160,9 +191,9 @@ func createUsers(s sdk.SDK, conf Config, token string) ([]sdk.User, error) {
 
 	for i := uint64(0); i < conf.Num; i++ {
 		user := sdk.User{
-			Name: fmt.Sprintf("%s-%s", conf.Prefix, namesgenerator.Generate()),
+			Name: fmt.Sprintf("%s%s", conf.Prefix, namesgenerator.Generate()),
 			Credentials: sdk.Credentials{
-				Identity: fmt.Sprintf("%s-%s@email.com", conf.Prefix, namesgenerator.Generate()),
+				Identity: fmt.Sprintf("%s%s@email.com", conf.Prefix, namesgenerator.Generate()),
 				Secret:   defPass,
 			},
 			Status: sdk.EnabledStatus,
@@ -184,7 +215,7 @@ func createGroups(s sdk.SDK, conf Config, token string) ([]sdk.Group, error) {
 
 	for i := uint64(0); i < conf.Num; i++ {
 		group := sdk.Group{
-			Name:   fmt.Sprintf("%s-%s", conf.Prefix, namesgenerator.Generate()),
+			Name:   fmt.Sprintf("%s%s", conf.Prefix, namesgenerator.Generate()),
 			Status: sdk.EnabledStatus,
 		}
 
@@ -204,7 +235,7 @@ func createThingsInBatch(s sdk.SDK, conf Config, token string, num uint64) ([]sd
 
 	for i := uint64(0); i < num; i++ {
 		things[i] = sdk.Thing{
-			Name: fmt.Sprintf("%s-%s", conf.Prefix, namesgenerator.Generate()),
+			Name: fmt.Sprintf("%s%s", conf.Prefix, namesgenerator.Generate()),
 		}
 	}
 
@@ -250,7 +281,7 @@ func createChannelsInBatch(s sdk.SDK, conf Config, token string, num uint64) ([]
 
 	for i := uint64(0); i < num; i++ {
 		channels[i] = sdk.Channel{
-			Name: fmt.Sprintf("%s-%s", conf.Prefix, namesgenerator.Generate()),
+			Name: fmt.Sprintf("%s%s", conf.Prefix, namesgenerator.Generate()),
 		}
 		channels[i], err = s.CreateChannel(channels[i], token)
 		if err != nil {
@@ -292,51 +323,51 @@ func createChannels(s sdk.SDK, conf Config, token string) ([]sdk.Channel, error)
 func read(s sdk.SDK, conf Config, token string, users []sdk.User, groups []sdk.Group, things []sdk.Thing, channels []sdk.Channel) error {
 	for _, user := range users {
 		if _, err := s.User(user.ID, token); err != nil {
-			return err
+			return fmt.Errorf("failed to get user %w", err)
 		}
 	}
 	up, err := s.Users(sdk.PageMetadata{}, token)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get users %w", err)
 	}
-	if up.Total != conf.Num {
-		return fmt.Errorf("returned users %d not equal to create users %d", up.Total, conf.Num)
+	if up.Total < conf.Num {
+		return fmt.Errorf("returned users %d less than created users %d", up.Total, conf.Num)
 	}
 	for _, group := range groups {
 		if _, err := s.Group(group.ID, token); err != nil {
-			return err
+			return fmt.Errorf("failed to get group %w", err)
 		}
 	}
 	gp, err := s.Groups(sdk.PageMetadata{}, token)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get groups %w", err)
 	}
-	if gp.Total != conf.Num {
-		return fmt.Errorf("returned groups %d not equal to create groups %d", gp.Total, conf.Num)
+	if gp.Total < conf.Num {
+		return fmt.Errorf("returned groups %d less than created groups %d", gp.Total, conf.Num)
 	}
 	for _, thing := range things {
 		if _, err := s.Thing(thing.ID, token); err != nil {
-			return err
+			return fmt.Errorf("failed to get thing %w", err)
 		}
 	}
 	tp, err := s.Things(sdk.PageMetadata{}, token)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get things %w", err)
 	}
-	if tp.Total != conf.Num {
-		return fmt.Errorf("returned things %d not equal to create things %d", tp.Total, conf.Num)
+	if tp.Total < conf.Num {
+		return fmt.Errorf("returned things %d less than created things %d", tp.Total, conf.Num)
 	}
 	for _, channel := range channels {
 		if _, err := s.Channel(channel.ID, token); err != nil {
-			return err
+			return fmt.Errorf("failed to get channel %w", err)
 		}
 	}
 	cp, err := s.Channels(sdk.PageMetadata{}, token)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to get channels %w", err)
 	}
-	if cp.Total != conf.Num {
-		return fmt.Errorf("returned channels %d not equal to create channels %d", cp.Total, conf.Num)
+	if cp.Total < conf.Num {
+		return fmt.Errorf("returned channels %d less than created channels %d", cp.Total, conf.Num)
 	}
 
 	return nil
