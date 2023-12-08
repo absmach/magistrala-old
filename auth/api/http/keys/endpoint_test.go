@@ -20,6 +20,7 @@ import (
 	"github.com/absmach/magistrala/auth/mocks"
 	"github.com/absmach/magistrala/internal/apiutil"
 	mglog "github.com/absmach/magistrala/logger"
+	"github.com/absmach/magistrala/pkg/errors"
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -219,24 +220,28 @@ func TestRetrieve(t *testing.T) {
 		id     string
 		token  string
 		status int
+		err    error
 	}{
 		{
 			desc:   "retrieve an existing key",
 			id:     k.AccessToken,
 			token:  token.AccessToken,
 			status: http.StatusOK,
+			err:    nil,
 		},
 		{
 			desc:   "retrieve a non-existing key",
 			id:     "non-existing",
 			token:  token.AccessToken,
 			status: http.StatusNotFound,
+			err:    errors.ErrNotFound,
 		},
 		{
 			desc:   "retrieve a key with an invalid token",
 			id:     k.AccessToken,
 			token:  "wrong",
 			status: http.StatusUnauthorized,
+			err:    errors.ErrAuthentication,
 		},
 	}
 
@@ -247,7 +252,7 @@ func TestRetrieve(t *testing.T) {
 			url:    fmt.Sprintf("%s/keys/%s", ts.URL, tc.id),
 			token:  tc.token,
 		}
-		repocall := krepo.On("Retrieve", mock.Anything, mock.Anything, mock.Anything).Return(auth.Key{}, nil)
+		repocall := krepo.On("Retrieve", mock.Anything, mock.Anything, mock.Anything).Return(auth.Key{}, tc.err)
 		res, err := req.make()
 		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
 		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
