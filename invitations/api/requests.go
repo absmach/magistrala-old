@@ -56,12 +56,16 @@ func (req *listInvitationsReq) validate() error {
 }
 
 type acceptInvitationReq struct {
-	token string
+	token  string
+	Domain string `json:"domain,omitempty"`
 }
 
 func (req *acceptInvitationReq) validate() error {
 	if req.token == "" {
 		return apiutil.ErrBearerToken
+	}
+	if req.Domain == "" {
+		return errMissingDomain
 	}
 
 	return nil

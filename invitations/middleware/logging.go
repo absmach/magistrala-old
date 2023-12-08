@@ -59,7 +59,7 @@ func (lm *logging) ListInvitations(ctx context.Context, token string, page invit
 	return lm.svc.ListInvitations(ctx, token, page)
 }
 
-func (lm *logging) AcceptInvitation(ctx context.Context, token string) (domains []string, err error) {
+func (lm *logging) AcceptInvitation(ctx context.Context, token, domain string) (err error) {
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method accept_invitation took %s to complete", time.Since(begin))
 		if err != nil {
@@ -68,7 +68,7 @@ func (lm *logging) AcceptInvitation(ctx context.Context, token string) (domains 
 		}
 		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
-	return lm.svc.AcceptInvitation(ctx, token)
+	return lm.svc.AcceptInvitation(ctx, token, domain)
 }
 
 func (lm *logging) DeleteInvitation(ctx context.Context, token, userID, domain string) (err error) {

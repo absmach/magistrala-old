@@ -456,6 +456,7 @@ func TestAcceptInvitation(t *testing.T) {
 	cases := []struct {
 		desc        string
 		token       string
+		data        string
 		contentType string
 		status      int
 		svcErr      error
@@ -463,6 +464,7 @@ func TestAcceptInvitation(t *testing.T) {
 		{
 			desc:        "valid request",
 			token:       validToken,
+			data:        fmt.Sprintf(`{"domain": "%s"}`, validID),
 			status:      http.StatusOK,
 			contentType: validContenType,
 			svcErr:      nil,
@@ -470,6 +472,7 @@ func TestAcceptInvitation(t *testing.T) {
 		{
 			desc:        "invalid token",
 			token:       "",
+			data:        fmt.Sprintf(`{"domain": "%s"}`, validID),
 			status:      http.StatusUnauthorized,
 			contentType: validContenType,
 			svcErr:      nil,
@@ -477,20 +480,38 @@ func TestAcceptInvitation(t *testing.T) {
 		{
 			desc:        "with service error",
 			token:       validToken,
+			data:        fmt.Sprintf(`{"domain": "%s"}`, validID),
 			status:      http.StatusForbidden,
 			contentType: validContenType,
 			svcErr:      errors.ErrAuthorization,
 		},
+		{
+			desc:        "invalid content type",
+			token:       validToken,
+			data:        fmt.Sprintf(`{"domain": "%s"}`, validID),
+			status:      http.StatusUnsupportedMediaType,
+			contentType: "text/plain",
+			svcErr:      nil,
+		},
+		{
+			desc:        "invalid data",
+			token:       validToken,
+			data:        `data`,
+			status:      http.StatusBadRequest,
+			contentType: validContenType,
+			svcErr:      nil,
+		},
 	}
 
 	for _, tc := range cases {
-		repoCall := svc.On("AcceptInvitation", mock.Anything, tc.token).Return([]string{}, tc.svcErr)
+		repoCall := svc.On("AcceptInvitation", mock.Anything, tc.token, mock.Anything).Return(tc.svcErr)
 		req := testRequest{
 			client:      is.Client(),
 			method:      http.MethodPost,
 			url:         is.URL + "/invitations/accept",
 			token:       tc.token,
 			contentType: tc.contentType,
+			body:        strings.NewReader(tc.data),
 		}
 
 		res, err := req.make()

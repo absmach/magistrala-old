@@ -82,14 +82,11 @@ func acceptInvitationEndpoint(svc invitations.Service) endpoint.Endpoint {
 			return nil, errors.Wrap(apiutil.ErrValidation, err)
 		}
 
-		domains, err := svc.AcceptInvitation(ctx, req.token)
-		if err != nil {
+		if err := svc.AcceptInvitation(ctx, req.token, req.Domain); err != nil {
 			return nil, err
 		}
 
-		return acceptInvitationRes{
-			Domains: domains,
-		}, nil
+		return acceptInvitationRes{}, nil
 	}
 }
 

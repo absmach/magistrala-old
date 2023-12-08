@@ -47,14 +47,14 @@ func (svc *Service) ListInvitations(ctx context.Context, token string, page invi
 	return ret.Get(0).(invitations.InvitationPage), ret.Error(1)
 }
 
-func (svc *Service) AcceptInvitation(ctx context.Context, token string) (domains []string, err error) {
-	ret := svc.Called(ctx, token)
+func (svc *Service) AcceptInvitation(ctx context.Context, token, domain string) (err error) {
+	ret := svc.Called(ctx, token, domain)
 
 	if token == Invalid {
-		return []string{}, errors.ErrAuthentication
+		return errors.ErrAuthentication
 	}
 
-	return ret.Get(0).([]string), ret.Error(1)
+	return ret.Error(0)
 }
 
 func (svc *Service) DeleteInvitation(ctx context.Context, token, userID, domain string) (err error) {

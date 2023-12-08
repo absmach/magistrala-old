@@ -55,13 +55,13 @@ func (tm *tracing) ListInvitations(ctx context.Context, token string, page invit
 	return tm.svc.ListInvitations(ctx, token, page)
 }
 
-func (tm *tracing) AcceptInvitation(ctx context.Context, token string) (domains []string, err error) {
+func (tm *tracing) AcceptInvitation(ctx context.Context, token, domain string) (err error) {
 	ctx, span := tm.tracer.Start(ctx, "accept_invitation", trace.WithAttributes(
-		attribute.StringSlice("domains", domains),
+		attribute.String("domain", domain),
 	))
 	defer span.End()
 
-	return tm.svc.AcceptInvitation(ctx, token)
+	return tm.svc.AcceptInvitation(ctx, token, domain)
 }
 
 func (tm *tracing) DeleteInvitation(ctx context.Context, token, userID, domain string) (err error) {

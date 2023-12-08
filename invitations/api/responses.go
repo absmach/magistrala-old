@@ -66,9 +66,7 @@ func (res listInvitationsRes) Empty() bool {
 	return false
 }
 
-type acceptInvitationRes struct {
-	Domains []string `json:"domains"`
-}
+type acceptInvitationRes struct{}
 
 func (res acceptInvitationRes) Code() int {
 	return http.StatusOK
@@ -79,7 +77,7 @@ func (res acceptInvitationRes) Headers() map[string]string {
 }
 
 func (res acceptInvitationRes) Empty() bool {
-	return false
+	return true
 }
 
 type deleteInvitationRes struct{}

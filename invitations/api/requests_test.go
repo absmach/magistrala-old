@@ -147,7 +147,8 @@ func TestAcceptInvitationReq(t *testing.T) {
 		{
 			desc: "valid request",
 			req: acceptInvitationReq{
-				token: valid,
+				token:  valid,
+				Domain: valid,
 			},
 			err: nil,
 		},
@@ -157,6 +158,14 @@ func TestAcceptInvitationReq(t *testing.T) {
 				token: "",
 			},
 			err: apiutil.ErrBearerToken,
+		},
+		{
+			desc: "empty domain",
+			req: acceptInvitationReq{
+				token:  valid,
+				Domain: "",
+			},
+			err: errMissingDomain,
 		},
 	}
 

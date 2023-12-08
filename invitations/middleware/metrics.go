@@ -51,12 +51,12 @@ func (mm *metricsmw) ListInvitations(ctx context.Context, token string, page inv
 	return mm.svc.ListInvitations(ctx, token, page)
 }
 
-func (mm *metricsmw) AcceptInvitation(ctx context.Context, token string) (domains []string, err error) {
+func (mm *metricsmw) AcceptInvitation(ctx context.Context, token, domain string) (err error) {
 	defer func(begin time.Time) {
 		mm.counter.With("method", "accept_invitation").Add(1)
 		mm.latency.With("method", "accept_invitation").Observe(time.Since(begin).Seconds())
 	}(time.Now())
-	return mm.svc.AcceptInvitation(ctx, token)
+	return mm.svc.AcceptInvitation(ctx, token, domain)
 }
 
 func (mm *metricsmw) DeleteInvitation(ctx context.Context, token, userID, domain string) (err error) {

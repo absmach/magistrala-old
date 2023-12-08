@@ -132,9 +132,17 @@ func decodeListInvitationsReq(_ context.Context, r *http.Request) (interface{}, 
 }
 
 func decodeAcceptInvitationReq(_ context.Context, r *http.Request) (interface{}, error) {
-	return acceptInvitationReq{
-		token: apiutil.ExtractBearerToken(r),
-	}, nil
+	if !strings.Contains(r.Header.Get("Content-Type"), api.ContentType) {
+		return nil, errors.Wrap(apiutil.ErrValidation, apiutil.ErrUnsupportedContentType)
+	}
+
+	var req acceptInvitationReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		return nil, errors.Wrap(apiutil.ErrValidation, errors.Wrap(err, errors.ErrMalformedEntity))
+	}
+	req.token = apiutil.ExtractBearerToken(r)
+
+	return req, nil
 }
 
 func decodeInvitationReq(_ context.Context, r *http.Request) (interface{}, error) {
