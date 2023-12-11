@@ -16,6 +16,24 @@ type MockSDK struct {
 	mock.Mock
 }
 
+// AcceptInvitation provides a mock function with given fields: domainID, token
+func (_m *MockSDK) AcceptInvitation(domainID string, token string) error {
+	ret := _m.Called(domainID, token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for AcceptInvitation")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string) error); ok {
+		r0 = rf(domainID, token)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // AddBootstrap provides a mock function with given fields: cfg, token
 func (_m *MockSDK) AddBootstrap(cfg BootstrapConfig, token string) (string, errors.SDKError) {
 	ret := _m.Called(cfg, token)
@@ -680,6 +698,24 @@ func (_m *MockSDK) CreateUser(user User, token string) (User, errors.SDKError) {
 	return r0, r1
 }
 
+// DeleteInvitation provides a mock function with given fields: userID, domainID, token
+func (_m *MockSDK) DeleteInvitation(userID string, domainID string, token string) error {
+	ret := _m.Called(userID, domainID, token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DeleteInvitation")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(string, string, string) error); ok {
+		r0 = rf(userID, domainID, token)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
+}
+
 // DeleteSubscription provides a mock function with given fields: id, token
 func (_m *MockSDK) DeleteSubscription(id string, token string) errors.SDKError {
 	ret := _m.Called(id, token)
@@ -886,6 +922,36 @@ func (_m *MockSDK) Domain(domainID string, token string) (Domain, errors.SDKErro
 
 	if len(ret) == 0 {
 		panic("no return value specified for Domain")
+	}
+
+	var r0 Domain
+	var r1 errors.SDKError
+	if rf, ok := ret.Get(0).(func(string, string) (Domain, errors.SDKError)); ok {
+		return rf(domainID, token)
+	}
+	if rf, ok := ret.Get(0).(func(string, string) Domain); ok {
+		r0 = rf(domainID, token)
+	} else {
+		r0 = ret.Get(0).(Domain)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string) errors.SDKError); ok {
+		r1 = rf(domainID, token)
+	} else {
+		if ret.Get(1) != nil {
+			r1 = ret.Get(1).(errors.SDKError)
+		}
+	}
+
+	return r0, r1
+}
+
+// DomainPermissions provides a mock function with given fields: domainID, token
+func (_m *MockSDK) DomainPermissions(domainID string, token string) (Domain, errors.SDKError) {
+	ret := _m.Called(domainID, token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for DomainPermissions")
 	}
 
 	var r0 Domain
@@ -1225,6 +1291,62 @@ func (_m *MockSDK) IdentifyThing(key string) (string, errors.SDKError) {
 		if ret.Get(1) != nil {
 			r1 = ret.Get(1).(errors.SDKError)
 		}
+	}
+
+	return r0, r1
+}
+
+// Invitation provides a mock function with given fields: userID, domainID, token
+func (_m *MockSDK) Invitation(userID string, domainID string, token string) (Invitation, error) {
+	ret := _m.Called(userID, domainID, token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Invitation")
+	}
+
+	var r0 Invitation
+	var r1 error
+	if rf, ok := ret.Get(0).(func(string, string, string) (Invitation, error)); ok {
+		return rf(userID, domainID, token)
+	}
+	if rf, ok := ret.Get(0).(func(string, string, string) Invitation); ok {
+		r0 = rf(userID, domainID, token)
+	} else {
+		r0 = ret.Get(0).(Invitation)
+	}
+
+	if rf, ok := ret.Get(1).(func(string, string, string) error); ok {
+		r1 = rf(userID, domainID, token)
+	} else {
+		r1 = ret.Error(1)
+	}
+
+	return r0, r1
+}
+
+// Invitations provides a mock function with given fields: pm, token
+func (_m *MockSDK) Invitations(pm PageMetadata, token string) (InvitationPage, error) {
+	ret := _m.Called(pm, token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for Invitations")
+	}
+
+	var r0 InvitationPage
+	var r1 error
+	if rf, ok := ret.Get(0).(func(PageMetadata, string) (InvitationPage, error)); ok {
+		return rf(pm, token)
+	}
+	if rf, ok := ret.Get(0).(func(PageMetadata, string) InvitationPage); ok {
+		r0 = rf(pm, token)
+	} else {
+		r0 = ret.Get(0).(InvitationPage)
+	}
+
+	if rf, ok := ret.Get(1).(func(PageMetadata, string) error); ok {
+		r1 = rf(pm, token)
+	} else {
+		r1 = ret.Error(1)
 	}
 
 	return r0, r1
@@ -1848,6 +1970,24 @@ func (_m *MockSDK) RevokeCert(thingID string, token string) (time.Time, errors.S
 	}
 
 	return r0, r1
+}
+
+// SendInvitation provides a mock function with given fields: invitation, token
+func (_m *MockSDK) SendInvitation(invitation Invitation, token string) error {
+	ret := _m.Called(invitation, token)
+
+	if len(ret) == 0 {
+		panic("no return value specified for SendInvitation")
+	}
+
+	var r0 error
+	if rf, ok := ret.Get(0).(func(Invitation, string) error); ok {
+		r0 = rf(invitation, token)
+	} else {
+		r0 = ret.Error(0)
+	}
+
+	return r0
 }
 
 // SendMessage provides a mock function with given fields: chanID, msg, key

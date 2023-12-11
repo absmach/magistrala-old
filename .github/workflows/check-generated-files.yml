@@ -28,9 +28,10 @@ jobs:
         uses: dorny/paths-filter@v2
         id: changes
         with:
+          base: main
           filters: |
             proto:
-              - ".github/workflows/check-generated-files.yml"
+              # - ".github/workflows/check-generated-files.yml"
               - "auth.proto"
               - "auth/*.pb.go"
               - "pkg/messaging/message.proto"
@@ -73,7 +74,8 @@ jobs:
 
           for p in $(find . -name "*.pb.go"); do
             if ! cmp -s $p $p.tmp; then
-              echo "Proto file and generated Go file $p are out of sync!"
+              echo "Error: Proto file and generated Go file $p are out of sync!"
+              echo "Please run 'make proto' with protoc version $PROTOC_VERSION, protoc-gen-go version $PROTOC_GEN_VERSION and protoc-gen-go-grpc version $PROTOC_GRPC_VERSION and commit the changes."
               exit 1
             fi
           done
@@ -86,9 +88,10 @@ jobs:
            
           mv ./pkg/sdk/go/mocks.go ./pkg/sdk/go/mocks.go.tmp
 
-          go generate ./...
+          make mocks
 
           if ! cmp -s ./pkg/sdk/go/mocks.go ./pkg/sdk/go/mocks.go.tmp; then
-            echo "Generated mocks for SDK ./pkg/sdk/go/mocks.go are out of sync! Please run 'go generate ./...' and commit the changes."
+            echo "Error: Generated mocks for SDK ./pkg/sdk/go/mocks.go are out of sync!"
+            echo "Please run 'make mocks' with mockery version $MOCKERY_VERSION and commit the changes."
             exit 1
           fi
