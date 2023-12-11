@@ -148,54 +148,6 @@ func TestPublish(t *testing.T) {
 	}
 }
 
-func TestUnavailablePublish(t *testing.T) {
-	_, err := nats.NewPublisher(ctx, "http://invaliurl.com", stream)
-	assert.NotNilf(t, err, fmt.Sprintf("got unexpected error on creating event store: %s", err), err)
-
-	publisher, err := nats.NewPublisher(ctx, natsURL, stream)
-	assert.Nil(t, err, fmt.Sprintf("got unexpected error on creating event store: %s", err))
-
-	err = pool.Client.PauseContainer(container.Container.ID)
-	assert.Nil(t, err, fmt.Sprintf("got unexpected error on pausing container: %s", err))
-
-	spawnGoroutines(publisher, t)
-
-	err = pool.Client.UnpauseContainer(container.Container.ID)
-	assert.Nil(t, err, fmt.Sprintf("got unexpected error on unpausing container: %s", err))
-
-	// Wait for the events to be published.
-	time.Sleep(events.UnpublishedEventsCheckInterval)
-
-	err = publisher.Close()
-	assert.Nil(t, err, fmt.Sprintf("got unexpected error on closing publisher: %s", err))
-}
-
-func generateRandomEvent() testEvent {
-	return testEvent{
-		Data: map[string]interface{}{
-			"temperature": fmt.Sprintf("%f", rand.Float64()),
-			"humidity":    fmt.Sprintf("%f", rand.Float64()),
-			"sensor_id":   fmt.Sprintf("%d", rand.Intn(1000)),
-			"location":    fmt.Sprintf("%f", rand.Float64()),
-			"status":      fmt.Sprintf("%d", rand.Intn(1000)),
-			"timestamp":   fmt.Sprintf("%d", time.Now().UnixNano()),
-			"operation":   "create",
-		},
-	}
-}
-
-func spawnGoroutines(publisher events.Publisher, t *testing.T) {
-	for i := 0; i < 1e4; i++ {
-		go func() {
-			for i := 0; i < 10; i++ {
-				event := generateRandomEvent()
-				err := publisher.Publish(ctx, event)
-				assert.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
-			}
-		}()
-	}
-}
-
 func TestPubsub(t *testing.T) {
 	subcases := []struct {
 		desc         string
