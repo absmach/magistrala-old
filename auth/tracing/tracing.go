@@ -247,7 +247,7 @@ func (tm *tracingMiddleware) RetrieveDomain(ctx context.Context, token, id strin
 	return tm.svc.RetrieveDomain(ctx, token, id)
 }
 
-func (tm *tracingMiddleware) RetrieveDomainPermissions(ctx context.Context, token string, id string) (auth.Permissions, error) {
+func (tm *tracingMiddleware) RetrieveDomainPermissions(ctx context.Context, token, id string) (auth.Permissions, error) {
 	ctx, span := tm.tracer.Start(ctx, "view_domain_permissions", trace.WithAttributes(
 		attribute.String("id", id),
 	))

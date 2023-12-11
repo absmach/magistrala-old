@@ -519,7 +519,7 @@ func (svc service) RetrieveDomain(ctx context.Context, token, id string) (Domain
 	return svc.domains.RetrieveByID(ctx, id)
 }
 
-func (svc service) RetrieveDomainPermissions(ctx context.Context, token string, id string) (Permissions, error) {
+func (svc service) RetrieveDomainPermissions(ctx context.Context, token, id string) (Permissions, error) {
 	res, err := svc.Identify(ctx, token)
 	if err != nil {
 		return []string{}, errors.Wrap(svcerr.ErrAuthentication, err)
