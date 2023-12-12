@@ -5,13 +5,17 @@ package grpc
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/auth"
+	"github.com/absmach/magistrala/pkg/errors"
 	"github.com/go-kit/kit/endpoint"
 	kitgrpc "github.com/go-kit/kit/transport/grpc"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const svcName = "magistrala.AuthService"
@@ -171,7 +175,7 @@ func (client grpcClient) Issue(ctx context.Context, req *magistrala.IssueReq, _ 
 
 	res, err := client.issue(ctx, issueReq{userID: req.GetUserId(), domainID: req.GetDomainId(), keyType: auth.KeyType(req.Type)})
 	if err != nil {
-		return nil, err
+		return nil, decodeError(err)
 	}
 	return res.(*magistrala.Token), nil
 }
@@ -191,7 +195,7 @@ func (client grpcClient) Refresh(ctx context.Context, req *magistrala.RefreshReq
 
 	res, err := client.refresh(ctx, refreshReq{refreshToken: req.GetRefreshToken(), domainID: req.GetDomainId()})
 	if err != nil {
-		return nil, err
+		return nil, decodeError(err)
 	}
 	return res.(*magistrala.Token), nil
 }
@@ -715,4 +719,47 @@ func encodeListPermissionsRequest(_ context.Context, grpcReq interface{}) (inter
 		ObjectType:  req.ObjectType,
 		Object:      req.Object,
 	}, nil
+}
+
+func decodeError(err error) error {
+	if st, ok := status.FromError(err); ok {
+		switch st.Code() {
+		case codes.NotFound:
+			return errors.Wrap(errors.ErrNotFound, errors.New(st.Message()))
+		case codes.InvalidArgument:
+			return errors.Wrap(errors.ErrMalformedEntity, errors.New(st.Message()))
+		case codes.AlreadyExists:
+			return errors.Wrap(errors.ErrConflict, errors.New(st.Message()))
+		case codes.Unauthenticated:
+			return errors.Wrap(errors.ErrAuthentication, errors.New(st.Message()))
+		case codes.OK:
+			return errors.New(st.Message())
+		case codes.FailedPrecondition:
+			return errors.Wrap(errors.ErrMalformedEntity, errors.New(st.Message()))
+		case codes.PermissionDenied:
+			return errors.Wrap(errors.ErrAuthorization, errors.New(st.Message()))
+		case codes.ResourceExhausted:
+			fallthrough
+		case codes.Canceled:
+			fallthrough
+		case codes.Unknown:
+			fallthrough
+		case codes.DeadlineExceeded:
+			fallthrough
+		case codes.Aborted:
+			fallthrough
+		case codes.OutOfRange:
+			fallthrough
+		case codes.Unimplemented:
+			fallthrough
+		case codes.Unavailable:
+			fallthrough
+		case codes.DataLoss:
+			fallthrough
+		default:
+			return errors.Wrap(fmt.Errorf("unexpected gRPC status: %s (status code:%v)", st.Code().String(), st.Code()), errors.New(st.Message()))
+		}
+	}
+	return err
+
 }

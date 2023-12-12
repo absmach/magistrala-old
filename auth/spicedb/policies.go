@@ -11,10 +11,12 @@ import (
 	"github.com/absmach/magistrala/auth"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
-	repoerr "github.com/absmach/magistrala/pkg/errors/repository"
 	svcerr "github.com/absmach/magistrala/pkg/errors/service"
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/authzed-go/v1"
+	gstatus "google.golang.org/genproto/googleapis/rpc/status"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 const defRetrieveAllLimit = 1000
@@ -26,6 +28,7 @@ var (
 	errRemovePolicies   = errors.New("failed to remove the policies")
 	errNoPolicies       = errors.New("no policies provided")
 	errPermission       = errors.New("failed to check permission")
+	errInternal         = errors.New("spicedb internal error")
 )
 
 type policyAgent struct {
@@ -51,7 +54,7 @@ func (pa *policyAgent) CheckPolicy(ctx context.Context, pr auth.PolicyReq) error
 
 	resp, err := pa.permissionClient.CheckPermission(ctx, &checkReq)
 	if err != nil {
-		return errors.Wrap(svcerr.ErrMalformedEntity, errors.Wrap(errPermission, err))
+		return handleSpicedbError(err)
 	}
 	if resp.Permissionship == v1.CheckPermissionResponse_PERMISSIONSHIP_HAS_PERMISSION {
 		return nil
@@ -81,11 +84,11 @@ func (pa *policyAgent) AddPolicies(ctx context.Context, prs []auth.PolicyReq) er
 		})
 	}
 	if len(updates) == 0 {
-		return errNoPolicies
+		return errors.Wrap(errors.ErrMalformedEntity, errNoPolicies)
 	}
 	_, err := pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates, OptionalPreconditions: preconds})
 	if err != nil {
-		return errors.Wrap(svcerr.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
+		return errors.Wrap(errAddPolicies, handleSpicedbError(err))
 	}
 	return nil
 }
@@ -108,7 +111,7 @@ func (pa *policyAgent) AddPolicy(ctx context.Context, pr auth.PolicyReq) error {
 	}
 	_, err = pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates, OptionalPreconditions: precond})
 	if err != nil {
-		return errors.Wrap(svcerr.ErrMalformedEntity, errors.Wrap(errAddPolicies, err))
+		return errors.Wrap(errAddPolicies, handleSpicedbError(err))
 	}
 	return nil
 }
@@ -126,11 +129,11 @@ func (pa *policyAgent) DeletePolicies(ctx context.Context, prs []auth.PolicyReq)
 		})
 	}
 	if len(updates) == 0 {
-		return errNoPolicies
+		return errors.Wrap(errors.ErrMalformedEntity, errNoPolicies)
 	}
 	_, err := pa.permissionClient.WriteRelationships(ctx, &v1.WriteRelationshipsRequest{Updates: updates})
 	if err != nil {
-		return errors.Wrap(svcerr.ErrMalformedEntity, errors.Wrap(errRemovePolicies, err))
+		return errors.Wrap(errRemovePolicies, handleSpicedbError(err))
 	}
 	return nil
 }
@@ -151,7 +154,8 @@ func (pa *policyAgent) DeletePolicy(ctx context.Context, pr auth.PolicyReq) erro
 		},
 	}
 	if _, err := pa.permissionClient.DeleteRelationships(ctx, req); err != nil {
-		return errors.Wrap(svcerr.ErrMalformedEntity, errors.Wrap(errRemovePolicies, err))
+		return errors.Wrap(errRemovePolicies, handleSpicedbError(err))
+
 	}
 	return nil
 }
@@ -169,7 +173,7 @@ func (pa *policyAgent) RetrieveObjects(ctx context.Context, pr auth.PolicyReq, n
 	}
 	stream, err := pa.permissionClient.LookupResources(ctx, resourceReq)
 	if err != nil {
-		return nil, "", errors.Wrap(repoerr.ErrMalformedEntity, errors.Wrap(errRetrievePolicies, err))
+		return nil, "", errors.Wrap(errRetrievePolicies, handleSpicedbError(err))
 	}
 	resources := []*v1.LookupResourcesResponse{}
 	var token string
@@ -187,7 +191,7 @@ func (pa *policyAgent) RetrieveObjects(ctx context.Context, pr auth.PolicyReq, n
 			if len(resources) > 0 && resources[len(resources)-1].AfterResultCursor != nil {
 				token = resources[len(resources)-1].AfterResultCursor.Token
 			}
-			return []auth.PolicyRes{}, token, errors.Wrap(repoerr.ErrViewEntity, err)
+			return []auth.PolicyRes{}, token, errors.Wrap(errRetrievePolicies, handleSpicedbError(err))
 		}
 	}
 }
@@ -200,7 +204,7 @@ func (pa *policyAgent) RetrieveAllObjects(ctx context.Context, pr auth.PolicyReq
 	}
 	stream, err := pa.permissionClient.LookupResources(ctx, resourceReq)
 	if err != nil {
-		return nil, errors.Wrap(svcerr.ErrMalformedEntity, errors.Wrap(errRetrievePolicies, err))
+		return nil, errors.Wrap(errRetrievePolicies, handleSpicedbError(err))
 	}
 	tuples := []auth.PolicyRes{}
 	for {
@@ -209,7 +213,7 @@ func (pa *policyAgent) RetrieveAllObjects(ctx context.Context, pr auth.PolicyReq
 		case errors.Contains(err, io.EOF):
 			return tuples, nil
 		case err != nil:
-			return tuples, err
+			return tuples, errors.Wrap(errRetrievePolicies, handleSpicedbError(err))
 		default:
 			tuples = append(tuples, auth.PolicyRes{Object: resp.ResourceObjectId})
 		}
@@ -247,7 +251,7 @@ func (pa *policyAgent) RetrieveSubjects(ctx context.Context, pr auth.PolicyReq, 
 	}
 	stream, err := pa.permissionClient.LookupSubjects(ctx, &subjectsReq)
 	if err != nil {
-		return nil, "", errors.Wrap(svcerr.ErrMalformedEntity, errors.Wrap(errRetrievePolicies, err))
+		return nil, "", errors.Wrap(errRetrievePolicies, handleSpicedbError(err))
 	}
 	subjects := []*v1.LookupSubjectsResponse{}
 	var token string
@@ -266,7 +270,7 @@ func (pa *policyAgent) RetrieveSubjects(ctx context.Context, pr auth.PolicyReq, 
 			if len(subjects) > 0 && subjects[len(subjects)-1].AfterResultCursor != nil {
 				token = subjects[len(subjects)-1].AfterResultCursor.Token
 			}
-			return []auth.PolicyRes{}, token, errors.Wrap(repoerr.ErrViewEntity, err)
+			return []auth.PolicyRes{}, token, errors.Wrap(errRetrievePolicies, handleSpicedbError(err))
 		}
 	}
 }
@@ -325,14 +329,14 @@ func (pa *policyAgent) RetrievePermissions(ctx context.Context, pr auth.PolicyRe
 	}
 	resp, err := pa.client.ExperimentalServiceClient.BulkCheckPermission(ctx, &v1.BulkCheckPermissionRequest{Items: permissionChecks})
 	if err != nil {
-		return auth.Permissions{}, err
+		return auth.Permissions{}, errors.Wrap(errRetrievePolicies, handleSpicedbError(err))
 	}
 
 	permissions := []string{}
 	for _, pair := range resp.Pairs {
 		if pair.GetError() != nil {
 			s := pair.GetError()
-			return auth.Permissions{}, fmt.Errorf(`code: %v, details: %v, message: %s`, s.Code, s.Details, s.Message)
+			return auth.Permissions{}, errors.Wrap(errRetrievePolicies, convertGRPCStatusToError(convertToGrpcStatus(s)))
 		}
 		item := pair.GetItem()
 		req := pair.GetRequest()
@@ -680,7 +684,7 @@ func groupPreConditions(pr auth.PolicyReq) ([]*v1.Precondition, error) {
 
 func channelThingPreCondition(pr auth.PolicyReq) ([]*v1.Precondition, error) {
 	if pr.SubjectKind != auth.ChannelsKind {
-		return nil, errInvalidSubject
+		return nil, errors.Wrap(errors.ErrMalformedEntity, errInvalidSubject)
 	}
 	precond := []*v1.Precondition{
 		{
@@ -720,4 +724,57 @@ func channelThingPreCondition(pr auth.PolicyReq) ([]*v1.Precondition, error) {
 		},
 	}
 	return precond, nil
+}
+
+func handleSpicedbError(err error) error {
+	if st, ok := status.FromError(err); ok {
+		return convertGRPCStatusToError(st)
+	}
+	return err
+}
+
+func convertToGrpcStatus(gst *gstatus.Status) *status.Status {
+	st := status.New(codes.Code(gst.Code), gst.GetMessage())
+	return st
+}
+
+func convertGRPCStatusToError(st *status.Status) error {
+	switch st.Code() {
+	case codes.NotFound:
+		return errors.Wrap(errors.ErrNotFound, errors.New(st.Message()))
+	case codes.InvalidArgument:
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New(st.Message()))
+	case codes.AlreadyExists:
+		return errors.Wrap(errors.ErrConflict, errors.New(st.Message()))
+	case codes.Unauthenticated:
+		return errors.Wrap(errors.ErrAuthentication, errors.New(st.Message()))
+	case codes.Internal:
+		return errors.Wrap(errInternal, errors.New(st.Message()))
+	case codes.OK:
+		return errors.New(st.Message())
+	case codes.FailedPrecondition:
+		return errors.Wrap(errors.ErrMalformedEntity, errors.New(st.Message()))
+	case codes.PermissionDenied:
+		return errors.Wrap(errors.ErrAuthorization, errors.New(st.Message()))
+	case codes.ResourceExhausted:
+		fallthrough
+	case codes.Canceled:
+		fallthrough
+	case codes.Unknown:
+		fallthrough
+	case codes.DeadlineExceeded:
+		fallthrough
+	case codes.Aborted:
+		fallthrough
+	case codes.OutOfRange:
+		fallthrough
+	case codes.Unimplemented:
+		fallthrough
+	case codes.Unavailable:
+		fallthrough
+	case codes.DataLoss:
+		fallthrough
+	default:
+		return errors.Wrap(fmt.Errorf("unexpected gRPC status: %s (status code:%v)", st.Code().String(), st.Code()), errors.New(st.Message()))
+	}
 }
