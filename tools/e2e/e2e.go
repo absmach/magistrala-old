@@ -107,14 +107,11 @@ func Test(conf Config) {
 	}
 	color.Success.Printf("created channels of ids:\n%s\n", magenta(getIDS(channels)))
 
-	time.Sleep(5 * time.Second)
 	// List users, groups, things and channels
 	if err := read(s, conf, token, users, groups, things, channels); err != nil {
 		errExit(fmt.Errorf("unable to read users, groups, things and channels: %w", err))
 	}
 	color.Success.Println("viewed users, groups, things and channels")
-
-	time.Sleep(5 * time.Second)
 
 	// Update users, groups, things and channels
 	if err := update(s, token, users, groups, things, channels); err != nil {
@@ -164,8 +161,6 @@ func createUser(s sdk.SDK, conf Config) (string, error) {
 		Alias:      strings.ToLower(dname),
 		Permission: "admin",
 	}
-
-	time.Sleep(5 * time.Second)
 
 	domain, err = s.CreateDomain(domain, token.AccessToken)
 	if err != nil {
@@ -531,8 +526,6 @@ func update(s sdk.SDK, token string, users []sdk.User, groups []sdk.Group, thing
 }
 
 func messaging(s sdk.SDK, conf Config, token string, things []sdk.Thing, channels []sdk.Channel) error {
-	time.Sleep(5 * time.Second)
-
 	for _, thing := range things {
 		for _, channel := range channels {
 			conn := sdk.Connection{
@@ -544,8 +537,6 @@ func messaging(s sdk.SDK, conf Config, token string, things []sdk.Thing, channel
 			}
 		}
 	}
-
-	time.Sleep(5 * time.Second)
 
 	g := new(errgroup.Group)
 
