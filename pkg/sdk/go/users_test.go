@@ -36,9 +36,6 @@ var (
 	validID    = "d4ebb847-5d0e-4e46-bdd9-b6aceaaa3a22"
 )
 
-// ErrFailedOwnerUpdate indicates a failure to update user policy.
-var ErrFailedOwnerUpdate = errors.New("failed to update user owner")
-
 func newClientServer() (*httptest.Server, *mocks.Repository, *gmocks.Repository, *authmocks.Service) {
 	crepo := new(mocks.Repository)
 	gRepo := new(gmocks.Repository)
@@ -922,7 +919,7 @@ func TestUpdateClientRole(t *testing.T) {
 			client:   client2,
 			response: sdk.User{},
 			token:    validToken,
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(ErrFailedOwnerUpdate, ErrFailedOwnerUpdate), http.StatusInternalServerError),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(users.ErrFailedOwnerUpdate, users.ErrFailedOwnerUpdate), http.StatusInternalServerError),
 		},
 		{
 			desc: "update a user that can't be marshalled",
