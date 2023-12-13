@@ -49,7 +49,6 @@ var (
 	errCreateDomainPolicy = errors.New("failed to create domain policy")
 	errAddPolicies        = errors.New("failed to add policies")
 	errRemovePolicies     = errors.New("failed to remove the policies")
-	errInvalidPolicy      = errors.New("failed to validate policy")
 )
 
 // Authn specifies an API that must be fullfiled by the domain service

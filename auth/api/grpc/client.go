@@ -738,28 +738,9 @@ func decodeError(err error) error {
 			return errors.Wrap(errors.ErrMalformedEntity, errors.New(st.Message()))
 		case codes.PermissionDenied:
 			return errors.Wrap(errors.ErrAuthorization, errors.New(st.Message()))
-		case codes.ResourceExhausted:
-			fallthrough
-		case codes.Canceled:
-			fallthrough
-		case codes.Unknown:
-			fallthrough
-		case codes.DeadlineExceeded:
-			fallthrough
-		case codes.Aborted:
-			fallthrough
-		case codes.OutOfRange:
-			fallthrough
-		case codes.Unimplemented:
-			fallthrough
-		case codes.Unavailable:
-			fallthrough
-		case codes.DataLoss:
-			fallthrough
 		default:
 			return errors.Wrap(fmt.Errorf("unexpected gRPC status: %s (status code:%v)", st.Code().String(), st.Code()), errors.New(st.Message()))
 		}
 	}
 	return err
-
 }

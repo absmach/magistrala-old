@@ -27,7 +27,6 @@ var (
 	errRetrievePolicies = errors.New("failed to retrieve policies")
 	errRemovePolicies   = errors.New("failed to remove the policies")
 	errNoPolicies       = errors.New("no policies provided")
-	errPermission       = errors.New("failed to check permission")
 	errInternal         = errors.New("spicedb internal error")
 )
 
@@ -155,7 +154,6 @@ func (pa *policyAgent) DeletePolicy(ctx context.Context, pr auth.PolicyReq) erro
 	}
 	if _, err := pa.permissionClient.DeleteRelationships(ctx, req); err != nil {
 		return errors.Wrap(errRemovePolicies, handleSpicedbError(err))
-
 	}
 	return nil
 }
@@ -756,24 +754,6 @@ func convertGRPCStatusToError(st *status.Status) error {
 		return errors.Wrap(errors.ErrMalformedEntity, errors.New(st.Message()))
 	case codes.PermissionDenied:
 		return errors.Wrap(errors.ErrAuthorization, errors.New(st.Message()))
-	case codes.ResourceExhausted:
-		fallthrough
-	case codes.Canceled:
-		fallthrough
-	case codes.Unknown:
-		fallthrough
-	case codes.DeadlineExceeded:
-		fallthrough
-	case codes.Aborted:
-		fallthrough
-	case codes.OutOfRange:
-		fallthrough
-	case codes.Unimplemented:
-		fallthrough
-	case codes.Unavailable:
-		fallthrough
-	case codes.DataLoss:
-		fallthrough
 	default:
 		return errors.Wrap(fmt.Errorf("unexpected gRPC status: %s (status code:%v)", st.Code().String(), st.Code()), errors.New(st.Message()))
 	}
