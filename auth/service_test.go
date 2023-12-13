@@ -301,12 +301,6 @@ func TestIdentify(t *testing.T) {
 			idt:  "",
 			err:  errors.ErrAuthentication,
 		},
-		// {
-		// 	desc: "identify invalid key",
-		// 	key:  "invalid",
-		// 	idt:  "",
-		// 	err:  errors.ErrAuthentication,
-		// },
 	}
 
 	for _, tc := range cases {
