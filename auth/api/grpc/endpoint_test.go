@@ -32,6 +32,7 @@ const (
 	thingsType  = "things"
 	usersType   = "users"
 	description = "Description"
+	groupName   = "mgx"
 
 	authoritiesObj  = "authorities"
 	memberRelation  = "member"
@@ -43,9 +44,10 @@ const (
 var (
 	svc   auth.Service
 	krepo *mocks.Keys
+	prepo *mocks.PolicyAgent
 )
 
-func newService() (auth.Service, *mocks.Keys) {
+func newService() (auth.Service, *mocks.Keys, *mocks.PolicyAgent) {
 	krepo := new(mocks.Keys)
 	prepo := new(mocks.PolicyAgent)
 	drepo := new(mocks.DomainsRepo)
@@ -53,7 +55,7 @@ func newService() (auth.Service, *mocks.Keys) {
 
 	t := jwt.New([]byte(secret))
 
-	return auth.New(krepo, drepo, idProvider, t, prepo, loginDuration, refreshDuration, invalidDuration), krepo
+	return auth.New(krepo, drepo, idProvider, t, prepo, loginDuration, refreshDuration, invalidDuration), krepo, prepo
 }
 
 func startGRPCServer(svc auth.Service, port int) {
@@ -131,16 +133,16 @@ func TestIssue(t *testing.T) {
 }
 
 func TestIdentify(t *testing.T) {
-	loginToken, err := svc.Issue(context.Background(), "", auth.Key{Type: auth.AccessKey, IssuedAt: time.Now(), Subject: id})
+	loginToken, err := svc.Issue(context.Background(), "", auth.Key{Type: auth.AccessKey, Subject: id, IssuedAt: time.Now()})
 	assert.Nil(t, err, fmt.Sprintf("Issuing user key expected to succeed: %s", err))
 
 	recoveryToken, err := svc.Issue(context.Background(), "", auth.Key{Type: auth.RecoveryKey, IssuedAt: time.Now(), Subject: id})
 	assert.Nil(t, err, fmt.Sprintf("Issuing recovery key expected to succeed: %s", err))
 
-	repocall := krepo.On("Save", mock.Anything, mock.Anything).Return(mock.Anything, nil)
+	repocall1 := krepo.On("Save", mock.Anything, mock.Anything).Return(mock.Anything, nil)
 	apiToken, err := svc.Issue(context.Background(), loginToken.AccessToken, auth.Key{Type: auth.APIKey, IssuedAt: time.Now(), ExpiresAt: time.Now().Add(time.Minute), Subject: id})
 	assert.Nil(t, err, fmt.Sprintf("Issuing API key expected to succeed: %s", err))
-	repocall.Unset()
+	repocall1.Unset()
 
 	authAddr := fmt.Sprintf("localhost:%d", port)
 	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
@@ -153,13 +155,13 @@ func TestIdentify(t *testing.T) {
 		err   error
 		code  codes.Code
 	}{
-		// {
-		// 	desc:  "identify user with user token",
-		// 	token: loginToken.AccessToken,
-		// 	idt:   &magistrala.IdentityRes{Id: id},
-		// 	err:   nil,
-		// 	code:  codes.OK,
-		// },
+		{
+			desc:  "identify user with user token",
+			token: loginToken.AccessToken,
+			idt:   &magistrala.IdentityRes{Id: id},
+			err:   nil,
+			code:  codes.OK,
+		},
 		{
 			desc:  "identify user with recovery token",
 			token: recoveryToken.AccessToken,
@@ -204,7 +206,7 @@ func TestIdentify(t *testing.T) {
 }
 
 func TestAuthorize(t *testing.T) {
-	token, err := svc.Issue(context.Background(), "", auth.Key{Type: auth.AccessKey, IssuedAt: time.Now(), Subject: id})
+	token, err := svc.Issue(context.Background(), "", auth.Key{Type: auth.AccessKey, IssuedAt: time.Now(), Subject: id, User: id, Domain: id})
 	assert.Nil(t, err, fmt.Sprintf("Issuing user key expected to succeed: %s", err))
 
 	authAddr := fmt.Sprintf("localhost:%d", port)

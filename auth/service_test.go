@@ -240,32 +240,29 @@ func TestRetrieve(t *testing.T) {
 }
 
 func TestIdentify(t *testing.T) {
-	svc, krepo, _, _ := newService()
-	
+	svc, krepo, _, prepo := newService()
+
 	repocall := krepo.On("Save", mock.Anything, mock.Anything).Return(mock.Anything, nil)
-	loginSecret, err := svc.Issue(context.Background(), "", auth.Key{Type: auth.AccessKey, Subject: id, IssuedAt: time.Now()})
+	repocall1 := prepo.On("CheckPolicy", mock.Anything, mock.Anything).Return(nil)
+	loginSecret, err := svc.Issue(context.Background(), "", auth.Key{Type: auth.AccessKey, User: id, IssuedAt: time.Now(), Domain: groupName})
 	assert.Nil(t, err, fmt.Sprintf("Issuing login key expected to succeed: %s", err))
 	repocall.Unset()
+	repocall1.Unset()
 
-	// repocall1 := krepo.On("Save", mock.Anything, mock.Anything).Return(mock.Anything, nil)
-	// recoverySecret, err := svc.Issue(context.Background(), "", auth.Key{Type: auth.RecoveryKey, IssuedAt: time.Now(), Subject: id})
-	// assert.Nil(t, err, fmt.Sprintf("Issuing reset key expected to succeed: %s", err))
-	// repocall1.Unset()
+	repocall2 := krepo.On("Save", mock.Anything, mock.Anything).Return(mock.Anything, nil)
+	recoverySecret, err := svc.Issue(context.Background(), "", auth.Key{Type: auth.RecoveryKey, IssuedAt: time.Now(), Subject: id})
+	assert.Nil(t, err, fmt.Sprintf("Issuing reset key expected to succeed: %s", err))
+	repocall2.Unset()
 
-	// repocall2 := krepo.On("Save", mock.Anything, mock.Anything).Return(mock.Anything, nil)
-	// apiSecret, err := svc.Issue(context.Background(), loginSecret.AccessToken, auth.Key{Type: auth.APIKey, Subject: id, IssuedAt: time.Now(), ExpiresAt: time.Now().Add(time.Minute)})
-	// assert.Nil(t, err, fmt.Sprintf("Issuing login key expected to succeed: %s", err))
-	// repocall2.Unset()
-
-	// repocall3 := krepo.On("Save", mock.Anything, mock.Anything).Return(mock.Anything, nil)
-	// exp1 := time.Now().Add(-2 * time.Second)
-	// expSecret, err := svc.Issue(context.Background(), loginSecret.AccessToken, auth.Key{Type: auth.APIKey, IssuedAt: time.Now(), ExpiresAt: exp1})
-	// assert.Nil(t, err, fmt.Sprintf("Issuing expired login key expected to succeed: %s", err))
-	// repocall3.Unset()
+	repocall3 := krepo.On("Save", mock.Anything, mock.Anything).Return(mock.Anything, nil)
+	apiSecret, err := svc.Issue(context.Background(), loginSecret.AccessToken, auth.Key{Type: auth.APIKey, Subject: id, IssuedAt: time.Now(), ExpiresAt: time.Now().Add(time.Minute)})
+	assert.Nil(t, err, fmt.Sprintf("Issuing login key expected to succeed: %s", err))
+	repocall3.Unset()
 
 	repocall4 := krepo.On("Save", mock.Anything, mock.Anything).Return(mock.Anything, nil)
-	invalidSecret, err := svc.Issue(context.Background(), loginSecret.AccessToken, auth.Key{Type: 22, IssuedAt: time.Now()})
-	assert.Nil(t, err, fmt.Sprintf("Issuing login key expected to succeed: %s", err))
+	exp1 := time.Now().Add(-2 * time.Second)
+	expSecret, err := svc.Issue(context.Background(), loginSecret.AccessToken, auth.Key{Type: auth.APIKey, IssuedAt: time.Now(), ExpiresAt: exp1})
+	assert.Nil(t, err, fmt.Sprintf("Issuing expired login key expected to succeed: %s", err))
 	repocall4.Unset()
 
 	cases := []struct {
@@ -274,42 +271,36 @@ func TestIdentify(t *testing.T) {
 		idt  string
 		err  error
 	}{
-		// {
-		// 	desc: "identify login key",
-		// 	key:  loginSecret.AccessToken,
-		// 	idt:  id,
-		// 	err:  nil,
-		// },
-		// {
-		// 	desc: "identify recovery key",
-		// 	key:  recoverySecret.AccessToken,
-		// 	idt:  id,
-		// 	err:  nil,
-		// },
-		// {
-		// 	desc: "identify API key",
-		// 	key:  apiSecret.AccessToken,
-		// 	idt:  id,
-		// 	err:  nil,
-		// },
-		// {
-		// 	desc: "identify expired API key",
-		// 	key:  expSecret.AccessToken,
-		// 	idt:  "",
-		// 	err:  ErrExpiry,
-		// },
 		{
-			desc: "identify expired key",
-			key:  invalidSecret.AccessToken,
+			desc: "identify login key",
+			key:  loginSecret.AccessToken,
+			idt:  id,
+			err:  nil,
+		},
+		{
+			desc: "identify recovery key",
+			key:  recoverySecret.AccessToken,
+			idt:  id,
+			err:  nil,
+		},
+		{
+			desc: "identify API key",
+			key:  apiSecret.AccessToken,
+			idt:  id,
+			err:  nil,
+		},
+		{
+			desc: "identify expired API key",
+			key:  expSecret.AccessToken,
+			idt:  "",
+			err:  ErrExpiry,
+		},
+		{
+			desc: "identify invalid key",
+			key:  "invalid",
 			idt:  "",
 			err:  errors.ErrAuthentication,
 		},
-		// {
-		// 	desc: "identify invalid key",
-		// 	key:  "invalid",
-		// 	idt:  "",
-		// 	err:  errors.ErrAuthentication,
-		// },
 	}
 
 	for _, tc := range cases {

@@ -9,7 +9,7 @@ import (
 )
 
 func TestMain(m *testing.M) {
-	svc, krepo = newService()
+	svc, krepo, prepo = newService()
 	startGRPCServer(svc, port)
 
 	code := m.Run()
