@@ -658,9 +658,9 @@ services:
         target: /things-grpc-server-ca${MG_THINGS_AUTH_GRPC_SERVER_CA_CERTS:+.crt}
         bind:
           create_host_path: true
-  
-  ui: 
-    image: ghcr.io/absmach/magistrala-ui:${MG_RELEASE_TAG}
+
+  ui:
+    image: magistrala/ui:${MG_RELEASE_TAG}
     container_name: magistrala-ui
     restart: on-failure
     environment:
