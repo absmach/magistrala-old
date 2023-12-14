@@ -21,10 +21,10 @@ const (
 
 // String representation of the possible state values.
 const (
-	all           = "all"
-	pendingState  = "pending"
-	acceptedState = "accepted"
-	unknown       = "unknown"
+	all      = "all"
+	pending  = "pending"
+	accepted = "accepted"
+	unknown  = "unknown"
 )
 
 // String converts invitation state to string literal.
@@ -33,9 +33,9 @@ func (s State) String() string {
 	case All:
 		return all
 	case Pending:
-		return pendingState
+		return pending
 	case Accepted:
-		return acceptedState
+		return accepted
 	default:
 		return unknown
 	}
@@ -46,9 +46,9 @@ func ToState(status string) (State, error) {
 	switch status {
 	case all:
 		return All, nil
-	case pendingState:
+	case pending:
 		return Pending, nil
-	case acceptedState:
+	case accepted:
 		return Accepted, nil
 	}
 
