@@ -27,7 +27,7 @@ func (repo *repository) Create(ctx context.Context, invitation invitations.Invit
 	q := `INSERT INTO invitations (invited_by, user_id, domain_id, token, relation, created_at)
 		VALUES (:invited_by, :user_id, :domain_id, :token, :relation, :created_at)`
 
-	dbInv := todbInviation(invitation)
+	dbInv := toDBInvitation(invitation)
 	if _, err = repo.db.NamedExecContext(ctx, q, dbInv); err != nil {
 		return postgres.HandleError(repoerr.ErrCreateEntity, err)
 	}
@@ -100,7 +100,7 @@ func (repo *repository) RetrieveAll(ctx context.Context, page invitations.Page) 
 func (repo *repository) UpdateToken(ctx context.Context, invitation invitations.Invitation) (err error) {
 	q := `UPDATE invitations SET token = :token, updated_at = :updated_at WHERE user_id = :user_id AND domain_id = :domain_id`
 
-	dbinv := todbInviation(invitation)
+	dbinv := toDBInvitation(invitation)
 	result, err := repo.db.NamedExecContext(ctx, q, dbinv)
 	if err != nil {
 		return postgres.HandleError(repoerr.ErrUpdateEntity, err)
@@ -115,7 +115,7 @@ func (repo *repository) UpdateToken(ctx context.Context, invitation invitations.
 func (repo *repository) UpdateConfirmation(ctx context.Context, invitation invitations.Invitation) (err error) {
 	q := `UPDATE invitations SET confirmed_at = :confirmed_at, updated_at = :updated_at WHERE user_id = :user_id AND domain_id = :domain_id`
 
-	dbinv := todbInviation(invitation)
+	dbinv := toDBInvitation(invitation)
 	result, err := repo.db.NamedExecContext(ctx, q, dbinv)
 	if err != nil {
 		return postgres.HandleError(repoerr.ErrUpdateEntity, err)
@@ -184,7 +184,7 @@ type dbInvitation struct {
 	ConfirmedAt sql.NullTime `db:"confirmed_at,omitempty"`
 }
 
-func todbInviation(inv invitations.Invitation) dbInvitation {
+func toDBInvitation(inv invitations.Invitation) dbInvitation {
 	var updatedAt sql.NullTime
 	if inv.UpdatedAt != (time.Time{}) {
 		updatedAt = sql.NullTime{Time: inv.UpdatedAt, Valid: true}
