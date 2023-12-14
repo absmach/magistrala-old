@@ -190,8 +190,6 @@ func (svc service) Authorize(ctx context.Context, pr PolicyReq) error {
 	if err := svc.agent.CheckPolicy(ctx, pr); err != nil {
 		return errors.Wrap(svcerr.ErrAuthorization, err)
 	}
-	fmt.Println("Got here")
-	defer fmt.Println("returned nil")
 	return nil
 }
 
