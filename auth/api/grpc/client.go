@@ -217,7 +217,6 @@ func (client grpcClient) Identify(ctx context.Context, token *magistrala.Identit
 	if err != nil {
 		return nil, err
 	}
-
 	ir := res.(identityRes)
 	return &magistrala.IdentityRes{Id: ir.id, UserId: ir.userID, DomainId: ir.domainID}, nil
 }
@@ -247,6 +246,7 @@ func (client grpcClient) Authorize(ctx context.Context, req *magistrala.Authoriz
 		Object:      req.GetObject(),
 	})
 	fmt.Println("res", res)
+	fmt.Println("err", err)
 	if err != nil {
 		return &magistrala.AuthorizeRes{}, err
 	}
