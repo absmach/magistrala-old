@@ -97,3 +97,15 @@ func (m *Repository) AssignParentGroup(ctx context.Context, parentGroupID string
 
 	return ret.Error(0)
 }
+
+func (m *Repository) UnassignParentInChildren(ctx context.Context, parentGroupID string) error {
+	ret := m.Called(ctx, parentGroupID)
+
+	return ret.Error(0)
+}
+
+func (m *Repository) Delete(ctx context.Context, groupID string) error {
+	ret := m.Called(ctx, groupID)
+
+	return ret.Error(0)
+}

@@ -172,3 +172,15 @@ func (es eventStore) delete(ctx context.Context, group groups.Group) (groups.Gro
 
 	return group, nil
 }
+
+func (es eventStore) DeleteGroup(ctx context.Context, token, id string) error {
+	if err := es.svc.DeleteGroup(ctx, token, id); err != nil {
+		return err
+	}
+
+	_, err := es.delete(ctx, groups.Group{ID: id})
+	if err != nil {
+		return err
+	}
+	return nil
+}
