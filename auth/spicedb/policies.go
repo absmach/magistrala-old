@@ -749,7 +749,10 @@ func convertGRPCStatusToError(st *status.Status) error {
 	case codes.Internal:
 		return errors.Wrap(errInternal, errors.New(st.Message()))
 	case codes.OK:
-		return errors.New(st.Message())
+		if msg := st.Message() ; msg != "" {
+			return errors.New(errors.ErrUnidentified, msg)
+		}
+		return nil
 	case codes.FailedPrecondition:
 		return errors.Wrap(errors.ErrMalformedEntity, errors.New(st.Message()))
 	case codes.PermissionDenied:
