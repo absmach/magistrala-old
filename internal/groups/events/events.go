@@ -15,7 +15,7 @@ const (
 	groupPrefix          = "group."
 	groupCreate          = groupPrefix + "create"
 	groupUpdate          = groupPrefix + "update"
-	groupRemove          = groupPrefix + "remove"
+	groupChangeStatus    = groupPrefix + "change_status"
 	groupView            = groupPrefix + "view"
 	groupViewPerms       = groupPrefix + "view_perms"
 	groupList            = groupPrefix + "list"
@@ -26,7 +26,7 @@ const (
 var (
 	_ events.Event = (*createGroupEvent)(nil)
 	_ events.Event = (*updateGroupEvent)(nil)
-	_ events.Event = (*removeGroupEvent)(nil)
+	_ events.Event = (*changeStatusGroupEvent)(nil)
 	_ events.Event = (*viewGroupEvent)(nil)
 	_ events.Event = (*viewGroupEvent)(nil)
 	_ events.Event = (*listGroupEvent)(nil)
@@ -116,16 +116,16 @@ func (uge updateGroupEvent) Encode() (map[string]interface{}, error) {
 	return val, nil
 }
 
-type removeGroupEvent struct {
+type changeStatusGroupEvent struct {
 	id        string
 	status    string
 	updatedAt time.Time
 	updatedBy string
 }
 
-func (rge removeGroupEvent) Encode() (map[string]interface{}, error) {
+func (rge changeStatusGroupEvent) Encode() (map[string]interface{}, error) {
 	return map[string]interface{}{
-		"operation":  groupRemove,
+		"operation":  groupChangeStatus,
 		"id":         rge.id,
 		"status":     rge.status,
 		"updated_at": rge.updatedAt,

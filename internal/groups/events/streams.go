@@ -138,7 +138,7 @@ func (es eventStore) EnableGroup(ctx context.Context, token, id string) (groups.
 		return group, err
 	}
 
-	return es.delete(ctx, group)
+	return es.changeStatus(ctx, group)
 }
 
 func (es eventStore) Assign(ctx context.Context, token, groupID, relation, memberKind string, memberIDs ...string) error {
@@ -155,11 +155,11 @@ func (es eventStore) DisableGroup(ctx context.Context, token, id string) (groups
 		return group, err
 	}
 
-	return es.delete(ctx, group)
+	return es.changeStatus(ctx, group)
 }
 
-func (es eventStore) delete(ctx context.Context, group groups.Group) (groups.Group, error) {
-	event := removeGroupEvent{
+func (es eventStore) changeStatus(ctx context.Context, group groups.Group) (groups.Group, error) {
+	event := changeStatusGroupEvent{
 		id:        group.ID,
 		updatedAt: group.UpdatedAt,
 		updatedBy: group.UpdatedBy,
