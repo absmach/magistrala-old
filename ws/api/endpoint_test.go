@@ -37,7 +37,7 @@ const (
 var msg = []byte(`[{"n":"current","t":-1,"v":1.6}]`)
 
 func newService(auth magistrala.AuthzServiceClient) (ws.Service, *messaging.MockPubSub) {
-	pubsub := &messaging.MockPubSub{}
+	pubsub := new(messaging.MockPubSub)
 	return ws.New(auth, pubsub), pubsub
 }
 

@@ -34,7 +34,7 @@ var msg = messaging.Message{
 }
 
 func newService() (ws.Service, *messaging.MockPubSub, *authmocks.Service) {
-	pubsub := &messaging.MockPubSub{}
+	pubsub := new(messaging.MockPubSub)
 	auth := new(authmocks.Service)
 
 	return ws.New(auth, pubsub), pubsub, auth

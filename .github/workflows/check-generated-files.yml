@@ -42,9 +42,6 @@ jobs:
               - "pkg/sdk/go/sdk.go"
               - "users/postgres/clients.go"
               - "pkg/clients/clients.go"
-
-            pubsub:
-              - ".github/workflows/check-generated-files.yml"
               - "pkg/messaging/pubsub.go"
 
       - name: Set up protoc
@@ -94,6 +91,7 @@ jobs:
 
           mv ./pkg/sdk/mocks/sdk.go ./pkg/sdk/mocks/sdk.go.tmp
           mv ./users/mocks/repository.go ./users/mocks/repository.go.tmp
+          mv ./pkg/messaging/mocks.go ./pkg/messaging/mocks.go.tmp
 
           make mocks
 
@@ -111,3 +109,4 @@ jobs:
 
           check_mock_changes ./pkg/sdk/mocks/sdk.go "SDK ./pkg/sdk/mocks/sdk.go"
           check_mock_changes ./users/mocks/repository.go "Users Repository ./users/mocks/repository.go"
+          check_mock_changes ./pkg/messaging/mocks.go "PubSub ./pkg/messaging/mocks.go"
