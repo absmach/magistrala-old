@@ -301,7 +301,7 @@ func TestEncodeError(t *testing.T) {
 				svcerr.ErrViewEntity,
 				svcerr.ErrRemoveEntity,
 			},
-			code: http.StatusInternalServerError,
+			code: http.StatusUnprocessableEntity,
 		},
 		{
 			desc: "InternalServerError",
