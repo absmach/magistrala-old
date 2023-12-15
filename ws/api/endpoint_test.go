@@ -15,7 +15,7 @@ import (
 	"github.com/absmach/magistrala"
 	authmocks "github.com/absmach/magistrala/auth/mocks"
 	mglog "github.com/absmach/magistrala/logger"
-	"github.com/absmach/magistrala/pkg/messaging"
+	"github.com/absmach/magistrala/pkg/messaging/mocks"
 	"github.com/absmach/magistrala/ws"
 	"github.com/absmach/magistrala/ws/api"
 	"github.com/gorilla/websocket"
@@ -36,8 +36,8 @@ const (
 
 var msg = []byte(`[{"n":"current","t":-1,"v":1.6}]`)
 
-func newService(auth magistrala.AuthzServiceClient) (ws.Service, *messaging.MockPubSub) {
-	pubsub := new(messaging.MockPubSub)
+func newService(auth magistrala.AuthzServiceClient) (ws.Service, *mocks.PubSub) {
+	pubsub := new(mocks.PubSub)
 	return ws.New(auth, pubsub), pubsub
 }
 

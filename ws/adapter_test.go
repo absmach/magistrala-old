@@ -12,6 +12,7 @@ import (
 	authmocks "github.com/absmach/magistrala/auth/mocks"
 	"github.com/absmach/magistrala/internal/testsutil"
 	"github.com/absmach/magistrala/pkg/messaging"
+	"github.com/absmach/magistrala/pkg/messaging/mocks"
 	"github.com/absmach/magistrala/ws"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -33,8 +34,8 @@ var msg = messaging.Message{
 	Payload:   []byte(`[{"n":"current","t":-5,"v":1.2}]`),
 }
 
-func newService() (ws.Service, *messaging.MockPubSub, *authmocks.Service) {
-	pubsub := new(messaging.MockPubSub)
+func newService() (ws.Service, *mocks.PubSub, *authmocks.Service) {
+	pubsub := new(mocks.PubSub)
 	auth := new(authmocks.Service)
 
 	return ws.New(auth, pubsub), pubsub, auth
