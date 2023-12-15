@@ -319,6 +319,7 @@ paths:
           $ref: "#/components/responses/ServiceError"
   /keys:
     post:
+      operationId: issueKey
       tags:
         - Keys
       summary: Issue API key
@@ -341,6 +342,7 @@ paths:
 
   /keys/{keyID}:
     get:
+      operationId: getKey
       summary: Gets API key details.
       description: |
         Gets API key details for the given key.
@@ -355,10 +357,13 @@ paths:
           description: Failed due to malformed query parameters.
         "401":
           description: Missing or invalid access token provided.
+        "404":
+          description: A non-existent entity request.
         "500":
           $ref: "#/components/responses/ServiceError"
 
     delete:
+      operationId: revokeKey
       summary: Revoke API key
       description: |
         Revoke API key identified by the given ID.
@@ -371,11 +376,14 @@ paths:
           description: Key revoked.
         "401":
           description: Missing or invalid access token provided.
+        "404":
+          description: A non-existent entity request.
         "500":
           $ref: "#/components/responses/ServiceError"
 
   /policies:
     post:
+      operationId: addPolicies
       summary: Creates new policies.
       description: |
         Creates new policies. Only admin can use this endpoint. Therefore, you need an authentication token for the admin.
@@ -393,6 +401,8 @@ paths:
           description: Missing or invalid access token provided.
         "403":
           description: Unauthorized access token provided.
+        "404":
+          description: A non-existent entity request.
         "409":
           description: Failed due to using an existing email address.
         "415":
@@ -402,6 +412,7 @@ paths:
 
   /policies/delete:
     post:
+      operationId: deletePolicies
       summary: Deletes policies.
       description: |
         Deletes policies. Only admin can use this endpoint. Therefore, you need an authentication token for the admin.
@@ -415,6 +426,8 @@ paths:
           description: Policies deleted.
         "400":
           description: Failed due to malformed JSON.
+        "404":
+          description: A non-existent entity request.
         "409":
           description: Failed due to using an existing email address.
         "415":
@@ -867,11 +880,16 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Key"
+      links:
+        revoke:
+          operationId: revokeKey
+          parameters:
+            keyID: $response.body#/id
 
     HealthRes:
       description: Service Health Check.
       content:
-        application/json:
+        application/health+json:
           schema:
             $ref: "./schemas/HealthInfo.yml"
 
