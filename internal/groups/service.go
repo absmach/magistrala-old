@@ -608,7 +608,6 @@ func (svc service) DeleteGroup(ctx context.Context, token, groupID string) error
 	}
 	if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, res.GetId(), auth.DeletePermission, auth.GroupType, groupID); err != nil {
 		return err
-
 	}
 
 	// Unassign parent for child groups in db.
