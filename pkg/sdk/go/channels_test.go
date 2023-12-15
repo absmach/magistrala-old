@@ -36,7 +36,7 @@ import (
 func newChannelsServer() (*httptest.Server, *mocks.Repository, *authmocks.Service) {
 	cRepo := new(postgres.MockRepository)
 	grepo := new(mocks.Repository)
-	thingCache := thmocks.NewCache()
+	thingCache := new(thmocks.Cache)
 
 	auth := new(authmocks.Service)
 	csvc := things.NewService(auth, cRepo, grepo, thingCache, idProvider)

@@ -41,11 +41,12 @@ var (
 	myKey      = "mine"
 	validToken = "token"
 	validID    = "d4ebb847-5d0e-4e46-bdd9-b6aceaaa3a22"
+	wrongID    = testsutil.GenerateUUID(&testing.T{})
 )
 
 func newService() (things.Service, *postgres.MockRepository, *authmocks.Service) {
 	auth := new(authmocks.Service)
-	thingCache := mocks.NewCache()
+	thingCache := new(mocks.Cache)
 	idProvider := uuid.NewMock()
 	cRepo := new(postgres.MockRepository)
 	gRepo := new(gmocks.Repository)
@@ -204,7 +205,7 @@ func TestRegisterClient(t *testing.T) {
 		{
 			desc: "register a new client with invalid owner",
 			client: mgclients.Client{
-				Owner: mocks.WrongID,
+				Owner: wrongID,
 				Credentials: mgclients.Credentials{
 					Identity: "newclientwithinvalidowner@example.com",
 					Secret:   secret,
@@ -287,14 +288,14 @@ func TestViewClient(t *testing.T) {
 			desc:     "view client with valid token and invalid client id",
 			response: mgclients.Client{},
 			token:    validToken,
-			clientID: mocks.WrongID,
+			clientID: wrongID,
 			err:      svcerr.ErrNotFound,
 		},
 		{
 			desc:     "view client with an invalid token and invalid client id",
 			response: mgclients.Client{},
 			token:    authmocks.InvalidValue,
-			clientID: mocks.WrongID,
+			clientID: wrongID,
 			err:      svcerr.ErrAuthorization,
 		},
 	}
@@ -621,7 +622,7 @@ func TestUpdateClient(t *testing.T) {
 		{
 			desc: "update client name with invalid ID",
 			client: mgclients.Client{
-				ID:   mocks.WrongID,
+				ID:   wrongID,
 				Name: "Updated Client",
 			},
 			response: mgclients.Client{},
@@ -688,7 +689,7 @@ func TestUpdateClientTags(t *testing.T) {
 		{
 			desc: "update client name with invalid ID",
 			client: mgclients.Client{
-				ID:   mocks.WrongID,
+				ID:   wrongID,
 				Name: "Updated name",
 			},
 			response: mgclients.Client{},
@@ -788,7 +789,7 @@ func TestEnableClient(t *testing.T) {
 		},
 		{
 			desc:     "enable non-existing client",
-			id:       mocks.WrongID,
+			id:       wrongID,
 			token:    validToken,
 			client:   mgclients.Client{},
 			response: mgclients.Client{},
@@ -911,7 +912,7 @@ func TestDisableClient(t *testing.T) {
 		},
 		{
 			desc:     "disable non-existing client",
-			id:       mocks.WrongID,
+			id:       wrongID,
 			client:   mgclients.Client{},
 			token:    validToken,
 			response: mgclients.Client{},
@@ -1085,7 +1086,7 @@ func TestListMembers(t *testing.T) {
 		{
 			desc:    "list clients with an invalid id",
 			token:   validToken,
-			groupID: mocks.WrongID,
+			groupID: wrongID,
 			page: mgclients.Page{
 				Owner: adminEmail,
 			},

@@ -34,7 +34,7 @@ import (
 func newThingsServer() (*httptest.Server, *postgres.MockRepository, *gmocks.Repository, *authmocks.Service) {
 	cRepo := new(postgres.MockRepository)
 	gRepo := new(gmocks.Repository)
-	thingCache := mocks.NewCache()
+	thingCache := new(mocks.Cache)
 
 	auth := new(authmocks.Service)
 	csvc := things.NewService(auth, cRepo, gRepo, thingCache, idProvider)
@@ -589,7 +589,7 @@ func TestListThingsByChannel(t *testing.T) {
 		{
 			desc:      "list things with an invalid id",
 			token:     validToken,
-			channelID: mocks.WrongID,
+			channelID: wrongID,
 			page:      sdk.PageMetadata{},
 			response:  []sdk.Thing(nil),
 			err:       errors.NewSDKErrorWithStatus(errors.Wrap(svcerr.ErrNotFound, svcerr.ErrNotFound), http.StatusNotFound),
@@ -656,14 +656,14 @@ func TestThing(t *testing.T) {
 			desc:     "view thing with valid token and invalid thing id",
 			response: sdk.Thing{},
 			token:    validToken,
-			thingID:  mocks.WrongID,
+			thingID:  wrongID,
 			err:      errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
 		},
 		{
 			desc:     "view thing with an invalid token and invalid thing id",
 			response: sdk.Thing{},
 			token:    invalidToken,
-			thingID:  mocks.WrongID,
+			thingID:  wrongID,
 			err:      errors.NewSDKErrorWithStatus(errors.Wrap(svcerr.ErrAuthorization, svcerr.ErrAuthorization), http.StatusForbidden),
 		},
 	}
@@ -971,7 +971,7 @@ func TestEnableThing(t *testing.T) {
 		},
 		{
 			desc:     "enable non-existing thing",
-			id:       mocks.WrongID,
+			id:       wrongID,
 			token:    validToken,
 			thing:    sdk.Thing{},
 			response: sdk.Thing{},
@@ -1106,7 +1106,7 @@ func TestDisableThing(t *testing.T) {
 		},
 		{
 			desc:     "disable non-existing thing",
-			id:       mocks.WrongID,
+			id:       wrongID,
 			thing:    sdk.Thing{},
 			token:    validToken,
 			response: sdk.Thing{},
