@@ -307,7 +307,7 @@ func (repo groupRepository) UnassignParentInChildren(ctx context.Context, parent
 	q := "UPDATE groups AS g SET parent_id = NULL WHERE g.parent_id = $1 ;"
 	rows, err := repo.db.QueryxContext(ctx, q, parentGroupID)
 	if err != nil {
-		return postgres.HandleError(repoerror.ErrUpdateEntity, err)
+		return postgres.HandleError(repoerr.ErrUpdateEntity, err)
 	}
 	defer rows.Close()
 	return nil
@@ -316,7 +316,7 @@ func (repo groupRepository) UnassignParentInChildren(ctx context.Context, parent
 func (repo groupRepository) Delete(ctx context.Context, groupID string) error {
 	q := "DELETE FROM groups AS g  WHERE g.id = $1 ;"
 	if _, err := repo.db.ExecContext(ctx, q, groupID); err != nil {
-		return postgres.HandleError(repoerror.ErrUpdateEntity, err)
+		return postgres.HandleError(repoerr.ErrUpdateEntity, err)
 	}
 	return nil
 }
