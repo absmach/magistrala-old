@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	"github.com/absmach/magistrala"
+	"github.com/absmach/magistrala/bootstrap"
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/internal/postgres"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
@@ -115,7 +116,6 @@ func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
 		errors.Contains(err, apiutil.ErrMissingMemberType),
 		errors.Contains(err, apiutil.ErrMissingMemberKind),
 		errors.Contains(err, apiutil.ErrLimitSize),
-		errors.Contains(err, apiutil.ErrBearerKey),
 		errors.Contains(err, apiutil.ErrNameSize),
 		errors.Contains(err, svcerr.ErrInvalidStatus),
 		errors.Contains(err, apiutil.ErrInvalidIDFormat),
@@ -133,11 +133,13 @@ func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
 		errors.Contains(err, apiutil.ErrMissingRelation),
 		errors.Contains(err, errors.ErrPasswordFormat),
 		errors.Contains(err, apiutil.ErrInvalidLevel),
+		errors.Contains(err, apiutil.ErrBootstrapState),
 		errors.Contains(err, apiutil.ErrInvalidQueryParams):
 		w.WriteHeader(http.StatusBadRequest)
 	case errors.Contains(err, svcerr.ErrAuthentication),
 		errors.Contains(err, errors.ErrAuthentication),
 		errors.Contains(err, errors.ErrLogin),
+		errors.Contains(err, apiutil.ErrBearerKey),
 		errors.Contains(err, apiutil.ErrBearerToken):
 		w.WriteHeader(http.StatusUnauthorized)
 	case errors.Contains(err, svcerr.ErrNotFound):
@@ -149,6 +151,8 @@ func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
 		w.WriteHeader(http.StatusConflict)
 	case errors.Contains(err, svcerr.ErrAuthorization),
 		errors.Contains(err, errors.ErrAuthorization),
+		errors.Contains(err, bootstrap.ErrExternalKey),
+		errors.Contains(err, bootstrap.ErrExternalKeySecure),
 		errors.Contains(err, errors.ErrDomainAuthorization):
 		w.WriteHeader(http.StatusForbidden)
 	case errors.Contains(err, apiutil.ErrUnsupportedContentType):
@@ -162,6 +166,8 @@ func EncodeError(_ context.Context, err error, w http.ResponseWriter) {
 		errors.Contains(err, repoerr.ErrDeletePolicies),
 		errors.Contains(err, svcerr.ErrRemoveEntity):
 		w.WriteHeader(http.StatusUnprocessableEntity)
+	case errors.Contains(err, bootstrap.ErrThings):
+		w.WriteHeader(http.StatusServiceUnavailable)
 	default:
 		w.WriteHeader(http.StatusInternalServerError)
 	}
