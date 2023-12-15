@@ -91,9 +91,6 @@ type Repository interface {
 	// UnassignParentGroup unassign parent group id fr given group id
 	UnassignParentGroup(ctx context.Context, parentGroupID string, groupIDs ...string) error
 
-	// UnassignParentInChildren unassign parent group id from all its children groups
-	UnassignParentInChildren(ctx context.Context, parentGroupID string) error
-
 	// Delete a group
 	Delete(ctx context.Context, groupID string) error
 }

@@ -303,16 +303,6 @@ func (repo groupRepository) UnassignParentGroup(ctx context.Context, parentGroup
 	return nil
 }
 
-func (repo groupRepository) UnassignParentInChildren(ctx context.Context, parentGroupID string) error {
-	q := "UPDATE groups AS g SET parent_id = NULL WHERE g.parent_id = $1 ;"
-	rows, err := repo.db.QueryxContext(ctx, q, parentGroupID)
-	if err != nil {
-		return postgres.HandleError(repoerr.ErrUpdateEntity, err)
-	}
-	defer rows.Close()
-	return nil
-}
-
 func (repo groupRepository) Delete(ctx context.Context, groupID string) error {
 	q := "DELETE FROM groups AS g  WHERE g.id = $1 ;"
 	if _, err := repo.db.ExecContext(ctx, q, groupID); err != nil {

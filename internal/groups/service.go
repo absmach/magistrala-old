@@ -463,7 +463,7 @@ func (svc service) assignParentGroup(ctx context.Context, domain, parentGroupID 
 	var deletePolicies magistrala.DeletePoliciesReq
 	for _, group := range groupsPage.Groups {
 		if group.Parent != "" {
-			return fmt.Errorf("%s group already have parent", group.ID)
+			return errors.Wrap(errors.ErrConflict, fmt.Errorf("%s group already have parent", group.ID))
 		}
 		addPolicies.AddPoliciesReq = append(addPolicies.AddPoliciesReq, &magistrala.AddPolicyReq{
 			Domain:      domain,
@@ -607,11 +607,6 @@ func (svc service) DeleteGroup(ctx context.Context, token, groupID string) error
 		return err
 	}
 	if _, err := svc.authorizeKind(ctx, auth.UserType, auth.UsersKind, res.GetId(), auth.DeletePermission, auth.GroupType, groupID); err != nil {
-		return err
-	}
-
-	// Unassign parent for child groups in db.
-	if err := svc.groups.UnassignParentInChildren(ctx, groupID); err != nil {
 		return err
 	}
 
