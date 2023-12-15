@@ -19,7 +19,6 @@ import (
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/absmach/magistrala/things"
 	"github.com/absmach/magistrala/things/mocks"
-	"github.com/absmach/magistrala/things/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -44,18 +43,18 @@ var (
 	wrongID    = testsutil.GenerateUUID(&testing.T{})
 )
 
-func newService() (things.Service, *postgres.MockRepository, *authmocks.Service) {
+func newService() (things.Service, *mocks.Repository, *authmocks.Service, *mocks.Cache) {
 	auth := new(authmocks.Service)
 	thingCache := new(mocks.Cache)
 	idProvider := uuid.NewMock()
-	cRepo := new(postgres.MockRepository)
+	cRepo := new(mocks.Repository)
 	gRepo := new(gmocks.Repository)
 
-	return things.NewService(auth, cRepo, gRepo, thingCache, idProvider), cRepo, auth
+	return things.NewService(auth, cRepo, gRepo, thingCache, idProvider), cRepo, auth, thingCache
 }
 
 func TestRegisterClient(t *testing.T) {
-	svc, cRepo, auth := newService()
+	svc, cRepo, auth, _ := newService()
 
 	cases := []struct {
 		desc   string
@@ -261,7 +260,7 @@ func TestRegisterClient(t *testing.T) {
 }
 
 func TestViewClient(t *testing.T) {
-	svc, cRepo, auth := newService()
+	svc, cRepo, auth, _ := newService()
 
 	cases := []struct {
 		desc     string
@@ -315,7 +314,7 @@ func TestViewClient(t *testing.T) {
 }
 
 func TestListClients(t *testing.T) {
-	svc, cRepo, auth := newService()
+	svc, cRepo, auth, _ := newService()
 
 	nClients := uint64(200)
 	aClients := []mgclients.Client{}
@@ -591,7 +590,7 @@ func TestListClients(t *testing.T) {
 }
 
 func TestUpdateClient(t *testing.T) {
-	svc, cRepo, auth := newService()
+	svc, cRepo, auth, _ := newService()
 
 	client1 := client
 	client2 := client
@@ -661,7 +660,7 @@ func TestUpdateClient(t *testing.T) {
 }
 
 func TestUpdateClientTags(t *testing.T) {
-	svc, cRepo, auth := newService()
+	svc, cRepo, auth, _ := newService()
 
 	client.Tags = []string{"updated"}
 
@@ -714,7 +713,7 @@ func TestUpdateClientTags(t *testing.T) {
 }
 
 func TestUpdateClientSecret(t *testing.T) {
-	svc, cRepo, auth := newService()
+	svc, cRepo, auth, _ := newService()
 
 	cases := []struct {
 		desc      string
@@ -756,7 +755,7 @@ func TestUpdateClientSecret(t *testing.T) {
 }
 
 func TestEnableClient(t *testing.T) {
-	svc, cRepo, auth := newService()
+	svc, cRepo, auth, _ := newService()
 
 	enabledClient1 := mgclients.Client{ID: ID, Credentials: mgclients.Credentials{Identity: "client1@example.com", Secret: "password"}, Status: mgclients.EnabledStatus}
 	disabledClient1 := mgclients.Client{ID: ID, Credentials: mgclients.Credentials{Identity: "client3@example.com", Secret: "password"}, Status: mgclients.DisabledStatus}
@@ -879,7 +878,7 @@ func TestEnableClient(t *testing.T) {
 }
 
 func TestDisableClient(t *testing.T) {
-	svc, cRepo, auth := newService()
+	svc, cRepo, auth, cache := newService()
 
 	enabledClient1 := mgclients.Client{ID: ID, Credentials: mgclients.Credentials{Identity: "client1@example.com", Secret: "password"}, Status: mgclients.EnabledStatus}
 	disabledClient1 := mgclients.Client{ID: ID, Credentials: mgclients.Credentials{Identity: "client3@example.com", Secret: "password"}, Status: mgclients.DisabledStatus}
@@ -925,12 +924,14 @@ func TestDisableClient(t *testing.T) {
 		repoCall1 := auth.On("Authorize", mock.Anything, mock.Anything).Return(&magistrala.AuthorizeRes{Authorized: true}, nil)
 		repoCall2 := cRepo.On("RetrieveByID", context.Background(), mock.Anything).Return(tc.client, tc.err)
 		repoCall3 := cRepo.On("ChangeStatus", context.Background(), mock.Anything).Return(tc.response, tc.err)
+		repoCall4 := cache.On("Remove", mock.Anything, mock.Anything).Return(nil)
 		_, err := svc.DisableClient(context.Background(), tc.token, tc.id)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
 		repoCall1.Unset()
 		repoCall2.Unset()
 		repoCall3.Unset()
+		repoCall4.Unset()
 	}
 
 	cases2 := []struct {
@@ -1002,7 +1003,7 @@ func TestDisableClient(t *testing.T) {
 }
 
 func TestListMembers(t *testing.T) {
-	svc, cRepo, auth := newService()
+	svc, cRepo, auth, _ := newService()
 
 	nClients := uint64(10)
 	aClients := []mgclients.Client{}

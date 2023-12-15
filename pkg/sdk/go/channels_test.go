@@ -27,14 +27,13 @@ import (
 	"github.com/absmach/magistrala/things"
 	api "github.com/absmach/magistrala/things/api/http"
 	thmocks "github.com/absmach/magistrala/things/mocks"
-	"github.com/absmach/magistrala/things/postgres"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func newChannelsServer() (*httptest.Server, *mocks.Repository, *authmocks.Service) {
-	cRepo := new(postgres.MockRepository)
+	cRepo := new(thmocks.Repository)
 	grepo := new(mocks.Repository)
 	thingCache := new(thmocks.Cache)
 

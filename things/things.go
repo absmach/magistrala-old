@@ -61,7 +61,7 @@ type Service interface {
 
 // Cache contains thing caching interface.
 //
-//go:generate mockery --name Cache --filename mocks.go --quiet --note "Copyright (c) Abstract Machines"
+//go:generate mockery --name Cache --filename cache.go --quiet --note "Copyright (c) Abstract Machines"
 type Cache interface {
 	// Save stores pair thing secret, thing id.
 	Save(ctx context.Context, thingSecret, thingID string) error

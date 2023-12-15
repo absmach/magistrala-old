@@ -25,14 +25,13 @@ import (
 	"github.com/absmach/magistrala/things"
 	api "github.com/absmach/magistrala/things/api/http"
 	"github.com/absmach/magistrala/things/mocks"
-	"github.com/absmach/magistrala/things/postgres"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
-func newThingsServer() (*httptest.Server, *postgres.MockRepository, *gmocks.Repository, *authmocks.Service) {
-	cRepo := new(postgres.MockRepository)
+func newThingsServer() (*httptest.Server, *mocks.Repository, *gmocks.Repository, *authmocks.Service, *mocks.Cache) {
+	cRepo := new(mocks.Repository)
 	gRepo := new(gmocks.Repository)
 	thingCache := new(mocks.Cache)
 
@@ -44,11 +43,27 @@ func newThingsServer() (*httptest.Server, *postgres.MockRepository, *gmocks.Repo
 	mux := chi.NewRouter()
 	api.MakeHandler(csvc, gsvc, mux, logger, "")
 
-	return httptest.NewServer(mux), cRepo, gRepo, auth
+	return httptest.NewServer(mux), cRepo, gRepo, auth, thingCache
+}
+
+func newThingsServerWithAuthOnly() (*httptest.Server, *authmocks.Service) {
+	cRepo := new(mocks.Repository)
+	gRepo := new(gmocks.Repository)
+	thingCache := new(mocks.Cache)
+
+	auth := new(authmocks.Service)
+	csvc := things.NewService(auth, cRepo, gRepo, thingCache, idProvider)
+	gsvc := groups.NewService(gRepo, idProvider, auth)
+
+	logger := mglog.NewMock()
+	mux := chi.NewRouter()
+	api.MakeHandler(csvc, gsvc, mux, logger, "")
+
+	return httptest.NewServer(mux), auth
 }
 
 func TestCreateThing(t *testing.T) {
-	ts, cRepo, _, auth := newThingsServer()
+	ts, cRepo, _, auth, _ := newThingsServer()
 	defer ts.Close()
 
 	thing := sdk.Thing{
@@ -195,7 +210,7 @@ func TestCreateThing(t *testing.T) {
 }
 
 func TestCreateThings(t *testing.T) {
-	ts, cRepo, _, auth := newThingsServer()
+	ts, cRepo, _, auth, _ := newThingsServer()
 	defer ts.Close()
 
 	thingsList := []sdk.Thing{
@@ -291,7 +306,7 @@ func TestCreateThings(t *testing.T) {
 }
 
 func TestListThings(t *testing.T) {
-	ts, cRepo, _, auth := newThingsServer()
+	ts, cRepo, _, auth, _ := newThingsServer()
 	defer ts.Close()
 
 	var ths []sdk.Thing
@@ -478,7 +493,7 @@ func TestListThings(t *testing.T) {
 }
 
 func TestListThingsByChannel(t *testing.T) {
-	ts, cRepo, _, auth := newThingsServer()
+	ts, cRepo, _, auth, _ := newThingsServer()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -616,7 +631,7 @@ func TestListThingsByChannel(t *testing.T) {
 }
 
 func TestThing(t *testing.T) {
-	ts, cRepo, _, auth := newThingsServer()
+	ts, cRepo, _, auth, _ := newThingsServer()
 	defer ts.Close()
 
 	thing := sdk.Thing{
@@ -687,7 +702,7 @@ func TestThing(t *testing.T) {
 }
 
 func TestUpdateThing(t *testing.T) {
-	ts, cRepo, _, auth := newThingsServer()
+	ts, cRepo, _, auth, _ := newThingsServer()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -773,7 +788,7 @@ func TestUpdateThing(t *testing.T) {
 }
 
 func TestUpdateThingTags(t *testing.T) {
-	ts, cRepo, _, auth := newThingsServer()
+	ts, cRepo, _, auth, _ := newThingsServer()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -858,7 +873,7 @@ func TestUpdateThingTags(t *testing.T) {
 }
 
 func TestUpdateThingSecret(t *testing.T) {
-	ts, cRepo, _, auth := newThingsServer()
+	ts, cRepo, _, auth, _ := newThingsServer()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -928,7 +943,7 @@ func TestUpdateThingSecret(t *testing.T) {
 }
 
 func TestEnableThing(t *testing.T) {
-	ts, cRepo, _, auth := newThingsServer()
+	ts, cRepo, _, auth, _ := newThingsServer()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -1063,7 +1078,7 @@ func TestEnableThing(t *testing.T) {
 }
 
 func TestDisableThing(t *testing.T) {
-	ts, cRepo, _, auth := newThingsServer()
+	ts, cRepo, _, auth, cache := newThingsServer()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -1123,6 +1138,7 @@ func TestDisableThing(t *testing.T) {
 		}
 		repoCall2 := cRepo.On("RetrieveByID", mock.Anything, tc.id).Return(convertThing(tc.thing), tc.repoErr)
 		repoCall3 := cRepo.On("ChangeStatus", mock.Anything, mock.Anything).Return(convertThing(tc.response), tc.repoErr)
+		repoCall4 := cache.On("Remove", mock.Anything, mock.Anything).Return(nil)
 		dThing, err := mgsdk.DisableThing(tc.id, tc.token)
 		assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected error %s, got %s", tc.desc, tc.err, err))
 		assert.Equal(t, tc.response, dThing, fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.response, dThing))
@@ -1136,6 +1152,7 @@ func TestDisableThing(t *testing.T) {
 		repoCall1.Unset()
 		repoCall2.Unset()
 		repoCall3.Unset()
+		repoCall4.Unset()
 	}
 
 	cases2 := []struct {
@@ -1198,7 +1215,7 @@ func TestDisableThing(t *testing.T) {
 }
 
 func TestShareThing(t *testing.T) {
-	ts, _, _, auth := newThingsServer()
+	ts, auth := newThingsServerWithAuthOnly()
 	auth.Test(t)
 	defer ts.Close()
 

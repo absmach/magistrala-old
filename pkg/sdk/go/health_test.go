@@ -15,7 +15,7 @@ import (
 )
 
 func TestHealth(t *testing.T) {
-	ths, _, _, auth := newThingsServer()
+	ths, auth := newThingsServerWithAuthOnly()
 	auth.Test(t)
 	defer ths.Close()
 
