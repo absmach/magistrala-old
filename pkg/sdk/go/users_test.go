@@ -24,7 +24,7 @@ import (
 	sdk "github.com/absmach/magistrala/pkg/sdk/go"
 	"github.com/absmach/magistrala/users"
 	"github.com/absmach/magistrala/users/api"
-	"github.com/absmach/magistrala/users/postgres"
+	umocks "github.com/absmach/magistrala/users/mocks"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
@@ -37,8 +37,8 @@ var (
 	wrongID    = testsutil.GenerateUUID(&testing.T{})
 )
 
-func newClientServer() (*httptest.Server, *postgres.MockRepository, *gmocks.Repository, *authmocks.Service) {
-	crepo := new(postgres.MockRepository)
+func newClientServer() (*httptest.Server, *umocks.Repository, *gmocks.Repository, *authmocks.Service) {
+	crepo := new(umocks.Repository)
 	gRepo := new(gmocks.Repository)
 
 	auth := new(authmocks.Service)

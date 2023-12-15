@@ -41,7 +41,6 @@ jobs:
               - ".github/workflows/check-generated-files.yml"
               - "pkg/sdk/go/sdk.go"
               - "users/postgres/clients.go"
-              - "users/postgres/mocks.go"
               - "pkg/clients/clients.go"
 
       - name: Set up protoc
@@ -89,8 +88,8 @@ jobs:
           MOCKERY_VERSION=v2.38.0
           go install github.com/vektra/mockery/v2@$MOCKERY_VERSION
 
-          mv ./pkg/sdk/go/mocks.go ./pkg/sdk/go/mocks.go.tmp
-          mv ./users/postgres/mocks.go ./users/postgres/mocks.go.tmp
+          mv ./pkg/sdk/mocks/sdk.go ./pkg/sdk/mocks/sdk.go.tmp
+          mv ./users/mocks/repository.go ./users/mocks/repository.go.tmp
 
           make mocks
 
@@ -106,5 +105,5 @@ jobs:
             fi
           }
 
-          check_mock_changes ./pkg/sdk/go/mocks.go "SDK ./pkg/sdk/go/mocks.go"
-          check_mock_changes ./users/postgres/mocks.go "Users Repository ./users/postgres/mocks.go"
+          check_mock_changes ./pkg/sdk/mocks/sdk.go "SDK ./pkg/sdk/mocks/sdk.go"
+          check_mock_changes ./users/mocks/repository.go "Users Repository ./users/mocks/repository.go"

@@ -20,7 +20,6 @@ import (
 	"github.com/absmach/magistrala/users"
 	"github.com/absmach/magistrala/users/hasher"
 	"github.com/absmach/magistrala/users/mocks"
-	"github.com/absmach/magistrala/users/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -49,7 +48,7 @@ var (
 )
 
 func TestRegisterClient(t *testing.T) {
-	cRepo := new(postgres.MockRepository)
+	cRepo := new(mocks.Repository)
 	auth := new(authmocks.Service)
 	e := mocks.NewEmailer()
 	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
@@ -265,7 +264,7 @@ func TestRegisterClient(t *testing.T) {
 }
 
 func TestViewClient(t *testing.T) {
-	cRepo := new(postgres.MockRepository)
+	cRepo := new(mocks.Repository)
 	auth := new(authmocks.Service)
 	e := mocks.NewEmailer()
 	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
@@ -332,7 +331,7 @@ func TestViewClient(t *testing.T) {
 }
 
 func TestListClients(t *testing.T) {
-	cRepo := new(postgres.MockRepository)
+	cRepo := new(mocks.Repository)
 	auth := new(authmocks.Service)
 	e := mocks.NewEmailer()
 	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
@@ -616,7 +615,7 @@ func TestListClients(t *testing.T) {
 }
 
 func TestUpdateClient(t *testing.T) {
-	cRepo := new(postgres.MockRepository)
+	cRepo := new(mocks.Repository)
 	auth := new(authmocks.Service)
 	e := mocks.NewEmailer()
 	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
@@ -695,7 +694,7 @@ func TestUpdateClient(t *testing.T) {
 }
 
 func TestUpdateClientTags(t *testing.T) {
-	cRepo := new(postgres.MockRepository)
+	cRepo := new(mocks.Repository)
 	auth := new(authmocks.Service)
 	e := mocks.NewEmailer()
 	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
@@ -757,7 +756,7 @@ func TestUpdateClientTags(t *testing.T) {
 }
 
 func TestUpdateClientIdentity(t *testing.T) {
-	cRepo := new(postgres.MockRepository)
+	cRepo := new(mocks.Repository)
 	auth := new(authmocks.Service)
 	e := mocks.NewEmailer()
 	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
@@ -821,7 +820,7 @@ func TestUpdateClientIdentity(t *testing.T) {
 }
 
 func TestUpdateClientRole(t *testing.T) {
-	cRepo := new(postgres.MockRepository)
+	cRepo := new(mocks.Repository)
 	auth := new(authmocks.Service)
 	e := mocks.NewEmailer()
 	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
@@ -887,7 +886,7 @@ func TestUpdateClientRole(t *testing.T) {
 }
 
 func TestUpdateClientSecret(t *testing.T) {
-	cRepo := new(postgres.MockRepository)
+	cRepo := new(mocks.Repository)
 	auth := new(authmocks.Service)
 	e := mocks.NewEmailer()
 	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
@@ -958,7 +957,7 @@ func TestUpdateClientSecret(t *testing.T) {
 }
 
 func TestEnableClient(t *testing.T) {
-	cRepo := new(postgres.MockRepository)
+	cRepo := new(mocks.Repository)
 	auth := new(authmocks.Service)
 	e := mocks.NewEmailer()
 	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
@@ -1088,7 +1087,7 @@ func TestEnableClient(t *testing.T) {
 }
 
 func TestDisableClient(t *testing.T) {
-	cRepo := new(postgres.MockRepository)
+	cRepo := new(mocks.Repository)
 	auth := new(authmocks.Service)
 	e := mocks.NewEmailer()
 	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
@@ -1218,7 +1217,7 @@ func TestDisableClient(t *testing.T) {
 }
 
 func TestListMembers(t *testing.T) {
-	cRepo := new(postgres.MockRepository)
+	cRepo := new(mocks.Repository)
 	auth := new(authmocks.Service)
 	e := mocks.NewEmailer()
 	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
@@ -1339,7 +1338,7 @@ func TestListMembers(t *testing.T) {
 }
 
 func TestIssueToken(t *testing.T) {
-	cRepo := new(postgres.MockRepository)
+	cRepo := new(mocks.Repository)
 	auth := new(authmocks.Service)
 	e := mocks.NewEmailer()
 	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
@@ -1394,7 +1393,7 @@ func TestIssueToken(t *testing.T) {
 }
 
 func TestRefreshToken(t *testing.T) {
-	cRepo := new(postgres.MockRepository)
+	cRepo := new(mocks.Repository)
 	auth := new(authmocks.Service)
 	e := mocks.NewEmailer()
 	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
