@@ -43,6 +43,10 @@ jobs:
               - "users/postgres/clients.go"
               - "pkg/clients/clients.go"
 
+            pubsub:
+              - ".github/workflows/check-generated-files.yml"
+              - "pkg/messaging/pubsub.go"
+
       - name: Set up protoc
         if: steps.changes.outputs.proto == 'true'
         run: |
