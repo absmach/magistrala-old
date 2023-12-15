@@ -21,6 +21,9 @@ type clientRepo struct {
 	pgclients.ClientRepository
 }
 
+// Repository defines the required dependencies for Client repository.
+//
+//go:generate mockery --name Repository --inpackage --filename mocks.go --quiet --note "Copyright (c) Abstract Machines"
 type Repository interface {
 	mgclients.Repository
 

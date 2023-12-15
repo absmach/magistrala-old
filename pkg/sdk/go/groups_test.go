@@ -24,14 +24,14 @@ import (
 	sdk "github.com/absmach/magistrala/pkg/sdk/go"
 	"github.com/absmach/magistrala/users"
 	"github.com/absmach/magistrala/users/api"
-	umocks "github.com/absmach/magistrala/users/mocks"
+	"github.com/absmach/magistrala/users/postgres"
 	"github.com/go-chi/chi/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 )
 
 func newGroupsServer() (*httptest.Server, *mocks.Repository, *authmocks.Service) {
-	crepo := new(umocks.Repository)
+	crepo := new(postgres.MockRepository)
 	grepo := new(mocks.Repository)
 
 	auth := new(authmocks.Service)
