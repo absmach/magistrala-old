@@ -43,6 +43,7 @@ jobs:
               - "users/postgres/clients.go"
               - "pkg/clients/clients.go"
               - "pkg/messaging/pubsub.go"
+              - "things/postgres/clients.go"
 
       - name: Set up protoc
         if: steps.changes.outputs.proto == 'true'
@@ -92,6 +93,7 @@ jobs:
           mv ./pkg/sdk/mocks/sdk.go ./pkg/sdk/mocks/sdk.go.tmp
           mv ./users/mocks/repository.go ./users/mocks/repository.go.tmp
           mv ./pkg/messaging/mocks/pubsub.go ./pkg/messaging/mocks/pubsub.go.tmp
+          mv ./things/postgres/mocks.go ./things/postgres/mocks.go.tmp
 
           make mocks
 
@@ -110,3 +112,4 @@ jobs:
           check_mock_changes ./pkg/sdk/mocks/sdk.go "SDK ./pkg/sdk/mocks/sdk.go"
           check_mock_changes ./users/mocks/repository.go "Users Repository ./users/mocks/repository.go"
           check_mock_changes ./pkg/messaging/mocks/pubsub.go "PubSub ./pkg/messaging/mocks/pubsub.go"
+          check_mock_changes ./things/postgres/mocks.go "Things Repository ./things/postgres/mocks.go"

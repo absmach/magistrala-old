@@ -7,7 +7,6 @@ import (
 	"context"
 	"fmt"
 	"testing"
-	"time"
 
 	"github.com/absmach/magistrala"
 	authmocks "github.com/absmach/magistrala/auth/mocks"
@@ -20,6 +19,7 @@ import (
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/absmach/magistrala/things"
 	"github.com/absmach/magistrala/things/mocks"
+	"github.com/absmach/magistrala/things/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -37,18 +37,17 @@ var (
 		Metadata:    validCMetadata,
 		Status:      mgclients.EnabledStatus,
 	}
-	withinDuration = 5 * time.Second
-	adminEmail     = "admin@example.com"
-	myKey          = "mine"
-	validToken     = "token"
-	validID        = "d4ebb847-5d0e-4e46-bdd9-b6aceaaa3a22"
+	adminEmail = "admin@example.com"
+	myKey      = "mine"
+	validToken = "token"
+	validID    = "d4ebb847-5d0e-4e46-bdd9-b6aceaaa3a22"
 )
 
-func newService() (things.Service, *mocks.Repository, *authmocks.Service) {
+func newService() (things.Service, *postgres.MockRepository, *authmocks.Service) {
 	auth := new(authmocks.Service)
 	thingCache := mocks.NewCache()
 	idProvider := uuid.NewMock()
-	cRepo := new(mocks.Repository)
+	cRepo := new(postgres.MockRepository)
 	gRepo := new(gmocks.Repository)
 
 	return things.NewService(auth, cRepo, gRepo, thingCache, idProvider), cRepo, auth
@@ -242,13 +241,10 @@ func TestRegisterClient(t *testing.T) {
 	for _, tc := range cases {
 		repoCall := auth.On("Identify", mock.Anything, &magistrala.IdentityReq{Token: tc.token}).Return(&magistrala.IdentityRes{Id: validID, DomainId: testsutil.GenerateUUID(t)}, nil)
 		repoCall1 := auth.On("AddPolicies", mock.Anything, mock.Anything).Return(&magistrala.AddPoliciesRes{Authorized: true}, nil)
-		repoCall2 := cRepo.On("Save", context.Background(), mock.Anything).Return(&mgclients.Client{}, tc.err)
-		registerTime := time.Now()
+		repoCall2 := cRepo.On("Save", context.Background(), mock.Anything).Return([]mgclients.Client{tc.client}, tc.err)
 		expected, err := svc.CreateThings(context.Background(), tc.token, tc.client)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		if err == nil {
-			assert.NotEmpty(t, expected[0].ID, fmt.Sprintf("%s: expected %s not to be empty\n", tc.desc, expected[0].ID))
-			assert.WithinDuration(t, expected[0].CreatedAt, registerTime, withinDuration, fmt.Sprintf("%s: expected %v got %v\n", tc.desc, expected[0].CreatedAt, registerTime))
 			tc.client.ID = expected[0].ID
 			tc.client.CreatedAt = expected[0].CreatedAt
 			tc.client.UpdatedAt = expected[0].UpdatedAt

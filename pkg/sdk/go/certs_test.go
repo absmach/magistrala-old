@@ -21,7 +21,7 @@ import (
 	"github.com/absmach/magistrala/pkg/errors"
 	svcerr "github.com/absmach/magistrala/pkg/errors/service"
 	sdk "github.com/absmach/magistrala/pkg/sdk/go"
-	thmocks "github.com/absmach/magistrala/things/mocks"
+	"github.com/absmach/magistrala/things/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"github.com/stretchr/testify/require"
@@ -37,7 +37,7 @@ var (
 	cfgSignHoursValid = "24h"
 )
 
-func newCertService() (certs.Service, *authmocks.Service, *thmocks.Repository, error) {
+func newCertService() (certs.Service, *authmocks.Service, *postgres.MockRepository, error) {
 	server, trepo, _, auth := newThingsServer()
 	config := sdk.Config{
 		ThingsURL: server.URL,
