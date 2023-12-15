@@ -733,8 +733,8 @@ func decodeError(err error) error {
 		case codes.Unauthenticated:
 			return errors.Wrap(errors.ErrAuthentication, errors.New(st.Message()))
 		case codes.OK:
-			if msg := st.Message() ; msg != "" {
-				return errors.New(errors.ErrUnidentified, msg)
+			if msg := st.Message(); msg != "" {
+				return errors.Wrap(errors.ErrUnidentified, errors.New(msg))
 			}
 			return nil
 		case codes.FailedPrecondition:

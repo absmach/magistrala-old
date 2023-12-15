@@ -749,8 +749,8 @@ func convertGRPCStatusToError(st *status.Status) error {
 	case codes.Internal:
 		return errors.Wrap(errInternal, errors.New(st.Message()))
 	case codes.OK:
-		if msg := st.Message() ; msg != "" {
-			return errors.New(errors.ErrUnidentified, msg)
+		if msg := st.Message(); msg != "" {
+			return errors.Wrap(errors.ErrUnidentified, errors.New(msg))
 		}
 		return nil
 	case codes.FailedPrecondition:
