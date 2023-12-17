@@ -245,8 +245,6 @@ func (client grpcClient) Authorize(ctx context.Context, req *magistrala.Authoriz
 		ObjectType:  req.GetObjectType(),
 		Object:      req.GetObject(),
 	})
-	fmt.Println("res", res)
-	fmt.Println("err", err)
 	if err != nil {
 		return &magistrala.AuthorizeRes{}, err
 	}

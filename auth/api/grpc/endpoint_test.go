@@ -13,10 +13,7 @@ import (
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/auth"
 	grpcapi "github.com/absmach/magistrala/auth/api/grpc"
-	"github.com/absmach/magistrala/auth/jwt"
-	"github.com/absmach/magistrala/auth/mocks"
 	"github.com/absmach/magistrala/pkg/errors"
-	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	"google.golang.org/grpc"
@@ -42,23 +39,6 @@ const (
 	refreshDuration = 24 * time.Hour
 	invalidDuration = 7 * 24 * time.Hour
 )
-
-var (
-	svc   auth.Service
-	krepo *mocks.Keys
-	prepo *mocks.PolicyAgent
-)
-
-func newService() (auth.Service, *mocks.Keys, *mocks.PolicyAgent) {
-	krepo := new(mocks.Keys)
-	prepo := new(mocks.PolicyAgent)
-	drepo := new(mocks.DomainsRepo)
-	idProvider := uuid.NewMock()
-
-	t := jwt.New([]byte(secret))
-
-	return auth.New(krepo, drepo, idProvider, t, prepo, loginDuration, refreshDuration, invalidDuration), krepo, prepo
-}
 
 func startGRPCServer(svc auth.Service, port int) {
 	listener, _ := net.Listen("tcp", fmt.Sprintf(":%d", port))
