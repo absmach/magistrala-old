@@ -610,11 +610,6 @@ func (svc service) DeleteGroup(ctx context.Context, token, groupID string) error
 		return err
 	}
 
-	// Remove group from database
-	if err := svc.groups.Delete(ctx, groupID); err != nil {
-		return err
-	}
-
 	// Remove policy of child groups
 	if _, err := svc.auth.DeletePolicy(ctx, &magistrala.DeletePolicyReq{
 		SubjectType: auth.GroupType,
@@ -639,6 +634,11 @@ func (svc service) DeleteGroup(ctx context.Context, token, groupID string) error
 		Object:      groupID,
 		ObjectType:  auth.GroupType,
 	}); err != nil {
+		return err
+	}
+
+	// Remove group from database
+	if err := svc.groups.Delete(ctx, groupID); err != nil {
 		return err
 	}
 
