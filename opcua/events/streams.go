@@ -20,7 +20,7 @@ const (
 	thingPrefix     = "thing."
 	thingCreate     = thingPrefix + "create"
 	thingUpdate     = thingPrefix + "update"
-	thingRemove     = thingPrefix + "remove"
+	thingDelete     = thingPrefix + "delete"
 	thingConnect    = thingPrefix + "connect"
 	thingDisconnect = thingPrefix + "disconnect"
 
@@ -72,9 +72,9 @@ func (es *eventHandler) Handle(ctx context.Context, event events.Event) error {
 			break
 		}
 		err = es.svc.CreateThing(ctx, ute.id, ute.opcuaNodeID)
-	case thingRemove:
-		rte := decodeRemoveThing(msg)
-		err = es.svc.RemoveThing(ctx, rte.id)
+	case thingDelete:
+		dte := decodeDeleteThing(msg)
+		err = es.svc.RemoveThing(ctx, dte.id)
 	case channelCreate:
 		cce, e := decodeCreateChannel(msg)
 		if e != nil {
@@ -136,7 +136,7 @@ func decodeCreateThing(event map[string]interface{}) (createThingEvent, error) {
 	return cte, nil
 }
 
-func decodeRemoveThing(event map[string]interface{}) removeThingEvent {
+func decodeDeleteThing(event map[string]interface{}) removeThingEvent {
 	return removeThingEvent{
 		id: read(event, "id", ""),
 	}

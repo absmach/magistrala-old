@@ -9,12 +9,11 @@ import (
 	"time"
 
 	"github.com/absmach/magistrala/bootstrap"
-	"github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/events"
 )
 
 const (
-	thingRemove     = "thing.remove"
+	thingDelete     = "thing.delete"
 	thingDisconnect = "policy.delete"
 
 	channelPrefix = "group."
@@ -40,9 +39,9 @@ func (es *eventHandler) Handle(ctx context.Context, event events.Event) error {
 	}
 
 	switch msg["operation"] {
-	case thingRemove:
-		rte := decodeRemoveThing(msg)
-		err = es.svc.RemoveConfigHandler(ctx, rte.id)
+	case thingDelete:
+		dte := decodeDeleteThing(msg)
+		err = es.svc.RemoveConfigHandler(ctx, dte.id)
 	case thingDisconnect:
 		dte := decodeDisconnectThing(msg)
 		err = es.svc.DisconnectThingHandler(ctx, dte.channelID, dte.thingID)
@@ -60,21 +59,9 @@ func (es *eventHandler) Handle(ctx context.Context, event events.Event) error {
 	return nil
 }
 
-func decodeRemoveThing(event map[string]interface{}) removeEvent {
-	status := read(event, "status", "")
-	st, err := clients.ToStatus(status)
-	if err != nil {
-		return removeEvent{}
-	}
-	switch st {
-	case clients.EnabledStatus:
-		return removeEvent{}
-	case clients.DisabledStatus:
-		return removeEvent{
-			id: read(event, "id", ""),
-		}
-	default:
-		return removeEvent{}
+func decodeDeleteThing(event map[string]interface{}) removeEvent {
+	return removeEvent{
+		id: read(event, "id", ""),
 	}
 }
 
