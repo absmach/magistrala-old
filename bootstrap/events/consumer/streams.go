@@ -19,7 +19,7 @@ const (
 
 	channelPrefix = "channel."
 	channelUpdate = channelPrefix + "update"
-	channelRemove = channelPrefix + "remove"
+	channelDelete = channelPrefix + "delete"
 )
 
 type eventHandler struct {
@@ -49,8 +49,8 @@ func (es *eventHandler) Handle(ctx context.Context, event events.Event) error {
 	case channelUpdate:
 		uce := decodeUpdateChannel(msg)
 		err = es.handleUpdateChannel(ctx, uce)
-	case channelRemove:
-		rce := decodeRemoveChannel(msg)
+	case channelDelete:
+		rce := decodeDeleteChannel(msg)
 		err = es.svc.RemoveChannelHandler(ctx, rce.id)
 	}
 	if err != nil {
@@ -94,21 +94,9 @@ func decodeUpdateChannel(event map[string]interface{}) updateChannelEvent {
 	}
 }
 
-func decodeRemoveChannel(event map[string]interface{}) removeEvent {
-	status := read(event, "status", "")
-	st, err := clients.ToStatus(status)
-	if err != nil {
-		return removeEvent{}
-	}
-	switch st {
-	case clients.EnabledStatus:
-		return removeEvent{}
-	case clients.DisabledStatus:
-		return removeEvent{
-			id: read(event, "id", ""),
-		}
-	default:
-		return removeEvent{}
+func decodeDeleteChannel(event map[string]interface{}) removeEvent {
+	return removeEvent{
+		id: read(event, "id", ""),
 	}
 }
 
