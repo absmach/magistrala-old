@@ -28,6 +28,7 @@ var (
 	_ events.Event = (*updateGroupEvent)(nil)
 	_ events.Event = (*changeStatusGroupEvent)(nil)
 	_ events.Event = (*viewGroupEvent)(nil)
+	_ events.Event = (*deleteGroupEvent)(nil)
 	_ events.Event = (*viewGroupEvent)(nil)
 	_ events.Event = (*listGroupEvent)(nil)
 	_ events.Event = (*listGroupMembershipEvent)(nil)

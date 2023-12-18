@@ -17,7 +17,7 @@ const (
 	thingRemove     = "thing.remove"
 	thingDisconnect = "policy.delete"
 
-	channelPrefix = "channel."
+	channelPrefix = "group."
 	channelUpdate = channelPrefix + "update"
 	channelDelete = channelPrefix + "delete"
 )
@@ -50,8 +50,8 @@ func (es *eventHandler) Handle(ctx context.Context, event events.Event) error {
 		uce := decodeUpdateChannel(msg)
 		err = es.handleUpdateChannel(ctx, uce)
 	case channelDelete:
-		rce := decodeDeleteChannel(msg)
-		err = es.svc.RemoveChannelHandler(ctx, rce.id)
+		dce := decodeDeleteChannel(msg)
+		err = es.svc.RemoveChannelHandler(ctx, dce.id)
 	}
 	if err != nil {
 		return err
