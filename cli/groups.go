@@ -142,6 +142,25 @@ var cmdGroups = []cobra.Command{
 		},
 	},
 	{
+		Use:   "delete <group_id> <user_auth_token>",
+		Short: "Delete group",
+		Long: "Delete group by id.\n" +
+			"Usage:\n" +
+			"\tmagistrala-cli groups delete <group_id> $USERTOKEN - delete the given group ID\n",
+		Run: func(cmd *cobra.Command, args []string) {
+			if len(args) != 2 {
+				logUsage(cmd.Use)
+				return
+			}
+			err := sdk.DeleteGroup(args[0], args[1])
+			if err != nil {
+				logError(err)
+				return
+			}
+			logOK()
+		},
+	},
+	{
 		Use:   "assign user <relation> <user_ids> <group_id> <user_auth_token>",
 		Short: "Assign user",
 		Long: "Assign user to a group\n" +
