@@ -739,7 +739,7 @@ func (_m *SDK) DeleteSubscription(id string, token string) errors.SDKError {
 }
 
 // DeleteChannel provides a mock function with given fields: id, token
-func (_m *MockSDK) DeleteChannel(id string, token string) (errors.SDKError) {
+func (_m *SDK) DeleteChannel(id string, token string) (errors.SDKError) {
 	ret := _m.Called(id, token)
 
 	if len(ret) == 0 {
@@ -759,7 +759,7 @@ func (_m *MockSDK) DeleteChannel(id string, token string) (errors.SDKError) {
 }
 
 // DeleteGroup provides a mock function with given fields: id, token
-func (_m *MockSDK) DeleteGroup(id string, token string) (errors.SDKError) {
+func (_m *SDK) DeleteGroup(id string, token string) (errors.SDKError) {
 	ret := _m.Called(id, token)
 
 	if len(ret) == 0 {
