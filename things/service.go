@@ -447,7 +447,7 @@ func (svc service) DeleteClient(ctx context.Context, token, id string) error {
 	if err != nil {
 		return err
 	}
-	if _, err := svc.authorize(ctx, auth.UserType, auth.UsersKind, res.GetId(), auth.DeletePermission, auth.GroupType, id); err != nil {
+	if _, err := svc.authorize(ctx, auth.UserType, auth.UsersKind, res.GetId(), auth.DeletePermission, auth.ThingType, id); err != nil {
 		return err
 	}
 
@@ -464,9 +464,14 @@ func (svc service) DeleteClient(ctx context.Context, token, id string) error {
 	if _, err := svc.auth.DeletePolicy(ctx, &magistrala.DeletePolicyReq{
 		SubjectType: auth.DomainType,
 		Object:      id,
-		ObjectType:  auth.GroupType,
+		ObjectType:  auth.ThingType,
 	}); err != nil {
 		return err
+	}
+
+	// Remove from cache
+	if err := svc.clientCache.Remove(ctx, id); err != nil {
+		return errors.Wrap(repoerr.ErrRemoveEntity, err)
 	}
 
 	// Remove thing from database
@@ -478,7 +483,7 @@ func (svc service) DeleteClient(ctx context.Context, token, id string) error {
 	if _, err := svc.auth.DeletePolicy(ctx, &magistrala.DeletePolicyReq{
 		SubjectType: auth.UserType,
 		Object:      id,
-		ObjectType:  auth.GroupType,
+		ObjectType:  auth.ThingType,
 	}); err != nil {
 		return err
 	}

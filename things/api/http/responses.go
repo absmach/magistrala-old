@@ -138,12 +138,26 @@ func (res viewMembersRes) Empty() bool {
 	return false
 }
 
-type deleteClientRes struct {
+type changeStatusClientRes struct {
 	mgclients.Client
 }
 
+func (res changeStatusClientRes) Code() int {
+	return http.StatusNoContent
+}
+
+func (res changeStatusClientRes) Headers() map[string]string {
+	return map[string]string{}
+}
+
+func (res changeStatusClientRes) Empty() bool {
+	return true
+}
+
+type deleteClientRes struct{}
+
 func (res deleteClientRes) Code() int {
-	return http.StatusOK
+	return http.StatusNoContent
 }
 
 func (res deleteClientRes) Headers() map[string]string {
@@ -151,7 +165,7 @@ func (res deleteClientRes) Headers() map[string]string {
 }
 
 func (res deleteClientRes) Empty() bool {
-	return false
+	return true
 }
 
 type assignUsersGroupsRes struct{}
