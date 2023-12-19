@@ -38,6 +38,7 @@ var (
 	_ events.Event = (*identifyClientEvent)(nil)
 	_ events.Event = (*authorizeClientEvent)(nil)
 	_ events.Event = (*shareClientEvent)(nil)
+	_ events.Event = (*removeClientEvent)(nil)
 )
 
 type createClientEvent struct {

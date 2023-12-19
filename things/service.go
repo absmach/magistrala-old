@@ -451,6 +451,11 @@ func (svc service) DeleteClient(ctx context.Context, token, id string) error {
 		return err
 	}
 
+	// Remove from cache
+	if err := svc.clientCache.Remove(ctx, id); err != nil {
+		return errors.Wrap(repoerr.ErrRemoveEntity, err)
+	}
+
 	// Remove policy of groups
 	if _, err := svc.auth.DeletePolicy(ctx, &magistrala.DeletePolicyReq{
 		SubjectType: auth.GroupType,
@@ -467,11 +472,6 @@ func (svc service) DeleteClient(ctx context.Context, token, id string) error {
 		ObjectType:  auth.ThingType,
 	}); err != nil {
 		return err
-	}
-
-	// Remove from cache
-	if err := svc.clientCache.Remove(ctx, id); err != nil {
-		return errors.Wrap(repoerr.ErrRemoveEntity, err)
 	}
 
 	// Remove thing from database

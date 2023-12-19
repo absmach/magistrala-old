@@ -22,6 +22,7 @@ var (
 	_ magistrala.Response = (*unassignUsersGroupsRes)(nil)
 	_ magistrala.Response = (*connectChannelThingRes)(nil)
 	_ magistrala.Response = (*disconnectChannelThingRes)(nil)
+	_ magistrala.Response = (*changeClientStatusRes)(nil)
 )
 
 type pageRes struct {
