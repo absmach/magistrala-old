@@ -170,25 +170,25 @@ paths:
         "500":
           $ref: "#/components/responses/ServiceError"
     delete:
-          summary: Delete thing for given thing id.
-          description: |
-            Delete thing remove given thing id from repo
-            and removes all the policies related to thing.
-          tags:
-            - Things
-          parameters:
-            - $ref: "#/components/parameters/ThingID"
-          security:
-            - bearerAuth: []
-          responses:
-            "204":
-              $ref: "#/components/responses/ThingDeleteRes"
-            "401":
-              description: Missing or invalid access token provided.
-            "403":
-              description: Unauthorized access to thing id.
-            "500":
-              $ref: "#/components/responses/ServiceError"
+      summary: Delete thing for given thing id.
+      description: |
+        Delete thing remove given thing id from repo
+        and removes all the policies related to thing.
+      tags:
+        - Things
+      parameters:
+        - $ref: "#/components/parameters/ThingID"
+      security:
+        - bearerAuth: []
+      responses:
+        "204":
+          $ref: "#/components/responses/ThingDeleteRes"
+        "401":
+          description: Missing or invalid access token provided.
+        "403":
+          description: Unauthorized access to thing id.
+        "500":
+          $ref: "#/components/responses/ServiceError"
   /things/{thingID}/tags:
     patch:
       summary: Updates tags the thing.
