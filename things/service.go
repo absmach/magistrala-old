@@ -490,6 +490,7 @@ func (svc service) DeleteClient(ctx context.Context, token, id string) error {
 
 	return nil
 }
+
 func (svc service) changeClientStatus(ctx context.Context, token string, client mgclients.Client) (mgclients.Client, error) {
 	userID, err := svc.authorize(ctx, auth.UserType, auth.TokenKind, token, auth.DeletePermission, auth.ThingType, client.ID)
 	if err != nil {
