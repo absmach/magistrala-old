@@ -138,19 +138,19 @@ func (res viewMembersRes) Empty() bool {
 	return false
 }
 
-type changeStatusClientRes struct {
+type changeClientStatusRes struct {
 	mgclients.Client
 }
 
-func (res changeStatusClientRes) Code() int {
+func (res changeClientStatusRes) Code() int {
 	return http.StatusOK
 }
 
-func (res changeStatusClientRes) Headers() map[string]string {
+func (res changeClientStatusRes) Headers() map[string]string {
 	return map[string]string{}
 }
 
-func (res changeStatusClientRes) Empty() bool {
+func (res changeClientStatusRes) Empty() bool {
 	return false
 }
 

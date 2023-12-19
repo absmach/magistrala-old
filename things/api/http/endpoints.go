@@ -216,7 +216,7 @@ func enableClientEndpoint(svc things.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		return changeStatusClientRes{Client: client}, nil
+		return changeClientStatusRes{Client: client}, nil
 	}
 }
 
@@ -232,7 +232,7 @@ func disableClientEndpoint(svc things.Service) endpoint.Endpoint {
 			return nil, err
 		}
 
-		return changeStatusClientRes{Client: client}, nil
+		return changeClientStatusRes{Client: client}, nil
 	}
 }
 

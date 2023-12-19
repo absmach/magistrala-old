@@ -35,7 +35,7 @@ type Repository interface {
 	// RetrieveBySecret retrieves a client based on the secret (key).
 	RetrieveBySecret(ctx context.Context, key string) (mgclients.Client, error)
 
-	// Delete deletes given client id
+	// Delete deletes client with given id
 	Delete(ctx context.Context, id string) error
 }
 

@@ -453,7 +453,7 @@ type SDK interface {
 	//  fmt.Println(users)
 	ListThingUsers(thingID string, pm PageMetadata, token string) (UsersPage, errors.SDKError)
 
-	// DeleteThing delete given thing id.
+	// DeleteThing deletes a thing with the given id.
 	//
 	// example:
 	//  err := sdk.DeleteThing("thingID", "token")
