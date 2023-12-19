@@ -913,7 +913,7 @@ func TestDeleteGroup(t *testing.T) {
 	repoCall1 := auth.On("Authorize", mock.Anything, mock.Anything).Return(&magistrala.AuthorizeRes{Authorized: false}, nil)
 	repoCall2 := grepo.On("Delete", mock.Anything, mock.Anything).Return(nil)
 	err := mgsdk.DeleteGroup("wrongID", validToken)
-	assert.Equal(t, err, errors.NewSDKErrorWithStatus(svcerr.ErrAuthorization, http.StatusForbidden), fmt.Sprintf("Delete channel with wrong id: expected %v got %v", svcerr.ErrNotFound, err))
+	assert.Equal(t, err, errors.NewSDKErrorWithStatus(svcerr.ErrAuthorization, http.StatusForbidden), fmt.Sprintf("Delete group with wrong id: expected %v got %v", svcerr.ErrNotFound, err))
 	repoCall.Unset()
 	repoCall1.Unset()
 	repoCall2.Unset()

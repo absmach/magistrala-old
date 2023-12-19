@@ -306,7 +306,7 @@ func (repo groupRepository) UnassignParentGroup(ctx context.Context, parentGroup
 func (repo groupRepository) Delete(ctx context.Context, groupID string) error {
 	q := "DELETE FROM groups AS g  WHERE g.id = $1 ;"
 	if _, err := repo.db.ExecContext(ctx, q, groupID); err != nil {
-		return postgres.HandleError(repoerr.ErrUpdateEntity, err)
+		return postgres.HandleError(repoerr.ErrRemoveEntity, err)
 	}
 	return nil
 }
