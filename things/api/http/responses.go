@@ -143,7 +143,7 @@ type changeStatusClientRes struct {
 }
 
 func (res changeStatusClientRes) Code() int {
-	return http.StatusNoContent
+	return http.StatusOK
 }
 
 func (res changeStatusClientRes) Headers() map[string]string {
@@ -151,7 +151,7 @@ func (res changeStatusClientRes) Headers() map[string]string {
 }
 
 func (res changeStatusClientRes) Empty() bool {
-	return true
+	return false
 }
 
 type deleteClientRes struct{}
