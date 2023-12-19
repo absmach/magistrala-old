@@ -20,7 +20,7 @@ const (
 	thingPrefix     = "thing."
 	thingCreate     = thingPrefix + "create"
 	thingUpdate     = thingPrefix + "update"
-	thingDelete     = thingPrefix + "delete"
+	thingRemove     = thingPrefix + "remove"
 	thingConnect    = thingPrefix + "connect"
 	thingDisconnect = thingPrefix + "disconnect"
 
@@ -137,7 +137,7 @@ func decodeCreateThing(event map[string]interface{}) (createThingEvent, error) {
 	return cte, nil
 }
 
-func decodeDeleteThing(event map[string]interface{}) removeThingEvent {
+func decodeRemoveThing(event map[string]interface{}) removeThingEvent {
 	return removeThingEvent{
 		id: read(event, "id", ""),
 	}

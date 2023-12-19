@@ -13,7 +13,7 @@ import (
 )
 
 const (
-	thingDelete     = "thing.delete"
+	thingRemove     = "thing.remove"
 	thingDisconnect = "policy.delete"
 
 	channelPrefix = "group."
@@ -39,9 +39,9 @@ func (es *eventHandler) Handle(ctx context.Context, event events.Event) error {
 	}
 
 	switch msg["operation"] {
-	case thingDelete:
-		dte := decodeDeleteThing(msg)
-		err = es.svc.RemoveConfigHandler(ctx, dte.id)
+	case thingRemove:
+		rte := decodeRemoveThing(msg)
+		err = es.svc.RemoveConfigHandler(ctx, rte.id)
 	case thingDisconnect:
 		dte := decodeDisconnectThing(msg)
 		err = es.svc.DisconnectThingHandler(ctx, dte.channelID, dte.thingID)
@@ -59,7 +59,7 @@ func (es *eventHandler) Handle(ctx context.Context, event events.Event) error {
 	return nil
 }
 
-func decodeDeleteThing(event map[string]interface{}) removeEvent {
+func decodeRemoveThing(event map[string]interface{}) removeEvent {
 	return removeEvent{
 		id: read(event, "id", ""),
 	}

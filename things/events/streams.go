@@ -257,7 +257,7 @@ func (es *eventStore) DeleteClient(ctx context.Context, token, id string) error 
 		return err
 	}
 
-	event := deleteClientEvent{id}
+	event := removeClientEvent{id}
 
 	if err := es.Publish(ctx, event); err != nil {
 		return err

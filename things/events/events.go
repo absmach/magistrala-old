@@ -18,6 +18,7 @@ const (
 	clientCreate       = clientPrefix + "create"
 	clientUpdate       = clientPrefix + "update"
 	clientChangeStatus = clientPrefix + "change_status"
+	clientRemove       = clientPrefix + "remove"
 	clientView         = clientPrefix + "view"
 	clientViewPerms    = clientPrefix + "view_perms"
 	clientList         = clientPrefix + "list"
@@ -381,13 +382,13 @@ func (sce shareClientEvent) Encode() (map[string]interface{}, error) {
 	}, nil
 }
 
-type deleteClientEvent struct {
+type removeClientEvent struct {
 	id string
 }
 
-func (dce deleteClientEvent) Encode() (map[string]interface{}, error) {
+func (dce removeClientEvent) Encode() (map[string]interface{}, error) {
 	return map[string]interface{}{
-		"operation": clientChangeStatus,
+		"operation": clientRemove,
 		"id":        dce.id,
 	}, nil
 }
