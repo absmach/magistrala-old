@@ -170,10 +170,10 @@ paths:
         "500":
           $ref: "#/components/responses/ServiceError"
     delete:
-      summary: Delete thing for given thing id.
+      summary: Delete thing for a thing with the given id.
       description: |
-        Delete thing remove given thing id from repo
-        and removes all the policies related to thing.
+        Delete thing removes a thing with the given id from repo
+        and removes all the policies related to this thing.
       tags:
         - Things
       parameters:
