@@ -27,7 +27,7 @@ const (
 	channelPrefix = "group."
 	channelCreate = channelPrefix + "create"
 	channelUpdate = channelPrefix + "update"
-	channelDelete = channelPrefix + "delete"
+	channelRemove = channelPrefix + "remove"
 )
 
 var (
@@ -89,9 +89,9 @@ func (es *eventHandler) Handle(ctx context.Context, event events.Event) error {
 			break
 		}
 		err = es.svc.CreateChannel(ctx, uce.id, uce.opcuaServerURI)
-	case channelDelete:
-		dce := decodeDeleteChannel(msg)
-		err = es.svc.RemoveChannel(ctx, dce.id)
+	case channelRemove:
+		rce := decodeRemoveChannel(msg)
+		err = es.svc.RemoveChannel(ctx, rce.id)
 	case thingConnect:
 		rce := decodeConnectThing(msg)
 		err = es.svc.ConnectThing(ctx, rce.chanID, rce.thingID)
@@ -172,7 +172,7 @@ func decodeCreateChannel(event map[string]interface{}) (createChannelEvent, erro
 	return cce, nil
 }
 
-func decodeDeleteChannel(event map[string]interface{}) removeChannelEvent {
+func decodeRemoveChannel(event map[string]interface{}) removeChannelEvent {
 	return removeChannelEvent{
 		id: read(event, "id", ""),
 	}

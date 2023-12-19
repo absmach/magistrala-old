@@ -20,7 +20,7 @@ const (
 	groupViewPerms       = groupPrefix + "view_perms"
 	groupList            = groupPrefix + "list"
 	groupListMemberships = groupPrefix + "list_by_user"
-	groupDelete          = groupPrefix + "delete"
+	groupRemove          = groupPrefix + "remove"
 )
 
 var (
@@ -251,7 +251,7 @@ type deleteGroupEvent struct {
 
 func (rge deleteGroupEvent) Encode() (map[string]interface{}, error) {
 	return map[string]interface{}{
-		"operation": groupDelete,
+		"operation": groupRemove,
 		"id":        rge.id,
 	}, nil
 }

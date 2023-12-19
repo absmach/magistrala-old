@@ -19,7 +19,7 @@ const (
 
 	channelPrefix = "group."
 	channelUpdate = channelPrefix + "update"
-	channelDelete = channelPrefix + "delete"
+	channelRemove = channelPrefix + "remove"
 )
 
 type eventHandler struct {
@@ -49,9 +49,9 @@ func (es *eventHandler) Handle(ctx context.Context, event events.Event) error {
 	case channelUpdate:
 		uce := decodeUpdateChannel(msg)
 		err = es.handleUpdateChannel(ctx, uce)
-	case channelDelete:
-		dce := decodeDeleteChannel(msg)
-		err = es.svc.RemoveChannelHandler(ctx, dce.id)
+	case channelRemove:
+		rce := decodeRemoveChannel(msg)
+		err = es.svc.RemoveChannelHandler(ctx, rce.id)
 	}
 	if err != nil {
 		return err
@@ -94,7 +94,7 @@ func decodeUpdateChannel(event map[string]interface{}) updateChannelEvent {
 	}
 }
 
-func decodeDeleteChannel(event map[string]interface{}) removeEvent {
+func decodeRemoveChannel(event map[string]interface{}) removeEvent {
 	return removeEvent{
 		id: read(event, "id", ""),
 	}
