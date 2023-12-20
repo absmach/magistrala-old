@@ -182,7 +182,7 @@ paths:
         - bearerAuth: []
       responses:
         "204":
-          $ref: "#/components/responses/ThingDeleteRes"
+          description: Thing deleted.
         "401":
           description: Missing or invalid access token provided.
         "403":
@@ -498,7 +498,7 @@ paths:
         - bearerAuth: []
       responses:
         "204":
-          $ref: "#/components/responses/ChannelDeleteRes"
+          description: Channel deleted.
         "401":
           description: Missing or invalid access token provided.
         "403":
@@ -1756,9 +1756,6 @@ components:
           schema:
             $ref: "#/components/schemas/Thing"
 
-    ThingDeleteRes:
-      description: Thing deleted.
-
     ThingPageRes:
       description: Data retrieved.
       content:
@@ -1792,9 +1789,6 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/Channel"
-
-    ChannelDeleteRes:
-      description: Channel Deleted.
 
     ChannelPageRes:
       description: Data retrieved.
