@@ -672,7 +672,7 @@ func TestThing(t *testing.T) {
 			response: sdk.Thing{},
 			token:    validToken,
 			thingID:  wrongID,
-			err:      errors.NewSDKErrorWithStatus(errors.ErrNotFound, http.StatusNotFound),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(errors.ErrNotFound, errors.ErrNotFound), http.StatusNotFound),
 		},
 		{
 			desc:     "view thing with an invalid token and invalid thing id",
@@ -751,7 +751,7 @@ func TestUpdateThing(t *testing.T) {
 			thing:    thing2,
 			response: sdk.Thing{},
 			token:    validToken,
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(apiutil.ErrValidation, sdk.ErrFailedUpdate), http.StatusInternalServerError),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(svcerr.ErrUpdateEntity, svcerr.ErrUpdateEntity), http.StatusInternalServerError),
 		},
 		{
 			desc: "update thing that can't be marshalled",
@@ -836,7 +836,7 @@ func TestUpdateThingTags(t *testing.T) {
 			thing:    thing2,
 			response: sdk.Thing{},
 			token:    validToken,
-			err:      errors.NewSDKErrorWithStatus(errors.Wrap(apiutil.ErrValidation, sdk.ErrFailedUpdate), http.StatusInternalServerError),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(svcerr.ErrUpdateEntity, svcerr.ErrUpdateEntity), http.StatusInternalServerError),
 		},
 		{
 			desc: "update thing that can't be marshalled",
@@ -910,7 +910,7 @@ func TestUpdateThingSecret(t *testing.T) {
 			token:     "non-existent",
 			response:  sdk.Thing{},
 			repoErr:   errors.ErrAuthorization,
-			err:       errors.NewSDKErrorWithStatus(errors.ErrAuthorization, http.StatusForbidden),
+			err:       errors.NewSDKErrorWithStatus(errors.Wrap(svcerr.ErrUpdateEntity, errors.ErrAuthorization), http.StatusForbidden),
 		},
 		{
 			desc:      "update thing secret with wrong old secret",
@@ -919,7 +919,7 @@ func TestUpdateThingSecret(t *testing.T) {
 			token:     validToken,
 			response:  sdk.Thing{},
 			repoErr:   apiutil.ErrInvalidSecret,
-			err:       errors.NewSDKErrorWithStatus(apiutil.ErrInvalidSecret, http.StatusBadRequest),
+			err:       errors.NewSDKErrorWithStatus(errors.Wrap(svcerr.ErrUpdateEntity, apiutil.ErrInvalidSecret), http.StatusBadRequest),
 		},
 	}
 	for _, tc := range cases {
