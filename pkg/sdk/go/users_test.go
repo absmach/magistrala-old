@@ -37,7 +37,7 @@ var (
 	wrongID    = testsutil.GenerateUUID(&testing.T{})
 )
 
-func newClientServer() (*httptest.Server, *umocks.Repository, *gmocks.Repository, *authmocks.Service) {
+func setupUsers() (*httptest.Server, *umocks.Repository, *gmocks.Repository, *authmocks.Service) {
 	crepo := new(umocks.Repository)
 	gRepo := new(gmocks.Repository)
 
@@ -53,7 +53,7 @@ func newClientServer() (*httptest.Server, *umocks.Repository, *gmocks.Repository
 }
 
 func TestCreateClient(t *testing.T) {
-	ts, crepo, _, auth := newClientServer()
+	ts, crepo, _, auth := setupUsers()
 	defer ts.Close()
 
 	user := sdk.User{
@@ -209,7 +209,7 @@ func TestCreateClient(t *testing.T) {
 }
 
 func TestListClients(t *testing.T) {
-	ts, crepo, _, auth := newClientServer()
+	ts, crepo, _, auth := setupUsers()
 	defer ts.Close()
 
 	var cls []sdk.User
@@ -389,7 +389,7 @@ func TestListClients(t *testing.T) {
 }
 
 func TestClient(t *testing.T) {
-	ts, crepo, _, auth := newClientServer()
+	ts, crepo, _, auth := setupUsers()
 	defer ts.Close()
 
 	user = sdk.User{
@@ -465,7 +465,7 @@ func TestClient(t *testing.T) {
 }
 
 func TestProfile(t *testing.T) {
-	ts, crepo, _, auth := newClientServer()
+	ts, crepo, _, auth := setupUsers()
 	defer ts.Close()
 
 	user = sdk.User{
@@ -520,7 +520,7 @@ func TestProfile(t *testing.T) {
 }
 
 func TestUpdateClient(t *testing.T) {
-	ts, crepo, _, auth := newClientServer()
+	ts, crepo, _, auth := setupUsers()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -612,7 +612,7 @@ func TestUpdateClient(t *testing.T) {
 }
 
 func TestUpdateClientTags(t *testing.T) {
-	ts, crepo, _, auth := newClientServer()
+	ts, crepo, _, auth := setupUsers()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -704,7 +704,7 @@ func TestUpdateClientTags(t *testing.T) {
 }
 
 func TestUpdateClientIdentity(t *testing.T) {
-	ts, crepo, _, auth := newClientServer()
+	ts, crepo, _, auth := setupUsers()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -794,7 +794,7 @@ func TestUpdateClientIdentity(t *testing.T) {
 }
 
 func TestUpdateClientSecret(t *testing.T) {
-	ts, crepo, _, auth := newClientServer()
+	ts, crepo, _, auth := setupUsers()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -873,7 +873,7 @@ func TestUpdateClientSecret(t *testing.T) {
 }
 
 func TestUpdateClientRole(t *testing.T) {
-	ts, crepo, _, auth := newClientServer()
+	ts, crepo, _, auth := setupUsers()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -966,7 +966,7 @@ func TestUpdateClientRole(t *testing.T) {
 }
 
 func TestEnableClient(t *testing.T) {
-	ts, crepo, _, auth := newClientServer()
+	ts, crepo, _, auth := setupUsers()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -1095,7 +1095,7 @@ func TestEnableClient(t *testing.T) {
 }
 
 func TestDisableClient(t *testing.T) {
-	ts, crepo, _, auth := newClientServer()
+	ts, crepo, _, auth := setupUsers()
 	defer ts.Close()
 
 	conf := sdk.Config{

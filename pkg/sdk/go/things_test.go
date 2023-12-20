@@ -30,7 +30,7 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func newThingsServer() (*httptest.Server, *mocks.Repository, *gmocks.Repository, *authmocks.Service, *mocks.Cache) {
+func setupThings() (*httptest.Server, *mocks.Repository, *gmocks.Repository, *authmocks.Service, *mocks.Cache) {
 	cRepo := new(mocks.Repository)
 	gRepo := new(gmocks.Repository)
 	thingCache := new(mocks.Cache)
@@ -46,7 +46,7 @@ func newThingsServer() (*httptest.Server, *mocks.Repository, *gmocks.Repository,
 	return httptest.NewServer(mux), cRepo, gRepo, auth, thingCache
 }
 
-func newThingsServerWithAuthOnly() (*httptest.Server, *authmocks.Service) {
+func setupThingsMinimal() (*httptest.Server, *authmocks.Service) {
 	cRepo := new(mocks.Repository)
 	gRepo := new(gmocks.Repository)
 	thingCache := new(mocks.Cache)
@@ -63,7 +63,7 @@ func newThingsServerWithAuthOnly() (*httptest.Server, *authmocks.Service) {
 }
 
 func TestCreateThing(t *testing.T) {
-	ts, cRepo, _, auth, _ := newThingsServer()
+	ts, cRepo, _, auth, _ := setupThings()
 	defer ts.Close()
 
 	thing := sdk.Thing{
@@ -210,7 +210,7 @@ func TestCreateThing(t *testing.T) {
 }
 
 func TestCreateThings(t *testing.T) {
-	ts, cRepo, _, auth, _ := newThingsServer()
+	ts, cRepo, _, auth, _ := setupThings()
 	defer ts.Close()
 
 	thingsList := []sdk.Thing{
@@ -306,7 +306,7 @@ func TestCreateThings(t *testing.T) {
 }
 
 func TestListThings(t *testing.T) {
-	ts, cRepo, _, auth, _ := newThingsServer()
+	ts, cRepo, _, auth, _ := setupThings()
 	defer ts.Close()
 
 	var ths []sdk.Thing
@@ -493,7 +493,7 @@ func TestListThings(t *testing.T) {
 }
 
 func TestListThingsByChannel(t *testing.T) {
-	ts, cRepo, _, auth, _ := newThingsServer()
+	ts, cRepo, _, auth, _ := setupThings()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -631,7 +631,7 @@ func TestListThingsByChannel(t *testing.T) {
 }
 
 func TestThing(t *testing.T) {
-	ts, cRepo, _, auth, _ := newThingsServer()
+	ts, cRepo, _, auth, _ := setupThings()
 	defer ts.Close()
 
 	thing := sdk.Thing{
@@ -702,7 +702,7 @@ func TestThing(t *testing.T) {
 }
 
 func TestUpdateThing(t *testing.T) {
-	ts, cRepo, _, auth, _ := newThingsServer()
+	ts, cRepo, _, auth, _ := setupThings()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -788,7 +788,7 @@ func TestUpdateThing(t *testing.T) {
 }
 
 func TestUpdateThingTags(t *testing.T) {
-	ts, cRepo, _, auth, _ := newThingsServer()
+	ts, cRepo, _, auth, _ := setupThings()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -873,7 +873,7 @@ func TestUpdateThingTags(t *testing.T) {
 }
 
 func TestUpdateThingSecret(t *testing.T) {
-	ts, cRepo, _, auth, _ := newThingsServer()
+	ts, cRepo, _, auth, _ := setupThings()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -943,7 +943,7 @@ func TestUpdateThingSecret(t *testing.T) {
 }
 
 func TestEnableThing(t *testing.T) {
-	ts, cRepo, _, auth, _ := newThingsServer()
+	ts, cRepo, _, auth, _ := setupThings()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -1078,7 +1078,7 @@ func TestEnableThing(t *testing.T) {
 }
 
 func TestDisableThing(t *testing.T) {
-	ts, cRepo, _, auth, cache := newThingsServer()
+	ts, cRepo, _, auth, cache := setupThings()
 	defer ts.Close()
 
 	conf := sdk.Config{
@@ -1215,7 +1215,7 @@ func TestDisableThing(t *testing.T) {
 }
 
 func TestShareThing(t *testing.T) {
-	ts, auth := newThingsServerWithAuthOnly()
+	ts, auth := setupThingsMinimal()
 	auth.Test(t)
 	defer ts.Close()
 
