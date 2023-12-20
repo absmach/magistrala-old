@@ -1133,7 +1133,7 @@ func TestListMembers(t *testing.T) {
 }
 
 func TestDeleteClient(t *testing.T) {
-	svc, cRepo, auth := newService()
+	svc, cRepo, auth, cache := newService()
 
 	client := mgclients.Client{
 		ID:   testsutil.GenerateUUID(t),
@@ -1189,10 +1189,11 @@ func TestDeleteClient(t *testing.T) {
 		repoCall := auth.On("Identify", mock.Anything, &magistrala.IdentityReq{Token: tc.token}).Return(&magistrala.IdentityRes{Id: validID, DomainId: testsutil.GenerateUUID(t)}, nil)
 		repoCall1 := auth.On("Authorize", mock.Anything, mock.Anything).Return(&magistrala.AuthorizeRes{Authorized: true}, nil)
 		repoCall2 := auth.On("DeletePolicy", mock.Anything, mock.Anything).Return(&magistrala.DeletePolicyRes{Deleted: true}, nil)
-		repoCall3 := cRepo.On("Delete", context.Background(), tc.clientID).Return(nil)
+		repoCall3 := cache.On("Remove", mock.Anything, tc.clientID).Return(nil)
+		repoCall4 := cRepo.On("Delete", context.Background(), tc.clientID).Return(nil)
 		if tc.err == errors.ErrRemoveEntity {
-			repoCall3.Unset()
-			repoCall3 = cRepo.On("Delete", context.Background(), tc.clientID).Return(errors.ErrRemoveEntity)
+			repoCall4.Unset()
+			repoCall4 = cRepo.On("Delete", context.Background(), tc.clientID).Return(errors.ErrRemoveEntity)
 		}
 		if tc.err == errors.ErrUnidentified {
 			repoCall2.Unset()
@@ -1204,6 +1205,7 @@ func TestDeleteClient(t *testing.T) {
 		repoCall1.Unset()
 		repoCall2.Unset()
 		repoCall3.Unset()
+		repoCall4.Unset()
 	}
 }
 

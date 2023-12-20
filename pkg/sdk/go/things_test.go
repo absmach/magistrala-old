@@ -1278,7 +1278,7 @@ func TestShareThing(t *testing.T) {
 }
 
 func TestDeleteThing(t *testing.T) {
-	ts, cRepo, _, auth := newThingsServer()
+	ts, cRepo, _, auth, cache := setupThings()
 
 	defer ts.Close()
 
@@ -1298,6 +1298,7 @@ func TestDeleteThing(t *testing.T) {
 	repoCall := auth.On("Identify", mock.Anything, &magistrala.IdentityReq{Token: validToken}).Return(&magistrala.IdentityRes{Id: validID, DomainId: testsutil.GenerateUUID(t)}, nil)
 	repoCall1 := auth.On("Authorize", mock.Anything, mock.Anything).Return(&magistrala.AuthorizeRes{Authorized: false}, nil)
 	repoCall2 := cRepo.On("Delete", mock.Anything, mock.Anything).Return(nil)
+	repoCall4 := cache.On("Remove", mock.Anything, thing.ID).Return(nil)
 	err := mgsdk.DeleteThing("wrongID", validToken)
 	assert.Equal(t, err, errors.NewSDKErrorWithStatus(svcerr.ErrAuthorization, http.StatusForbidden), fmt.Sprintf("Delete thing with wrong id: expected %v got %v", svcerr.ErrNotFound, err))
 	repoCall.Unset()
@@ -1316,4 +1317,5 @@ func TestDeleteThing(t *testing.T) {
 	repoCall1.Unset()
 	repoCall2.Unset()
 	repoCall3.Unset()
+	repoCall4.Unset()
 }
