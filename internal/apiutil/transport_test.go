@@ -5,6 +5,7 @@ package apiutil_test
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -15,57 +16,6 @@ import (
 	"github.com/absmach/magistrala/pkg/errors"
 	"github.com/stretchr/testify/assert"
 )
-
-func TestReadUintQuery(t *testing.T) {
-	cases := []struct {
-		desc string
-		url  string
-		key  string
-		ret  uint64
-		err  error
-	}{
-		{
-			desc: "valid uint query",
-			url:  "http://localhost:8080/?key=123",
-			key:  "key",
-			ret:  123,
-			err:  nil,
-		},
-		{
-			desc: "invalid uint query",
-			url:  "http://localhost:8080/?key=abc",
-			key:  "key",
-			ret:  0,
-			err:  apiutil.ErrInvalidQueryParams,
-		},
-		{
-			desc: "empty uint query",
-			url:  "http://localhost:8080/",
-			key:  "key",
-			ret:  0,
-			err:  nil,
-		},
-		{
-			desc: "multiple uint query",
-			url:  "http://localhost:8080/?key=123&key=456",
-			key:  "key",
-			ret:  0,
-			err:  apiutil.ErrInvalidQueryParams,
-		},
-	}
-
-	for _, c := range cases {
-		t.Run(c.desc, func(t *testing.T) {
-			parsedURL, err := url.Parse(c.url)
-			assert.NoError(t, err)
-
-			r := &http.Request{URL: parsedURL}
-			ret, err := apiutil.ReadUintQuery(r, c.key, 0)
-			assert.Equal(t, c.err, err)
-			assert.Equal(t, c.ret, ret)
-		})
-	}
-}
 
 func TestReadStringQuery(t *testing.T) {
 	cases := []struct {
@@ -156,7 +106,7 @@ func TestReadMetadataQuery(t *testing.T) {
 
 			r := &http.Request{URL: parsedURL}
 			ret, err := apiutil.ReadMetadataQuery(r, c.key, nil)
-			assert.True(t, errors.Contains(err, c.err))
+			assert.True(t, errors.Contains(err, c.err), fmt.Sprintf("expected: %v, got: %v", c.err, err))
 			assert.Equal(t, c.ret, ret)
 		})
 	}
@@ -214,58 +164,7 @@ func TestReadBoolQuery(t *testing.T) {
 
 			r := &http.Request{URL: parsedURL}
 			ret, err := apiutil.ReadBoolQuery(r, c.key, false)
-			assert.Equal(t, c.err, err)
-			assert.Equal(t, c.ret, ret)
-		})
-	}
-}
-
-func TestReadFloatQuery(t *testing.T) {
-	cases := []struct {
-		desc string
-		url  string
-		key  string
-		ret  float64
-		err  error
-	}{
-		{
-			desc: "valid float64 query",
-			url:  "http://localhost:8080/?key=1.23",
-			key:  "key",
-			ret:  1.23,
-			err:  nil,
-		},
-		{
-			desc: "invalid float64 query",
-			url:  "http://localhost:8080/?key=abc",
-			key:  "key",
-			ret:  0,
-			err:  apiutil.ErrInvalidQueryParams,
-		},
-		{
-			desc: "empty float64 query",
-			url:  "http://localhost:8080/",
-			key:  "key",
-			ret:  0,
-			err:  nil,
-		},
-		{
-			desc: "multiple float64 query",
-			url:  "http://localhost:8080/?key=123&key=456",
-			key:  "key",
-			ret:  0,
-			err:  apiutil.ErrInvalidQueryParams,
-		},
-	}
-
-	for _, c := range cases {
-		t.Run(c.desc, func(t *testing.T) {
-			parsedURL, err := url.Parse(c.url)
-			assert.NoError(t, err)
-
-			r := &http.Request{URL: parsedURL}
-			ret, err := apiutil.ReadFloatQuery(r, c.key, 0)
-			assert.Equal(t, c.err, err)
+			assert.True(t, errors.Contains(err, c.err), fmt.Sprintf("expected: %v, got: %v", c.err, err))
 			assert.Equal(t, c.ret, ret)
 		})
 	}
@@ -427,7 +326,7 @@ func TestReadNumQuery(t *testing.T) {
 			case "uint16":
 				ret, err = apiutil.ReadNumQuery[uint16](r, c.key, 0)
 			}
-			assert.Equal(t, c.err, err)
+			assert.True(t, errors.Contains(err, c.err), fmt.Sprintf("expected: %v, got: %v", c.err, err))
 			assert.Equal(t, c.ret, ret)
 		})
 	}
