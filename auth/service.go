@@ -691,11 +691,11 @@ func (svc service) UnassignUsers(ctx context.Context, token, id string, userIds 
 	}); err != nil {
 		return err
 	}
-	err := svc.removeDomainPolicies(ctx, id, relation, userIds...)
-	if err != nil {
+
+	if err := svc.removeDomainPolicies(ctx, id, relation, userIds...); err != nil {
 		return errors.Wrap(errRemovePolicies, err)
 	}
-	return err
+	return nil
 }
 
 // IMPROVEMENT NOTE: Take decision: Only Patform admin or both Patform and domain admins can see others users domain.
@@ -756,11 +756,11 @@ func (svc service) addDomainPolicies(ctx context.Context, domainID, relation str
 			}
 		}
 	}()
-	err = svc.domains.SavePolicies(ctx, pcs...)
-	if err != nil {
+
+	if err = svc.domains.SavePolicies(ctx, pcs...); err != nil {
 		return errors.Wrap(errAddPolicies, err)
 	}
-	return err
+	return nil
 }
 
 func (svc service) createDomainPolicy(ctx context.Context, userID, domainID, relation string) (err error) {
