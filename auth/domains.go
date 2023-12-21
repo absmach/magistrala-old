@@ -7,15 +7,88 @@ import (
 	"context"
 	"time"
 
+	"errors"
+
+	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/pkg/clients"
 )
+
+// DStatus represents Domain status.
+type DStatus uint8
+
+// Possible Domain status values.
+const (
+	// EnabledStatus represents enabled Domain.
+	EnabledStatus DStatus = iota
+	// DisabledStatus represents disabled Domain.
+	DisabledStatus
+	// FreezeStatus represents domain is in freezed state.
+	FreezeStatus
+
+	// AllStatus is used for querying purposes to list Domains irrespective
+	// of their status - enabled, disabled, freezed, deleting. It is never stored in the
+	// database as the actual Client status and should always be the largest
+	// value in this enumeration.
+	AllStatus
+
+	// DeletingStatus represents client is under process of deletion.
+	DeletingStatus
+)
+
+// String representation of the possible status values.
+const (
+	Disabled = "disabled"
+	Enabled  = "enabled"
+	Freezed  = "freezed"
+	Deleting = "deleting"
+	All      = "all"
+	Unknown  = "unknown"
+)
+
+// ErrStatusAlreadyAssigned indicated that the client or group has already been assigned the status.
+var ErrStatusAlreadyAssigned = errors.New("status already assigned")
+
+// String converts client/group status to string literal.
+func (s DStatus) String() string {
+	switch s {
+	case DisabledStatus:
+		return Disabled
+	case EnabledStatus:
+		return Enabled
+	case AllStatus:
+		return All
+	case FreezeStatus:
+		return Freezed
+	case DeletingStatus:
+		return Deleting
+	default:
+		return Unknown
+	}
+}
+
+// ToStatus converts string value to a valid Client/Group status.
+func ToStatus(status string) (DStatus, error) {
+	switch status {
+	case "", Enabled:
+		return EnabledStatus, nil
+	case Disabled:
+		return DisabledStatus, nil
+	case Freezed:
+		return FreezeStatus, nil
+	case Deleting:
+		return DeletingStatus, nil
+	case All:
+		return AllStatus, nil
+	}
+	return DStatus(0), apiutil.ErrInvalidStatus
+}
 
 type DomainReq struct {
 	Name     *string           `json:"name,omitempty"`
 	Metadata *clients.Metadata `json:"metadata,omitempty"`
 	Tags     *[]string         `json:"tags,omitempty"`
 	Alias    *string           `json:"alias,omitempty"`
-	Status   *clients.Status   `json:"status,omitempty"`
+	Status   *DStatus          `json:"status,omitempty"`
 }
 type Domain struct {
 	ID         string           `json:"id"`
@@ -23,7 +96,7 @@ type Domain struct {
 	Metadata   clients.Metadata `json:"metadata,omitempty"`
 	Tags       []string         `json:"tags,omitempty"`
 	Alias      string           `json:"alias,omitempty"`
-	Status     clients.Status   `json:"status"`
+	Status     DStatus          `json:"status"`
 	Permission string           `json:"permission,omitempty"`
 	CreatedBy  string           `json:"created_by,omitempty"`
 	CreatedAt  time.Time        `json:"created_at"`
@@ -41,7 +114,7 @@ type Page struct {
 	Metadata   clients.Metadata `json:"metadata,omitempty"`
 	Tag        string           `json:"tag,omitempty"`
 	Permission string           `json:"permission,omitempty"`
-	Status     clients.Status   `json:"status,omitempty"`
+	Status     DStatus          `json:"status,omitempty"`
 	ID         string           `json:"id,omitempty"`
 	IDs        []string         `json:"-"`
 	Identity   string           `json:"identity,omitempty"`
