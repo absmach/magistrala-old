@@ -6,10 +6,9 @@ package auth
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"strings"
 	"time"
-
-	"errors"
 
 	"github.com/absmach/magistrala/internal/apiutil"
 	"github.com/absmach/magistrala/pkg/clients"
