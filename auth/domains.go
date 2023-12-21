@@ -68,8 +68,8 @@ func (s DStatus) String() string {
 	}
 }
 
-// ToStatus converts string value to a valid Client/Group status.
-func ToStatus(status string) (DStatus, error) {
+// ToDStatus converts string value to a valid Domain status.
+func ToDStatus(status string) (DStatus, error) {
 	switch status {
 	case "", Enabled:
 		return EnabledStatus, nil
@@ -93,7 +93,7 @@ func (s DStatus) MarshalJSON() ([]byte, error) {
 // Custom Unmarshaler for Domains status.
 func (s *DStatus) UnmarshalJSON(data []byte) error {
 	str := strings.Trim(string(data), "\"")
-	val, err := ToStatus(str)
+	val, err := ToDStatus(str)
 	*s = val
 	return err
 }
