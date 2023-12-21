@@ -5,6 +5,8 @@ package auth
 
 import (
 	"context"
+	"encoding/json"
+	"strings"
 	"time"
 
 	"errors"
@@ -81,6 +83,19 @@ func ToStatus(status string) (DStatus, error) {
 		return AllStatus, nil
 	}
 	return DStatus(0), apiutil.ErrInvalidStatus
+}
+
+// Custom Marshaller for Domains status.
+func (s DStatus) MarshalJSON() ([]byte, error) {
+	return json.Marshal(s.String())
+}
+
+// Custom Unmarshaler for Domains status.
+func (s *DStatus) UnmarshalJSON(data []byte) error {
+	str := strings.Trim(string(data), "\"")
+	val, err := ToStatus(str)
+	*s = val
+	return err
 }
 
 type DomainReq struct {
