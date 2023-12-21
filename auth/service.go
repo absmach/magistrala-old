@@ -198,12 +198,8 @@ func (svc service) Authorize(ctx context.Context, pr PolicyReq) error {
 
 func (svc service) checkPolicy(ctx context.Context, pr PolicyReq) error {
 	// Domain status is required for if user sent authorization request on things, channels, groups and domains
-	fmt.Printf("%+v\n", pr)
 	if pr.SubjectType == UserType && (pr.ObjectType == GroupType || pr.ObjectType == ThingType || pr.ObjectType == DomainType) {
-		fmt.Printf("It is a domain check\n")
-
 		domainID := pr.Domain
-
 		if domainID == "" {
 			if pr.ObjectType != DomainType {
 				return errors.ErrDomainAuthorization
@@ -214,7 +210,6 @@ func (svc service) checkPolicy(ctx context.Context, pr PolicyReq) error {
 			return err
 		}
 	}
-
 	if err := svc.agent.CheckPolicy(ctx, pr); err != nil {
 		return errors.Wrap(svcerr.ErrAuthorization, err)
 	}
@@ -254,6 +249,7 @@ func (svc service) checkDomain(ctx context.Context, subjectType, subject, domain
 	default:
 		return errors.ErrDomainAuthorization
 	}
+
 	return nil
 }
 
