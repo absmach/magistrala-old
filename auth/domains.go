@@ -28,12 +28,9 @@ const (
 
 	// AllStatus is used for querying purposes to list Domains irrespective
 	// of their status - enabled, disabled, freezed, deleting. It is never stored in the
-	// database as the actual Client status and should always be the largest
+	// database as the actual domain status and should always be the largest
 	// value in this enumeration.
 	AllStatus
-
-	// DeletingStatus represents client is under process of deletion.
-	DeletingStatus
 )
 
 // String representation of the possible status values.
@@ -41,7 +38,6 @@ const (
 	Disabled = "disabled"
 	Enabled  = "enabled"
 	Freezed  = "freezed"
-	Deleting = "deleting"
 	All      = "all"
 	Unknown  = "unknown"
 )
@@ -60,8 +56,6 @@ func (s DStatus) String() string {
 		return All
 	case FreezeStatus:
 		return Freezed
-	case DeletingStatus:
-		return Deleting
 	default:
 		return Unknown
 	}
@@ -76,8 +70,6 @@ func ToDStatus(status string) (DStatus, error) {
 		return DisabledStatus, nil
 	case Freezed:
 		return FreezeStatus, nil
-	case Deleting:
-		return DeletingStatus, nil
 	case All:
 		return AllStatus, nil
 	}

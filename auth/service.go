@@ -244,8 +244,6 @@ func (svc service) checkDomain(ctx context.Context, subjectType, subject, domain
 		}); err != nil {
 			return errors.ErrDomainAuthorization
 		}
-	case DeletingStatus:
-		fallthrough
 	default:
 		return errors.ErrDomainAuthorization
 	}
