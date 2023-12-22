@@ -5,6 +5,7 @@ package api_test
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 	"testing"
 	"time"
@@ -12,7 +13,6 @@ import (
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/internal/api"
 	"github.com/absmach/magistrala/internal/apiutil"
-	"github.com/absmach/magistrala/internal/postgres"
 	"github.com/absmach/magistrala/internal/testsutil"
 	"github.com/absmach/magistrala/pkg/errors"
 	svcerr "github.com/absmach/magistrala/pkg/errors/service"
@@ -76,6 +76,11 @@ func (res response) Headers() map[string]string {
 
 func (res response) Empty() bool {
 	return res.empty
+}
+
+type body struct {
+	Error   string `json:"error,omitempty"`
+	Message string `json:"message"`
 }
 
 func TestValidateUUID(t *testing.T) {
@@ -268,7 +273,6 @@ func TestEncodeError(t *testing.T) {
 			desc: "Conflict",
 			errs: []error{
 				svcerr.ErrConflict,
-				postgres.ErrMemberAlreadyAssigned,
 				errors.ErrConflict,
 			},
 			code: http.StatusConflict,
@@ -314,6 +318,20 @@ func TestEncodeError(t *testing.T) {
 			for _, err := range c.errs {
 				api.EncodeError(context.Background(), err, responseWriter)
 				assert.Equal(t, c.code, responseWriter.StatusCode())
+
+				message := body{}
+				jerr := json.Unmarshal(responseWriter.Body(), &message)
+				assert.NoError(t, jerr)
+
+				var wrapper error
+				switch errors.Contains(err, apiutil.ErrValidation) {
+				case true:
+					wrapper, err = errors.Unwrap(err)
+					assert.Equal(t, err.Error(), message.Error)
+					assert.Equal(t, wrapper.Error(), message.Message)
+				case false:
+					assert.Equal(t, err.Error(), message.Message)
+				}
 			}
 		})
 	}
