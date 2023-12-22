@@ -12,6 +12,7 @@ import (
 	"github.com/absmach/magistrala/internal/testsutil"
 	"github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
+	repoerr "github.com/absmach/magistrala/pkg/errors/repository"
 	"github.com/absmach/magistrala/things/postgres"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -174,23 +175,43 @@ func TestClientsRetrieveBySecret(t *testing.T) {
 			Identity: clientIdentity,
 			Secret:   testsutil.GenerateUUID(t),
 		},
-		Status: clients.EnabledStatus,
+		Metadata: clients.Metadata{},
+		Status:   clients.EnabledStatus,
 	}
 
 	_, err := repo.Save(context.Background(), client)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	cases := map[string]struct {
-		secret string
-		err    error
+	cases := []struct {
+		desc     string
+		secret   string
+		response clients.Client
+		err      error
 	}{
-		"retrieve existing client":     {client.Credentials.Secret, nil},
-		"retrieve non-existing client": {"non-exsistent", errors.ErrNotFound},
+		{
+			desc:     "retrieve client by secret successfully",
+			secret:   client.Credentials.Secret,
+			response: client,
+			err:      nil,
+		},
+		{
+			desc:     "retrieve client by invalid secret",
+			secret:   "non-existent-secret",
+			response: clients.Client{},
+			err:      errors.ErrNotFound,
+		},
+		{
+			desc:     "retrieve client by empty secret",
+			secret:   "",
+			response: clients.Client{},
+			err:      errors.ErrNotFound,
+		},
 	}
 
-	for desc, tc := range cases {
-		_, err := repo.RetrieveBySecret(context.Background(), tc.secret)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+	for _, tc := range cases {
+		res, err := repo.RetrieveBySecret(context.Background(), tc.secret)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+		assert.Equal(t, res, tc.response, fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.response, res))
 	}
 }
 
@@ -214,16 +235,30 @@ func TestDelete(t *testing.T) {
 	_, err := repo.Save(context.Background(), client)
 	require.Nil(t, err, fmt.Sprintf("unexpected error: %s", err))
 
-	cases := map[string]struct {
-		id  string
-		err error
+	cases := []struct {
+		desc string
+		id   string
+		err  error
 	}{
-		"delete client id":          {client.ID, nil},
-		"delete invalid client id ": {invalidClientID, nil},
+		{
+			desc: "delete client successfully",
+			id:   client.ID,
+			err:  nil,
+		},
+		{
+			desc: "delete client with invalid id",
+			id:   invalidClientID,
+			err:  repoerr.ErrNotFound,
+		},
+		{
+			desc: "delete client with empty id",
+			id:   "",
+			err:  repoerr.ErrNotFound,
+		},
 	}
 
-	for desc, tc := range cases {
+	for _, tc := range cases {
 		err := repo.Delete(context.Background(), tc.id)
-		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", desc, tc.err, err))
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 	}
 }
