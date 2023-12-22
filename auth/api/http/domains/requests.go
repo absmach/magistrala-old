@@ -17,7 +17,7 @@ type page struct {
 	metadata   map[string]interface{}
 	tag        string
 	permission string
-	status     auth.DStatus
+	status     auth.Status
 }
 
 type createDomainReq struct {

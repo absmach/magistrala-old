@@ -413,7 +413,7 @@ type dbDomain struct {
 	Metadata   []byte           `db:"metadata,omitempty"`
 	Tags       pgtype.TextArray `db:"tags,omitempty"`
 	Alias      *string          `db:"alias,omitempty"`
-	Status     auth.DStatus     `db:"status"`
+	Status     auth.Status      `db:"status"`
 	Permission string           `db:"relation"`
 	CreatedBy  string           `db:"created_by"`
 	CreatedAt  time.Time        `db:"created_at"`
@@ -503,19 +503,19 @@ func toDomain(d dbDomain) (auth.Domain, error) {
 }
 
 type dbDomainsPage struct {
-	Total      uint64       `db:"total"`
-	Limit      uint64       `db:"limit"`
-	Offset     uint64       `db:"offset"`
-	Order      string       `db:"order"`
-	Dir        string       `db:"dir"`
-	Name       string       `db:"name"`
-	Permission string       `db:"permission"`
-	ID         string       `db:"id"`
-	IDs        []string     `db:"ids"`
-	Metadata   []byte       `db:"metadata"`
-	Tag        string       `db:"tag"`
-	Status     auth.DStatus `db:"status"`
-	SubjectID  string       `db:"subject_id"`
+	Total      uint64      `db:"total"`
+	Limit      uint64      `db:"limit"`
+	Offset     uint64      `db:"offset"`
+	Order      string      `db:"order"`
+	Dir        string      `db:"dir"`
+	Name       string      `db:"name"`
+	Permission string      `db:"permission"`
+	ID         string      `db:"id"`
+	IDs        []string    `db:"ids"`
+	Metadata   []byte      `db:"metadata"`
+	Tag        string      `db:"tag"`
+	Status     auth.Status `db:"status"`
+	SubjectID  string      `db:"subject_id"`
 }
 
 func toDBClientsPage(pm auth.Page) (dbDomainsPage, error) {

@@ -142,7 +142,7 @@ func decodePageRequest(_ context.Context, r *http.Request) (page, error) {
 	if err != nil {
 		return page{}, errors.Wrap(apiutil.ErrValidation, err)
 	}
-	st, err := auth.ToDStatus(s)
+	st, err := auth.ToStatus(s)
 	if err != nil {
 		return page{}, errors.Wrap(apiutil.ErrValidation, err)
 	}

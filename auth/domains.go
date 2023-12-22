@@ -14,13 +14,13 @@ import (
 	"github.com/absmach/magistrala/pkg/clients"
 )
 
-// DStatus represents Domain status.
-type DStatus uint8
+// Status represents Domain status.
+type Status uint8
 
 // Possible Domain status values.
 const (
 	// EnabledStatus represents enabled Domain.
-	EnabledStatus DStatus = iota
+	EnabledStatus Status = iota
 	// DisabledStatus represents disabled Domain.
 	DisabledStatus
 	// FreezeStatus represents domain is in freezed state.
@@ -46,7 +46,7 @@ const (
 var ErrStatusAlreadyAssigned = errors.New("status already assigned")
 
 // String converts client/group status to string literal.
-func (s DStatus) String() string {
+func (s Status) String() string {
 	switch s {
 	case DisabledStatus:
 		return Disabled
@@ -61,8 +61,8 @@ func (s DStatus) String() string {
 	}
 }
 
-// ToDStatus converts string value to a valid Domain status.
-func ToDStatus(status string) (DStatus, error) {
+// ToStatus converts string value to a valid Domain status.
+func ToStatus(status string) (Status, error) {
 	switch status {
 	case "", Enabled:
 		return EnabledStatus, nil
@@ -73,18 +73,18 @@ func ToDStatus(status string) (DStatus, error) {
 	case All:
 		return AllStatus, nil
 	}
-	return DStatus(0), apiutil.ErrInvalidStatus
+	return Status(0), apiutil.ErrInvalidStatus
 }
 
 // Custom Marshaller for Domains status.
-func (s DStatus) MarshalJSON() ([]byte, error) {
+func (s Status) MarshalJSON() ([]byte, error) {
 	return json.Marshal(s.String())
 }
 
 // Custom Unmarshaler for Domains status.
-func (s *DStatus) UnmarshalJSON(data []byte) error {
+func (s *Status) UnmarshalJSON(data []byte) error {
 	str := strings.Trim(string(data), "\"")
-	val, err := ToDStatus(str)
+	val, err := ToStatus(str)
 	*s = val
 	return err
 }
@@ -94,7 +94,7 @@ type DomainReq struct {
 	Metadata *clients.Metadata `json:"metadata,omitempty"`
 	Tags     *[]string         `json:"tags,omitempty"`
 	Alias    *string           `json:"alias,omitempty"`
-	Status   *DStatus          `json:"status,omitempty"`
+	Status   *Status           `json:"status,omitempty"`
 }
 type Domain struct {
 	ID         string           `json:"id"`
@@ -102,7 +102,7 @@ type Domain struct {
 	Metadata   clients.Metadata `json:"metadata,omitempty"`
 	Tags       []string         `json:"tags,omitempty"`
 	Alias      string           `json:"alias,omitempty"`
-	Status     DStatus          `json:"status"`
+	Status     Status           `json:"status"`
 	Permission string           `json:"permission,omitempty"`
 	CreatedBy  string           `json:"created_by,omitempty"`
 	CreatedAt  time.Time        `json:"created_at"`
@@ -120,7 +120,7 @@ type Page struct {
 	Metadata   clients.Metadata `json:"metadata,omitempty"`
 	Tag        string           `json:"tag,omitempty"`
 	Permission string           `json:"permission,omitempty"`
-	Status     DStatus          `json:"status,omitempty"`
+	Status     Status           `json:"status,omitempty"`
 	ID         string           `json:"id,omitempty"`
 	IDs        []string         `json:"-"`
 	Identity   string           `json:"identity,omitempty"`
