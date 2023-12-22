@@ -28,7 +28,7 @@ const (
 
 	// AllStatus is used for querying purposes to list Domains irrespective
 	// of their status - enabled, disabled, freezed, deleting. It is never stored in the
-	// database as the actual domain status and should always be the largest
+	// database as the actual domain status and should always be the larger than freeze status
 	// value in this enumeration.
 	AllStatus
 )
