@@ -1,7 +1,7 @@
 # Copyright (c) Abstract Machines
 # SPDX-License-Identifier: Apache-2.0
 
-name: CI workflow
+name: CI Pipeline
 
 on:
   pull_request:
