@@ -74,7 +74,7 @@ func MakeHandler(svc auth.Service, mux *chi.Mux, logger mglog.Logger) *chi.Mux {
 				decodeFreezeDomainRequest,
 				api.EncodeResponse,
 				opts...,
-			), "disable_domain").ServeHTTP)
+			), "freeze_domain").ServeHTTP)
 
 			r.Route("/users", func(r chi.Router) {
 				r.Post("/assign", otelhttp.NewHandler(kithttp.NewServer(
