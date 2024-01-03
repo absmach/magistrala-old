@@ -735,14 +735,14 @@ func TestRetrieveByIDs(t *testing.T) {
 					Limit:  10,
 				},
 			},
-			ids: []string{items[0].ID, items[1].ID, items[2].ID},
+			ids: getIDs(items[0:3]),
 			response: mggroups.Page{
 				PageMeta: mggroups.PageMeta{
 					Total:  3,
 					Offset: 0,
 					Limit:  10,
 				},
-				Groups: []mggroups.Group{items[0], items[1], items[2]},
+				Groups: items[0:3],
 			},
 			err: nil,
 		},
@@ -792,7 +792,7 @@ func TestRetrieveByIDs(t *testing.T) {
 					Limit:  10,
 				},
 			},
-			ids: []string{items[0].ID, items[1].ID, items[2].ID, items[3].ID, items[4].ID, items[5].ID, items[6].ID, items[7].ID, items[8].ID, items[9].ID, items[10].ID, items[11].ID, items[12].ID, items[13].ID, items[14].ID, items[15].ID, items[16].ID, items[17].ID, items[18].ID, items[19].ID},
+			ids: getIDs(items[0:20]),
 			response: mggroups.Page{
 				PageMeta: mggroups.PageMeta{
 					Total:  20,
@@ -811,7 +811,7 @@ func TestRetrieveByIDs(t *testing.T) {
 					Limit:  50,
 				},
 			},
-			ids: []string{items[0].ID, items[1].ID, items[2].ID, items[3].ID, items[4].ID, items[5].ID, items[6].ID, items[7].ID, items[8].ID, items[9].ID, items[10].ID, items[11].ID, items[12].ID, items[13].ID, items[14].ID, items[15].ID, items[16].ID, items[17].ID, items[18].ID, items[19].ID},
+			ids: getIDs(items[0:20]),
 			response: mggroups.Page{
 				PageMeta: mggroups.PageMeta{
 					Total:  20,
@@ -830,7 +830,7 @@ func TestRetrieveByIDs(t *testing.T) {
 					Limit:  10,
 				},
 			},
-			ids: []string{items[0].ID, items[1].ID, items[2].ID, items[3].ID, items[4].ID, items[5].ID, items[6].ID, items[7].ID, items[8].ID, items[9].ID, items[10].ID, items[11].ID, items[12].ID, items[13].ID, items[14].ID, items[15].ID, items[16].ID, items[17].ID, items[18].ID, items[19].ID},
+			ids: getIDs(items[0:20]),
 			response: mggroups.Page{
 				PageMeta: mggroups.PageMeta{
 					Total:  20,
@@ -849,7 +849,7 @@ func TestRetrieveByIDs(t *testing.T) {
 					Limit:  1000,
 				},
 			},
-			ids: []string{items[0].ID, items[1].ID, items[2].ID, items[3].ID, items[4].ID, items[5].ID, items[6].ID, items[7].ID, items[8].ID, items[9].ID, items[10].ID, items[11].ID, items[12].ID, items[13].ID, items[14].ID, items[15].ID, items[16].ID, items[17].ID, items[18].ID, items[19].ID},
+			ids: getIDs(items[0:20]),
 			response: mggroups.Page{
 				PageMeta: mggroups.PageMeta{
 					Total:  20,
@@ -869,7 +869,7 @@ func TestRetrieveByIDs(t *testing.T) {
 					Name:   items[0].Name,
 				},
 			},
-			ids: []string{items[0].ID, items[1].ID, items[2].ID, items[3].ID, items[4].ID, items[5].ID, items[6].ID, items[7].ID, items[8].ID, items[9].ID, items[10].ID, items[11].ID, items[12].ID, items[13].ID, items[14].ID, items[15].ID, items[16].ID, items[17].ID, items[18].ID, items[19].ID},
+			ids: getIDs(items[0:20]),
 			response: mggroups.Page{
 				PageMeta: mggroups.PageMeta{
 					Total:  1,
@@ -889,7 +889,7 @@ func TestRetrieveByIDs(t *testing.T) {
 					OwnerID: items[0].Owner,
 				},
 			},
-			ids: []string{items[0].ID, items[1].ID, items[2].ID, items[3].ID, items[4].ID, items[5].ID, items[6].ID, items[7].ID, items[8].ID, items[9].ID, items[10].ID, items[11].ID, items[12].ID, items[13].ID, items[14].ID, items[15].ID, items[16].ID, items[17].ID, items[18].ID, items[19].ID},
+			ids: getIDs(items[0:20]),
 			response: mggroups.Page{
 				PageMeta: mggroups.PageMeta{
 					Total:  1,
@@ -909,7 +909,7 @@ func TestRetrieveByIDs(t *testing.T) {
 					Metadata: items[0].Metadata,
 				},
 			},
-			ids: []string{items[0].ID, items[1].ID, items[2].ID, items[3].ID, items[4].ID, items[5].ID, items[6].ID, items[7].ID, items[8].ID, items[9].ID, items[10].ID, items[11].ID, items[12].ID, items[13].ID, items[14].ID, items[15].ID, items[16].ID, items[17].ID, items[18].ID, items[19].ID},
+			ids: getIDs(items[0:20]),
 			response: mggroups.Page{
 				PageMeta: mggroups.PageMeta{
 					Total:  1,
@@ -931,7 +931,7 @@ func TestRetrieveByIDs(t *testing.T) {
 					},
 				},
 			},
-			ids: []string{items[0].ID, items[1].ID, items[2].ID, items[3].ID, items[4].ID, items[5].ID, items[6].ID, items[7].ID, items[8].ID, items[9].ID, items[10].ID, items[11].ID, items[12].ID, items[13].ID, items[14].ID, items[15].ID, items[16].ID, items[17].ID, items[18].ID, items[19].ID},
+			ids: getIDs(items[0:20]),
 			response: mggroups.Page{
 				PageMeta: mggroups.PageMeta{
 					Total:  0,
@@ -952,7 +952,7 @@ func TestRetrieveByIDs(t *testing.T) {
 				ID:        items[5].ID,
 				Direction: 1,
 			},
-			ids: []string{items[0].ID, items[1].ID, items[2].ID, items[3].ID, items[4].ID, items[5].ID, items[6].ID, items[7].ID, items[8].ID, items[9].ID, items[10].ID, items[11].ID, items[12].ID, items[13].ID, items[14].ID, items[15].ID, items[16].ID, items[17].ID, items[18].ID, items[19].ID},
+			ids: getIDs(items[0:20]),
 			response: mggroups.Page{
 				PageMeta: mggroups.PageMeta{
 					Total:  20,
@@ -973,14 +973,14 @@ func TestRetrieveByIDs(t *testing.T) {
 				ID:        items[15].ID,
 				Direction: -1,
 			},
-			ids: []string{items[0].ID, items[1].ID, items[2].ID, items[3].ID, items[4].ID, items[5].ID, items[6].ID, items[7].ID, items[8].ID, items[9].ID, items[10].ID, items[11].ID, items[12].ID, items[13].ID, items[14].ID, items[15].ID, items[16].ID, items[17].ID, items[18].ID, items[19].ID},
+			ids: getIDs(items[0:20]),
 			response: mggroups.Page{
 				PageMeta: mggroups.PageMeta{
 					Total:  20,
 					Offset: 0,
 					Limit:  uint64(num),
 				},
-				Groups: []mggroups.Group{items[15], items[16], items[17], items[18], items[19]},
+				Groups: items[15:20],
 			},
 			err: nil,
 		},
@@ -1201,4 +1201,13 @@ func TestUnassignParentGroup(t *testing.T) {
 			assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		}
 	}
+}
+
+func getIDs(groups []mggroups.Group) []string {
+	var ids []string
+	for _, group := range groups {
+		ids = append(ids, group.ID)
+	}
+
+	return ids
 }
