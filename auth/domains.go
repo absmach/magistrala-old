@@ -141,6 +141,7 @@ type Policy struct {
 	ObjectID        string `json:"object_id,omitempty"`
 }
 
+//go:generate mockery --name Domains --output=./mocks --filename domains_service.go --quiet --note "© 2020 Abstract Machines Works"
 type Domains interface {
 	CreateDomain(ctx context.Context, token string, d Domain) (Domain, error)
 	RetrieveDomain(ctx context.Context, token string, id string) (Domain, error)

@@ -5,6 +5,7 @@ package domains
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/absmach/magistrala/auth"
 	"github.com/absmach/magistrala/pkg/clients"
@@ -127,6 +128,7 @@ func enableDomainEndpoint(svc auth.Service) endpoint.Endpoint {
 			Status: &enable,
 		}
 		if _, err := svc.ChangeDomainStatus(ctx, req.token, req.domainID, d); err != nil {
+			fmt.Println("enableDomainEndpoint err: ", err)
 			return nil, err
 		}
 		return enableDomainRes{}, nil

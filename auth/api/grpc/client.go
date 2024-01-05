@@ -532,7 +532,7 @@ func (client grpcClient) CountObjects(ctx context.Context, in *magistrala.CountO
 	ctx, cancel := context.WithTimeout(ctx, client.timeout)
 	defer cancel()
 
-	res, err := client.countObjects(ctx, listObjectsReq{
+	res, err := client.countObjects(ctx, countObjectsReq{
 		Domain:      in.GetDomain(),
 		SubjectType: in.GetSubjectType(),
 		Subject:     in.GetSubject(),
