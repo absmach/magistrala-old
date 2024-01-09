@@ -50,7 +50,7 @@ func (b broker) Subscribe(subject string) error {
 
 // handleMsg triggered when new message is received on Lora MQTT broker.
 func (b broker) handleMsg(c mqtt.Client, msg mqtt.Message) {
-	ctx:=context.Background()
+	ctx := context.Background()
 	m := lora.Message{}
 	if err := json.Unmarshal(msg.Payload(), &m); err != nil {
 		b.logger.Warn(ctx, fmt.Sprintf("Failed to unmarshal message: %s", err.Error()))

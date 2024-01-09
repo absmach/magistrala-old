@@ -28,7 +28,6 @@ import (
 	grpcserver "github.com/absmach/magistrala/internal/server/grpc"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
-	mflog "github.com/mainflux/mainflux/logger"
 	"github.com/absmach/magistrala/pkg/uuid"
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
 	"github.com/authzed/authzed-go/v1"
@@ -36,6 +35,7 @@ import (
 	"github.com/caarlos0/env/v10"
 	"github.com/jmoiron/sqlx"
 	chclient "github.com/mainflux/callhome/pkg/client"
+	mflog "github.com/mainflux/mainflux/logger"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -86,7 +86,7 @@ func main() {
 	var chClientLogger mflog.Logger
 	chClientLogger, err = mflog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-    	logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
 	}
 
 	var exitCode int

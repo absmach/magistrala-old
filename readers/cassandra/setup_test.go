@@ -4,10 +4,10 @@
 package cassandra_test
 
 import (
+	"context"
 	"fmt"
 	"os"
 	"testing"
-	"context"
 
 	casclient "github.com/absmach/magistrala/internal/clients/cassandra"
 	mglog "github.com/absmach/magistrala/logger"

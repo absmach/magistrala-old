@@ -90,7 +90,7 @@ func newConn() (*amqp.Connection, *amqp.Channel, error) {
 	return conn, ch, nil
 }
 
-func rabbitHandler(ctx context.Context,deliveries <-chan amqp.Delivery, h messaging.MessageHandler) {
+func rabbitHandler(ctx context.Context, deliveries <-chan amqp.Delivery, h messaging.MessageHandler) {
 	for d := range deliveries {
 		var msg messaging.Message
 		if err := proto.Unmarshal(d.Body, &msg); err != nil {

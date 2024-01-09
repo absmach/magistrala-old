@@ -107,7 +107,7 @@ func (s *Server) Start() error {
 		case len(mtlsCA) > 0:
 			s.Logger.Info(s.Ctx, fmt.Sprintf("%s service gRPC server listening at %s with TLS/mTLS cert %s , key %s and %s", s.Name, s.Address, s.Config.CertFile, s.Config.KeyFile, mtlsCA))
 		default:
-			s.Logger.Info(s.Ctx ,fmt.Sprintf("%s service gRPC server listening at %s with TLS cert %s and key %s", s.Name, s.Address, s.Config.CertFile, s.Config.KeyFile))
+			s.Logger.Info(s.Ctx, fmt.Sprintf("%s service gRPC server listening at %s with TLS cert %s and key %s", s.Name, s.Address, s.Config.CertFile, s.Config.KeyFile))
 		}
 	default:
 		s.Logger.Info(s.Ctx, fmt.Sprintf("%s service gRPC server listening at %s without TLS", s.Name, s.Address))

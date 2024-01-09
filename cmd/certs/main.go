@@ -24,13 +24,13 @@ import (
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
-	mflog "github.com/mainflux/mainflux/logger"
 	"github.com/absmach/magistrala/pkg/auth"
 	mgsdk "github.com/absmach/magistrala/pkg/sdk/go"
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/caarlos0/env/v10"
 	"github.com/jmoiron/sqlx"
 	chclient "github.com/mainflux/callhome/pkg/client"
+	mflog "github.com/mainflux/mainflux/logger"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 )
@@ -80,9 +80,8 @@ func main() {
 	var chClientLogger mflog.Logger
 	chClientLogger, err = mflog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-    	logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
 	}
-
 
 	var exitCode int
 	defer mglog.ExitWithError(&exitCode)
@@ -135,7 +134,7 @@ func main() {
 	}
 	defer authHandler.Close()
 
-	logger.Info(ctx, "Successfully connected to auth grpc server " + authHandler.Secure())
+	logger.Info(ctx, "Successfully connected to auth grpc server "+authHandler.Secure())
 
 	tp, err := jaegerclient.NewProvider(ctx, svcName, cfg.JaegerURL, cfg.InstanceID, cfg.TraceRatio)
 	if err != nil {

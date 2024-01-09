@@ -42,7 +42,7 @@ func (lm *loggingMiddleware) RegisterClient(ctx context.Context, token string, c
 			lm.logger.Warn(ctx, fmt.Sprintf("%s with error: %s.", message, fields["error"]))
 			return
 		}
-		lm.logger.Info(ctx,fmt.Sprintf("%s without errors.", message))
+		lm.logger.Info(ctx, fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
 	return lm.svc.RegisterClient(ctx, token, client)
 }

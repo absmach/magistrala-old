@@ -4,6 +4,7 @@
 package ws_test
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -11,7 +12,6 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
-	"context"
 
 	"github.com/absmach/magistrala/ws"
 	"github.com/gorilla/websocket"

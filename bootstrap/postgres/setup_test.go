@@ -22,7 +22,7 @@ var (
 )
 
 func TestMain(m *testing.M) {
-	ctx:= context.Background()
+	ctx := context.Background()
 	pool, err := dockertest.NewPool("")
 	if err != nil {
 		testLog.Error(ctx, fmt.Sprintf("Could not connect to docker: %s", err))

@@ -133,7 +133,7 @@ func (eh *eventHandler) Handle(ctx context.Context, msg *messaging.Message) erro
 		return err
 	}
 
-	if err := eh.handler.Handle(eh.ctx, event); err != nil {
+	if err := eh.handler.Handle(ctx, event); err != nil {
 		eh.logger.Warn(ctx, fmt.Sprintf("failed to handle redis event: %s", err))
 	}
 

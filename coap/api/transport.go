@@ -58,8 +58,8 @@ func MakeHandler(instanceID string) http.Handler {
 }
 
 type ContextResponseWriter struct {
-    mux.ResponseWriter
-    Ctx context.Context
+	mux.ResponseWriter
+	Ctx context.Context
 }
 
 // MakeCoAPHandler creates handler for CoAP messages.
@@ -68,13 +68,13 @@ func MakeCoAPHandler(svc coap.Service, l mglog.Logger) mux.HandlerFunc {
 	service = svc
 
 	return func(w mux.ResponseWriter, m *mux.Message) {
-        ctx := context.Background()
-        crw := &ContextResponseWriter{
-            ResponseWriter: w,
-            Ctx:            ctx,
-        }
-        handler(ctx,crw, m)
-    }
+		ctx := context.Background()
+		crw := &ContextResponseWriter{
+			ResponseWriter: w,
+			Ctx:            ctx,
+		}
+		handler(crw, m)
+	}
 }
 
 func sendResp(ctx context.Context, w mux.ResponseWriter, resp *message.Message) {
@@ -83,7 +83,8 @@ func sendResp(ctx context.Context, w mux.ResponseWriter, resp *message.Message) 
 	}
 }
 
-func handler(ctx context.Context, w mux.ResponseWriter, m *mux.Message) {
+func handler(w mux.ResponseWriter, m *mux.Message) {
+	ctx := context.Background()
 	resp := message.Message{
 		Code:    codes.Content,
 		Token:   m.Token,

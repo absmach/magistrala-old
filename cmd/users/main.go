@@ -28,7 +28,6 @@ import (
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
-	mflog "github.com/mainflux/mainflux/logger"
 	"github.com/absmach/magistrala/pkg/auth"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
@@ -45,6 +44,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
 	chclient "github.com/mainflux/callhome/pkg/client"
+	mflog "github.com/mainflux/mainflux/logger"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 )
@@ -98,7 +98,7 @@ func main() {
 	var chClientLogger mflog.Logger
 	chClientLogger, err = mflog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-    	logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
 	}
 
 	var exitCode int
@@ -163,7 +163,7 @@ func main() {
 		return
 	}
 	defer authHandler.Close()
-	logger.Info(ctx, "Successfully connected to auth grpc server " + authHandler.Secure())
+	logger.Info(ctx, "Successfully connected to auth grpc server "+authHandler.Secure())
 
 	csvc, gsvc, err := newService(ctx, authClient, db, dbConfig, tracer, cfg, ec, logger)
 	if err != nil {

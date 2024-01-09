@@ -19,7 +19,6 @@ import (
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
-	mflog "github.com/mainflux/mainflux/logger"
 	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/absmach/magistrala/pkg/messaging/brokers"
@@ -35,6 +34,7 @@ import (
 	"github.com/caarlos0/env/v10"
 	"github.com/go-redis/redis/v8"
 	chclient "github.com/mainflux/callhome/pkg/client"
+	mflog "github.com/mainflux/mainflux/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
@@ -79,7 +79,7 @@ func main() {
 	var chClientLogger mflog.Logger
 	chClientLogger, err = mflog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-    	logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
 	}
 
 	var exitCode int
@@ -148,7 +148,7 @@ func main() {
 		}
 		defer authHandler.Close()
 		authClient = authServiceClient
-		logger.Info(ctx, "Successfully connected to auth grpc server " + authHandler.Secure())
+		logger.Info(ctx, "Successfully connected to auth grpc server "+authHandler.Secure())
 	}
 
 	pubSub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)

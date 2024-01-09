@@ -11,18 +11,18 @@ import (
 	"time"
 
 	"github.com/absmach/magistrala/bootstrap"
-	slog "github.com/absmach/magistrala/logger"
+	mglog "github.com/absmach/magistrala/logger"
 )
 
 var _ bootstrap.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
-	logger slog.Logger
+	logger mglog.Logger
 	svc    bootstrap.Service
 }
 
 // LoggingMiddleware adds logging facilities to the bootstrap service.
-func LoggingMiddleware(svc bootstrap.Service, logger slog.Logger) bootstrap.Service {
+func LoggingMiddleware(svc bootstrap.Service, logger mglog.Logger) bootstrap.Service {
 	return &loggingMiddleware{logger, svc}
 }
 

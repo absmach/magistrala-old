@@ -16,9 +16,8 @@ import (
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
-	mglog "github.com/absmach/magistrala/logger"
-	mflog "github.com/mainflux/mainflux/logger"
 	mplog "github.com/absmach/magistrala/kitlogger"
+	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/absmach/magistrala/pkg/messaging/brokers"
@@ -31,6 +30,7 @@ import (
 	"github.com/absmach/mproxy/pkg/websockets"
 	"github.com/caarlos0/env/v10"
 	chclient "github.com/mainflux/callhome/pkg/client"
+	mflog "github.com/mainflux/mainflux/logger"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 )
@@ -70,7 +70,7 @@ func main() {
 	var chClientLogger mflog.Logger
 	chClientLogger, err = mflog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-    	logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
 	}
 
 	var exitCode int
@@ -111,7 +111,7 @@ func main() {
 	}
 	defer authHandler.Close()
 
-	logger.Info(ctx, "Successfully connected to things grpc server " + authHandler.Secure())
+	logger.Info(ctx, "Successfully connected to things grpc server "+authHandler.Secure())
 
 	tp, err := jaegerclient.NewProvider(ctx, svcName, cfg.JaegerURL, cfg.InstanceID, cfg.TraceRatio)
 	if err != nil {
@@ -128,7 +128,7 @@ func main() {
 
 	nps, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
 	if err != nil {
-		logger.Error(ctx ,fmt.Sprintf("Failed to connect to message broker: %s", err))
+		logger.Error(ctx, fmt.Sprintf("Failed to connect to message broker: %s", err))
 		exitCode = 1
 		return
 	}
@@ -171,7 +171,6 @@ func newService(tc magistrala.AuthzServiceClient, nps messaging.PubSub, logger m
 }
 
 func proxyWS(ctx context.Context, hostConfig, targetConfig server.Config, logger mglog.Logger, handler session.Handler) error {
-
 	cfg := config{}
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatalf("failed to load %s configuration : %s", svcName, err)

@@ -6,9 +6,9 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"time"
-	"context"
 
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/readers"

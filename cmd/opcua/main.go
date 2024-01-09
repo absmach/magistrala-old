@@ -18,7 +18,6 @@ import (
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
-	mflog "github.com/mainflux/mainflux/logger"
 	"github.com/absmach/magistrala/opcua"
 	"github.com/absmach/magistrala/opcua/api"
 	"github.com/absmach/magistrala/opcua/db"
@@ -31,6 +30,7 @@ import (
 	"github.com/caarlos0/env/v10"
 	"github.com/go-redis/redis/v8"
 	chclient "github.com/mainflux/callhome/pkg/client"
+	mflog "github.com/mainflux/mainflux/logger"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -76,11 +76,11 @@ func main() {
 	if err != nil {
 		log.Fatalf("failed to init logger: %s", err)
 	}
-	
+
 	var chClientLogger mflog.Logger
 	chClientLogger, err = mflog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-    	logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
 	}
 
 	var exitCode int

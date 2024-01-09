@@ -5,8 +5,8 @@
 package main
 
 import (
-	"log"
 	"context"
+	"log"
 
 	bench "github.com/absmach/magistrala/tools/mqtt-bench"
 	"github.com/spf13/cobra"
@@ -16,7 +16,7 @@ import (
 func main() {
 	confFile := ""
 	bconf := bench.Config{}
-	ctx:= context.Background()
+	ctx := context.Background()
 
 	// Command
 	rootCmd := &cobra.Command{

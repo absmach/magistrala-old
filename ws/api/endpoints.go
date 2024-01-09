@@ -20,9 +20,9 @@ var channelPartRegExp = regexp.MustCompile(`^/channels/([\w\-]+)/messages(/[^?]*
 
 func handshake(ctx context.Context, svc ws.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req, err := decodeRequest(r)
+		req, err := decodeRequest(ctx, r)
 		if err != nil {
-			encodeError(w, err)
+			encodeError(ctx, w, err)
 			return
 		}
 		conn, err := upgrader.Upgrade(w, r, nil)
@@ -42,8 +42,7 @@ func handshake(ctx context.Context, svc ws.Service) http.HandlerFunc {
 	}
 }
 
-func decodeRequest(r *http.Request) (connReq, error) {
-	ctx := context.Background()
+func decodeRequest(ctx context.Context, r *http.Request) (connReq, error) {
 	authKey := r.Header.Get("Authorization")
 	if authKey == "" {
 		authKeys := r.URL.Query()["authorization"]
@@ -108,9 +107,8 @@ func parseSubTopic(subtopic string) (string, error) {
 	return subtopic, nil
 }
 
-func encodeError(w http.ResponseWriter, err error) {
+func encodeError(ctx context.Context, w http.ResponseWriter, err error) {
 	var statusCode int
-	ctx := context.Background()
 
 	switch err {
 	case ws.ErrEmptyID, ws.ErrEmptyTopic:

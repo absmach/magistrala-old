@@ -19,9 +19,8 @@ import (
 	"github.com/absmach/magistrala"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	"github.com/absmach/magistrala/internal/server"
-	mglog "github.com/absmach/magistrala/logger"
-	mflog "github.com/mainflux/mainflux/logger"
 	mplog "github.com/absmach/magistrala/kitlogger"
+	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/mqtt"
 	"github.com/absmach/magistrala/mqtt/events"
 	mqtttracing "github.com/absmach/magistrala/mqtt/tracing"
@@ -38,6 +37,7 @@ import (
 	"github.com/caarlos0/env/v10"
 	"github.com/cenkalti/backoff/v4"
 	chclient "github.com/mainflux/callhome/pkg/client"
+	mflog "github.com/mainflux/mainflux/logger"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -84,7 +84,7 @@ func main() {
 	var chClientLogger mflog.Logger
 	chClientLogger, err = mflog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-    	logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
 	}
 
 	var exitCode int
@@ -185,7 +185,7 @@ func main() {
 	}
 	defer authHandler.Close()
 
-	logger.Info(ctx, "Successfully connected to things grpc server " + authHandler.Secure())
+	logger.Info(ctx, "Successfully connected to things grpc server "+authHandler.Secure())
 
 	h := mqtt.NewHandler(np, es, logger, authClient)
 	h = handler.NewTracing(tracer, h)
@@ -289,7 +289,7 @@ func stopSignalHandler(ctx context.Context, cancel context.CancelFunc, logger mg
 	select {
 	case sig := <-c:
 		defer cancel()
-		logger.Info(fmt.Sprintf("%s service shutdown by signal: %s", svcName, sig))
+		logger.Info(ctx, fmt.Sprintf("%s service shutdown by signal: %s", svcName, sig))
 		return nil
 	case <-ctx.Done():
 		return nil

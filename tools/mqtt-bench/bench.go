@@ -4,6 +4,7 @@
 package bench
 
 import (
+	"context"
 	"crypto/rand"
 	"crypto/tls"
 	"encoding/json"
@@ -12,7 +13,6 @@ import (
 	"os"
 	"strconv"
 	"time"
-	"context"
 
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/pelletier/go-toml"

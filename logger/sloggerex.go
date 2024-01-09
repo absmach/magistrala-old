@@ -1,12 +1,14 @@
+// Copyright (c) Abstract Machines
+// SPDX-License-Identifier: Apache-2.0
+
 package logger
 
 import (
+	"context"
 	"fmt"
 	"io"
-	"time"
-	"context"
-
 	"log/slog"
+	"time"
 )
 
 // Logger specifies logging API.
@@ -24,42 +26,42 @@ type logger struct {
 
 // New returns a new slog logger.
 func New(w io.Writer, levelText string) (Logger, error) {
-    var level Level
-err := level.UnmarshalText(levelText)
-if err != nil {
-	return nil, fmt.Errorf(`{"level":"error","message":"%s: %s","ts":"%s"}`, err, levelText, time.RFC3339Nano)
-}
+	var level Level
+	err := level.UnmarshalText(levelText)
+	if err != nil {
+		return nil, fmt.Errorf(`{"level":"error","message":"%s: %s","ts":"%s"}`, err, levelText, time.RFC3339Nano)
+	}
 
-logHandler := slog.NewJSONHandler(w, &slog.HandlerOptions{
-	Level:     slog.Level(level),
-	AddSource: true,
-})
+	logHandler := slog.NewJSONHandler(w, &slog.HandlerOptions{
+		Level:     slog.Level(level),
+		AddSource: true,
+	})
 
-slogLogger := slog.New(logHandler)
+	slogLogger := slog.New(logHandler)
 
-return &logger{*slogLogger, level}, nil
+	return &logger{*slogLogger, level}, nil
 }
 
 func (l *logger) Debug(ctx context.Context, msg string) {
-    if  Debug.isAllowed(l.level){
-        l.slogLogger.Log(ctx, slog.LevelDebug, msg)
-    }
+	if Debug.isAllowed(l.level) {
+		l.slogLogger.Log(ctx, slog.LevelDebug, msg)
+	}
 }
 
 func (l *logger) Info(ctx context.Context, msg string) {
-    if Info.isAllowed(l.level) {
-        l.slogLogger.Log(ctx, slog.LevelInfo, msg)
-    }
+	if Info.isAllowed(l.level) {
+		l.slogLogger.Log(ctx, slog.LevelInfo, msg)
+	}
 }
 
 func (l *logger) Warn(ctx context.Context, msg string) {
-    if Warn.isAllowed(l.level) {
-        l.slogLogger.Log(ctx, slog.LevelWarn, msg)
-    }
+	if Warn.isAllowed(l.level) {
+		l.slogLogger.Log(ctx, slog.LevelWarn, msg)
+	}
 }
 
 func (l *logger) Error(ctx context.Context, msg string) {
-    if Warn.isAllowed(l.level) {
-        l.slogLogger.Log(ctx, slog.LevelError, msg)
-    }
+	if Warn.isAllowed(l.level) {
+		l.slogLogger.Log(ctx, slog.LevelError, msg)
+	}
 }

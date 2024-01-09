@@ -16,7 +16,6 @@ import (
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
-	mflog "github.com/mainflux/mainflux/logger"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
 	mggroups "github.com/absmach/magistrala/pkg/groups"
@@ -26,6 +25,7 @@ import (
 	"github.com/absmach/magistrala/provision/api"
 	"github.com/caarlos0/env/v10"
 	chclient "github.com/mainflux/callhome/pkg/client"
+	mflog "github.com/mainflux/mainflux/logger"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -57,7 +57,7 @@ func main() {
 	var chClientLogger mflog.Logger
 	chClientLogger, err = mflog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-    	logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
 	}
 
 	var exitCode int
@@ -77,7 +77,7 @@ func main() {
 		// Merge environment variables and file settings.
 		mergeConfigs(&cfgFromFile, &cfg)
 		cfg = cfgFromFile
-		logger.Info(ctx, "Continue with settings from file: " + cfg.File)
+		logger.Info(ctx, "Continue with settings from file: "+cfg.File)
 	}
 
 	SDKCfg := mgsdk.Config{

@@ -16,7 +16,6 @@ import (
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
 	mglog "github.com/absmach/magistrala/logger"
-	mflog "github.com/mainflux/mainflux/logger"
 	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/absmach/magistrala/readers"
@@ -24,6 +23,7 @@ import (
 	"github.com/absmach/magistrala/readers/mongodb"
 	"github.com/caarlos0/env/v10"
 	chclient "github.com/mainflux/callhome/pkg/client"
+	mflog "github.com/mainflux/mainflux/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"golang.org/x/sync/errgroup"
 )
@@ -60,7 +60,7 @@ func main() {
 	var chClientLogger mflog.Logger
 	chClientLogger, err = mflog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-    	logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
 	}
 
 	var exitCode int
@@ -98,7 +98,7 @@ func main() {
 	}
 	defer acHandler.Close()
 
-	logger.Info(ctx, "Successfully connected to auth grpc server " + acHandler.Secure())
+	logger.Info(ctx, "Successfully connected to auth grpc server "+acHandler.Secure())
 
 	authConfig = auth.Config{}
 	if err := env.ParseWithOptions(&authConfig, env.Options{Prefix: envPrefixAuthz}); err != nil {
@@ -115,7 +115,7 @@ func main() {
 	}
 	defer tcHandler.Close()
 
-	logger.Info(ctx, "Successfully connected to things grpc server " + tcHandler.Secure())
+	logger.Info(ctx, "Successfully connected to things grpc server "+tcHandler.Secure())
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
 	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {

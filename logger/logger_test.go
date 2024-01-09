@@ -41,9 +41,9 @@ type mockWriter struct {
 
 func (writer *mockWriter) Write(p []byte) (n int, err error) {
 	fmt.Printf("Log received: %s\n", string(p))
-    writer.value = append(writer.value, p...)
-    err = json.Unmarshal(p, &writer.lastEntry)
-    return len(p), err
+	writer.value = append(writer.value, p...)
+	err = json.Unmarshal(p, &writer.lastEntry)
+	return len(p), err
 }
 
 func (w *mockWriter) Read() (logMsg, error) {
