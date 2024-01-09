@@ -87,7 +87,7 @@ func (h *handler) AuthConnect(ctx context.Context) error {
 	pwd := string(s.Password)
 
 	if err := h.es.Connect(ctx, pwd); err != nil {
-		h.logger.Error(errors.Wrap(ErrFailedPublishConnectEvent, err).Error())
+		h.logger.Error(ctx, errors.Wrap(ErrFailedPublishConnectEvent, err).Error())
 	}
 
 	return nil
@@ -133,7 +133,7 @@ func (h *handler) Connect(ctx context.Context) error {
 	if !ok {
 		return errors.Wrap(ErrFailedConnect, ErrClientNotInitialized)
 	}
-	h.logger.Info(fmt.Sprintf(LogInfoConnected, s.ID))
+	h.logger.Info(ctx, fmt.Sprintf(LogInfoConnected, s.ID))
 	return nil
 }
 
@@ -143,7 +143,7 @@ func (h *handler) Publish(ctx context.Context, topic *string, payload *[]byte) e
 	if !ok {
 		return errors.Wrap(ErrFailedPublish, ErrClientNotInitialized)
 	}
-	h.logger.Info(fmt.Sprintf(LogInfoPublished, s.ID, *topic))
+	h.logger.Info(ctx, fmt.Sprintf(LogInfoPublished, s.ID, *topic))
 	// Topics are in the format:
 	// channels/<channel_id>/messages/<subtopic>/.../ct/<content_type>
 
@@ -182,7 +182,7 @@ func (h *handler) Subscribe(ctx context.Context, topics *[]string) error {
 	if !ok {
 		return errors.Wrap(ErrFailedSubscribe, ErrClientNotInitialized)
 	}
-	h.logger.Info(fmt.Sprintf(LogInfoSubscribed, s.ID, strings.Join(*topics, ",")))
+	h.logger.Info(ctx, fmt.Sprintf(LogInfoSubscribed, s.ID, strings.Join(*topics, ",")))
 	return nil
 }
 
@@ -192,7 +192,7 @@ func (h *handler) Unsubscribe(ctx context.Context, topics *[]string) error {
 	if !ok {
 		return errors.Wrap(ErrFailedUnsubscribe, ErrClientNotInitialized)
 	}
-	h.logger.Info(fmt.Sprintf(LogInfoUnsubscribed, s.ID, strings.Join(*topics, ",")))
+	h.logger.Info(ctx, fmt.Sprintf(LogInfoUnsubscribed, s.ID, strings.Join(*topics, ",")))
 	return nil
 }
 
@@ -202,7 +202,7 @@ func (h *handler) Disconnect(ctx context.Context) error {
 	if !ok {
 		return errors.Wrap(ErrFailedDisconnect, ErrClientNotInitialized)
 	}
-	h.logger.Error(fmt.Sprintf(LogInfoDisconnected, s.ID, s.Password))
+	h.logger.Error(ctx, fmt.Sprintf(LogInfoDisconnected, s.ID, s.Password))
 	if err := h.es.Disconnect(ctx, string(s.Password)); err != nil {
 		return errors.Wrap(ErrFailedPublishDisconnectEvent, err)
 	}

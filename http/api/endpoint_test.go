@@ -18,6 +18,7 @@ import (
 	"github.com/absmach/magistrala/http/mocks"
 	"github.com/absmach/magistrala/internal/apiutil"
 	mglog "github.com/absmach/magistrala/logger"
+	mplog "github.com/absmach/magistrala/kitlogger"
 	mproxy "github.com/absmach/mproxy/pkg/http"
 	"github.com/absmach/mproxy/pkg/session"
 	"github.com/stretchr/testify/assert"
@@ -37,7 +38,7 @@ func newTargetHTTPServer() *httptest.Server {
 }
 
 func newProxyHTPPServer(svc session.Handler, targetServer *httptest.Server) (*httptest.Server, error) {
-	mp, err := mproxy.NewProxy("", targetServer.URL, svc, mglog.NewMock())
+	mp, err := mproxy.NewProxy("", targetServer.URL, svc, mplog.NewMock())
 	if err != nil {
 		return nil, err
 	}

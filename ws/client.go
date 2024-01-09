@@ -4,6 +4,8 @@
 package ws
 
 import (
+	"context"
+	
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/gorilla/websocket"
 )
@@ -31,7 +33,7 @@ func (c *Client) Cancel() error {
 }
 
 // Handle handles the sending and receiving of messages via the broker.
-func (c *Client) Handle(msg *messaging.Message) error {
+func (c *Client) Handle(ctx context.Context, msg *messaging.Message) error {
 	// To prevent publisher from receiving its own published message
 	if msg.GetPublisher() == c.id {
 		return nil

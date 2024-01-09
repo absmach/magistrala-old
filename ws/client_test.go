@@ -11,6 +11,7 @@ import (
 	"sync/atomic"
 	"testing"
 	"time"
+	"context"
 
 	"github.com/absmach/magistrala/ws"
 	"github.com/gorilla/websocket"
@@ -48,6 +49,7 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHandle(t *testing.T) {
+	ctx := context.Background()
 	s := httptest.NewServer(http.HandlerFunc(handler))
 	defer s.Close()
 
@@ -85,7 +87,7 @@ func TestHandle(t *testing.T) {
 
 	for _, tc := range cases {
 		msg.Publisher = tc.publisher
-		err = c.Handle(&msg)
+		err = c.Handle(ctx, &msg)
 		assert.Nil(t, err, fmt.Sprintf("expected nil error from handle, got: %s", err))
 		receivedMsg := []byte{}
 		switch tc.expectMsg {

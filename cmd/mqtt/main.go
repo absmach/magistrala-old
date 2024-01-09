@@ -20,6 +20,8 @@ import (
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	"github.com/absmach/magistrala/internal/server"
 	mglog "github.com/absmach/magistrala/logger"
+	mflog "github.com/mainflux/mainflux/logger"
+	mplog "github.com/absmach/magistrala/kitlogger"
 	"github.com/absmach/magistrala/mqtt"
 	"github.com/absmach/magistrala/mqtt/events"
 	mqtttracing "github.com/absmach/magistrala/mqtt/tracing"
@@ -79,12 +81,18 @@ func main() {
 		log.Fatalf("failed to init logger: %s", err)
 	}
 
+	var chClientLogger mflog.Logger
+	chClientLogger, err = mflog.New(os.Stdout, cfg.LogLevel)
+	if err != nil {
+    	logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+	}
+
 	var exitCode int
 	defer mglog.ExitWithError(&exitCode)
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
-			logger.Error(fmt.Sprintf("failed to generate instanceID: %s", err))
+			logger.Error(ctx, fmt.Sprintf("failed to generate instanceID: %s", err))
 			exitCode = 1
 			return
 		}
@@ -92,12 +100,12 @@ func main() {
 
 	if cfg.MQTTTargetHealthCheck != "" {
 		notify := func(e error, next time.Duration) {
-			logger.Info(fmt.Sprintf("Broker not ready: %s, next try in %s", e.Error(), next))
+			logger.Info(ctx, fmt.Sprintf("Broker not ready: %s, next try in %s", e.Error(), next))
 		}
 
 		err := backoff.RetryNotify(healthcheck(cfg), backoff.NewExponentialBackOff(), notify)
 		if err != nil {
-			logger.Error(fmt.Sprintf("MQTT healthcheck limit exceeded, exiting. %s ", err))
+			logger.Error(ctx, fmt.Sprintf("MQTT healthcheck limit exceeded, exiting. %s ", err))
 			exitCode = 1
 			return
 		}
@@ -110,20 +118,20 @@ func main() {
 
 	tp, err := jaegerclient.NewProvider(ctx, svcName, cfg.JaegerURL, cfg.InstanceID, cfg.TraceRatio)
 	if err != nil {
-		logger.Error(fmt.Sprintf("Failed to init Jaeger: %s", err))
+		logger.Error(ctx, fmt.Sprintf("Failed to init Jaeger: %s", err))
 		exitCode = 1
 		return
 	}
 	defer func() {
 		if err := tp.Shutdown(ctx); err != nil {
-			logger.Error(fmt.Sprintf("Error shutting down tracer provider: %v", err))
+			logger.Error(ctx, fmt.Sprintf("Error shutting down tracer provider: %v", err))
 		}
 	}()
 	tracer := tp.Tracer(svcName)
 
 	bsub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
 	if err != nil {
-		logger.Error(fmt.Sprintf("failed to connect to message broker: %s", err))
+		logger.Error(ctx, fmt.Sprintf("failed to connect to message broker: %s", err))
 		exitCode = 1
 		return
 	}
@@ -132,7 +140,7 @@ func main() {
 
 	mpub, err := mqttpub.NewPublisher(fmt.Sprintf("mqtt://%s:%s", cfg.MQTTTargetHost, cfg.MQTTTargetPort), cfg.MQTTQoS, cfg.MQTTForwarderTimeout)
 	if err != nil {
-		logger.Error(fmt.Sprintf("failed to create MQTT publisher: %s", err))
+		logger.Error(ctx, fmt.Sprintf("failed to create MQTT publisher: %s", err))
 		exitCode = 1
 		return
 	}
@@ -141,14 +149,14 @@ func main() {
 	fwd := mqtt.NewForwarder(brokers.SubjectAllChannels, logger)
 	fwd = mqtttracing.New(serverConfig, tracer, fwd, brokers.SubjectAllChannels)
 	if err := fwd.Forward(ctx, svcName, bsub, mpub); err != nil {
-		logger.Error(fmt.Sprintf("failed to forward message broker messages: %s", err))
+		logger.Error(ctx, fmt.Sprintf("failed to forward message broker messages: %s", err))
 		exitCode = 1
 		return
 	}
 
 	np, err := brokers.NewPublisher(ctx, cfg.BrokerURL)
 	if err != nil {
-		logger.Error(fmt.Sprintf("failed to connect to message broker: %s", err))
+		logger.Error(ctx, fmt.Sprintf("failed to connect to message broker: %s", err))
 		exitCode = 1
 		return
 	}
@@ -157,42 +165,42 @@ func main() {
 
 	es, err := events.NewEventStore(ctx, cfg.ESURL, cfg.Instance)
 	if err != nil {
-		logger.Error(fmt.Sprintf("failed to create %s event store : %s", svcName, err))
+		logger.Error(ctx, fmt.Sprintf("failed to create %s event store : %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
 	authConfig := auth.Config{}
 	if err := env.ParseWithOptions(&authConfig, env.Options{Prefix: envPrefixAuthz}); err != nil {
-		logger.Error(fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
+		logger.Error(ctx, fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
 	authClient, authHandler, err := auth.SetupAuthz(authConfig)
 	if err != nil {
-		logger.Error(err.Error())
+		logger.Error(ctx, err.Error())
 		exitCode = 1
 		return
 	}
 	defer authHandler.Close()
 
-	logger.Info("Successfully connected to things grpc server " + authHandler.Secure())
+	logger.Info(ctx, "Successfully connected to things grpc server " + authHandler.Secure())
 
 	h := mqtt.NewHandler(np, es, logger, authClient)
 	h = handler.NewTracing(tracer, h)
 
 	if cfg.SendTelemetry {
-		chc := chclient.New(svcName, magistrala.Version, logger, cancel)
+		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
 		go chc.CallHome(ctx)
 	}
 
-	logger.Info(fmt.Sprintf("Starting MQTT proxy on port %s", cfg.MQTTPort))
+	logger.Info(ctx, fmt.Sprintf("Starting MQTT proxy on port %s", cfg.MQTTPort))
 	g.Go(func() error {
 		return proxyMQTT(ctx, cfg, logger, h)
 	})
 
-	logger.Info(fmt.Sprintf("Starting MQTT over WS  proxy on port %s", cfg.HTTPPort))
+	logger.Info(ctx, fmt.Sprintf("Starting MQTT over WS  proxy on port %s", cfg.HTTPPort))
 	g.Go(func() error {
 		return proxyWS(ctx, cfg, logger, h)
 	})
@@ -202,14 +210,20 @@ func main() {
 	})
 
 	if err := g.Wait(); err != nil {
-		logger.Error(fmt.Sprintf("mProxy terminated: %s", err))
+		logger.Error(ctx, fmt.Sprintf("mProxy terminated: %s", err))
 	}
 }
 
 func proxyMQTT(ctx context.Context, cfg config, logger mglog.Logger, sessionHandler session.Handler) error {
+	var mpLogger mplog.Logger
+	mpLogger, err := mplog.New(os.Stdout, cfg.LogLevel)
+	if err != nil {
+		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+	}
+
 	address := fmt.Sprintf(":%s", cfg.MQTTPort)
 	target := fmt.Sprintf("%s:%s", cfg.MQTTTargetHost, cfg.MQTTTargetPort)
-	mproxy := mp.New(address, target, sessionHandler, logger)
+	mproxy := mp.New(address, target, sessionHandler, mpLogger)
 
 	errCh := make(chan error)
 	go func() {
@@ -218,7 +232,7 @@ func proxyMQTT(ctx context.Context, cfg config, logger mglog.Logger, sessionHand
 
 	select {
 	case <-ctx.Done():
-		logger.Info(fmt.Sprintf("proxy MQTT shutdown at %s", target))
+		logger.Info(ctx, fmt.Sprintf("proxy MQTT shutdown at %s", target))
 		return nil
 	case err := <-errCh:
 		return err
@@ -226,8 +240,14 @@ func proxyMQTT(ctx context.Context, cfg config, logger mglog.Logger, sessionHand
 }
 
 func proxyWS(ctx context.Context, cfg config, logger mglog.Logger, sessionHandler session.Handler) error {
+	var mpLogger mplog.Logger
+	mpLogger, err := mplog.New(os.Stdout, cfg.LogLevel)
+	if err != nil {
+		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+	}
+
 	target := fmt.Sprintf("%s:%s", cfg.HTTPTargetHost, cfg.HTTPTargetPort)
-	wp := websocket.New(target, cfg.HTTPTargetPath, "ws", sessionHandler, logger)
+	wp := websocket.New(target, cfg.HTTPTargetPath, "ws", sessionHandler, mpLogger)
 	http.Handle("/mqtt", wp.Handler())
 
 	errCh := make(chan error)
@@ -238,7 +258,7 @@ func proxyWS(ctx context.Context, cfg config, logger mglog.Logger, sessionHandle
 
 	select {
 	case <-ctx.Done():
-		logger.Info(fmt.Sprintf("proxy MQTT WS shutdown at %s", target))
+		logger.Info(ctx, fmt.Sprintf("proxy MQTT WS shutdown at %s", target))
 		return nil
 	case err := <-errCh:
 		return err

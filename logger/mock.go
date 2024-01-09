@@ -25,6 +25,3 @@ func (l loggerMock) Warn(ctx context.Context, msg string) {
 
 func (l loggerMock) Error(ctx context.Context, msg string) {
 }
-
-func (l loggerMock) Fatal(ctx context.Context, msg string) {
-}

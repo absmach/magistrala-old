@@ -27,7 +27,7 @@ func handshake(ctx context.Context, svc ws.Service) http.HandlerFunc {
 		}
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			logger.Warn(fmt.Sprintf("Failed to upgrade connection to websocket: %s", err.Error()))
+			logger.Warn(ctx, fmt.Sprintf("Failed to upgrade connection to websocket: %s", err.Error()))
 			return
 		}
 		req.conn = conn
@@ -38,16 +38,17 @@ func handshake(ctx context.Context, svc ws.Service) http.HandlerFunc {
 			return
 		}
 
-		logger.Debug(fmt.Sprintf("Successfully upgraded communication to WS on channel %s", req.chanID))
+		logger.Debug(ctx, fmt.Sprintf("Successfully upgraded communication to WS on channel %s", req.chanID))
 	}
 }
 
 func decodeRequest(r *http.Request) (connReq, error) {
+	ctx := context.Background()
 	authKey := r.Header.Get("Authorization")
 	if authKey == "" {
 		authKeys := r.URL.Query()["authorization"]
 		if len(authKeys) == 0 {
-			logger.Debug("Missing authorization key.")
+			logger.Debug(ctx, "Missing authorization key.")
 			return connReq{}, errUnauthorizedAccess
 		}
 		authKey = authKeys[0]
@@ -62,7 +63,7 @@ func decodeRequest(r *http.Request) (connReq, error) {
 
 	channelParts := channelPartRegExp.FindStringSubmatch(r.RequestURI)
 	if len(channelParts) < 2 {
-		logger.Warn("Empty channel id or malformed url")
+		logger.Warn(ctx, "Empty channel id or malformed url")
 		return connReq{}, errors.ErrMalformedEntity
 	}
 
@@ -109,6 +110,7 @@ func parseSubTopic(subtopic string) (string, error) {
 
 func encodeError(w http.ResponseWriter, err error) {
 	var statusCode int
+	ctx := context.Background()
 
 	switch err {
 	case ws.ErrEmptyID, ws.ErrEmptyTopic:
@@ -120,6 +122,6 @@ func encodeError(w http.ResponseWriter, err error) {
 	default:
 		statusCode = http.StatusNotFound
 	}
-	logger.Warn(fmt.Sprintf("Failed to authorize: %s", err.Error()))
+	logger.Warn(ctx, fmt.Sprintf("Failed to authorize: %s", err.Error()))
 	w.WriteHeader(statusCode)
 }
