@@ -7,8 +7,9 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"log/slog"
 	"time"
+
+	"golang.org/x/exp/slog"
 )
 
 // Logger specifies logging API.
