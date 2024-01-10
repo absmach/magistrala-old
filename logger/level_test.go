@@ -82,7 +82,8 @@ func TestUnmarshalText(t *testing.T) {
 
 	for _, tc := range cases {
 		var logLevel Level
-		err := logLevel.UnmarshalText(tc.input)
+		inputBytes := []byte(tc.input) // Convert string to []byte
+		err := logLevel.UnmarshalText(inputBytes)
 		assert.Equal(t, tc.output, logLevel, fmt.Sprintf("%s: expected %s got %d", tc.desc, tc.output, logLevel))
 		assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected %s got %d", tc.desc, tc.err, err))
 	}

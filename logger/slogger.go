@@ -7,9 +7,8 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"time"
-
-	"golang.org/x/exp/slog"
 )
 
 // Logger specifies logging API.
@@ -27,8 +26,8 @@ type logger struct {
 
 // New returns a new slog logger.
 func New(w io.Writer, levelText string) (Logger, error) {
-	var level Level
-	err := level.UnmarshalText(levelText)
+	level := new(Level)
+	err := level.UnmarshalText([]byte(levelText))
 	if err != nil {
 		return nil, fmt.Errorf(`{"level":"error","message":"%s: %s","ts":"%s"}`, err, levelText, time.RFC3339Nano)
 	}
@@ -39,12 +38,12 @@ func New(w io.Writer, levelText string) (Logger, error) {
 
 	sLogger := slog.New(logHandler)
 
-	return &logger{sLogger, level}, nil
+	return &logger{sLogger, *level}, nil
 }
 
 func (l *logger) Debug(ctx context.Context, msg string) {
 	if Debug.isAllowed(l.level) {
-		l.sLogger.Log(ctx, slog.LevelDebug, "msg", msg)
+		l.sLogger.Log(ctx, slog.LevelDebug, msg)
 	}
 }
 
