@@ -77,11 +77,6 @@ func encodeAuthorizeRequest(_ context.Context, grpcReq interface{}) (interface{}
 func decodeError(err error) error {
 	if st, ok := status.FromError(err); ok {
 		switch st.Code() {
-		case codes.OK:
-			if msg := st.Message(); msg != "" {
-				return errors.Wrap(errors.ErrUnidentified, errors.New(msg))
-			}
-			return nil
 		case codes.Unauthenticated:
 			return errors.Wrap(errors.ErrAuthentication, errors.New(st.Message()))
 		case codes.PermissionDenied:
@@ -94,6 +89,11 @@ func decodeError(err error) error {
 			return errors.Wrap(errors.ErrNotFound, errors.New(st.Message()))
 		case codes.AlreadyExists:
 			return errors.Wrap(errors.ErrConflict, errors.New(st.Message()))
+		case codes.OK:
+			if msg := st.Message(); msg != "" {
+				return errors.Wrap(errors.ErrUnidentified, errors.New(msg))
+			}
+			return nil
 		default:
 			return errors.Wrap(fmt.Errorf("unexpected gRPC status: %s (status code:%v)", st.Code().String(), st.Code()), errors.New(st.Message()))
 		}
