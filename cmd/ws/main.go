@@ -16,7 +16,6 @@ import (
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
-	mplog "github.com/absmach/magistrala/kitlogger"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/messaging"
@@ -67,8 +66,7 @@ func main() {
 		log.Fatalf("failed to init logger: %s", err)
 	}
 
-	var chClientLogger mflog.Logger
-	chClientLogger, err = mflog.New(os.Stdout, cfg.LogLevel)
+	chClientLogger, err := mflog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
 	}
@@ -149,7 +147,7 @@ func main() {
 			return hs.Start()
 		})
 		handler := ws.NewHandler(nps, logger, authClient)
-		return proxyWS(ctx, httpServerConfig, targetServerConfig, logger, handler)
+		return proxyWS(ctx, httpServerConfig, targetServerConfig, chClientLogger, handler)
 	})
 
 	g.Go(func() error {
@@ -170,21 +168,14 @@ func newService(tc magistrala.AuthzServiceClient, nps messaging.PubSub, logger m
 	return svc
 }
 
-func proxyWS(ctx context.Context, hostConfig, targetConfig server.Config, logger mglog.Logger, handler session.Handler) error {
+func proxyWS(ctx context.Context, hostConfig, targetConfig server.Config, logger mflog.Logger, handler session.Handler) error {
 	cfg := config{}
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatalf("failed to load %s configuration : %s", svcName, err)
 	}
-
-	var mpLogger mplog.Logger
-	mpLogger, err := mplog.New(os.Stdout, cfg.LogLevel)
-	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
-	}
-
 	target := fmt.Sprintf("ws://%s:%s", targetConfig.Host, targetConfig.Port)
 	address := fmt.Sprintf("%s:%s", hostConfig.Host, hostConfig.Port)
-	wp, err := websockets.NewProxy(address, target, mpLogger, handler)
+	wp, err := websockets.NewProxy(address, target, logger, handler)
 	if err != nil {
 		return err
 	}
@@ -193,17 +184,17 @@ func proxyWS(ctx context.Context, hostConfig, targetConfig server.Config, logger
 
 	go func() {
 		if hostConfig.CertFile != "" && hostConfig.KeyFile != "" {
-			logger.Info(ctx, fmt.Sprintf("ws-adapter service http server listening at %s:%s with TLS", hostConfig.Host, hostConfig.Port))
+			logger.Info(fmt.Sprintf("ws-adapter service http server listening at %s:%s with TLS", hostConfig.Host, hostConfig.Port))
 			errCh <- wp.ListenTLS(hostConfig.CertFile, hostConfig.KeyFile)
 		} else {
-			logger.Info(ctx, fmt.Sprintf("ws-adapter service http server listening at %s:%s without TLS", hostConfig.Host, hostConfig.Port))
+			logger.Info(fmt.Sprintf("ws-adapter service http server listening at %s:%s without TLS", hostConfig.Host, hostConfig.Port))
 			errCh <- wp.Listen()
 		}
 	}()
 
 	select {
 	case <-ctx.Done():
-		logger.Info(ctx, fmt.Sprintf("proxy MQTT WS shutdown at %s", target))
+		logger.Info(fmt.Sprintf("proxy MQTT WS shutdown at %s", target))
 		return nil
 	case err := <-errCh:
 		return err

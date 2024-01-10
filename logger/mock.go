@@ -9,7 +9,7 @@ var _ Logger = (*loggerMock)(nil)
 
 type loggerMock struct{}
 
-// NewMock returns wrapped go kit logger mock.
+// NewMock returns wrapped logger mock.
 func NewMock() Logger {
 	return &loggerMock{}
 }

@@ -37,12 +37,12 @@ func (lvl Level) String() string {
 }
 
 func (lvl Level) isAllowed(logLevel Level) bool {
-	return lvl <= logLevel
+	return logLevel >= lvl
 }
 
 // UnmarshalText returns log Level for the given string representation.
 func (lvl *Level) UnmarshalText(text string) error {
-	switch strings.ToLower(text) {
+	switch strings.ToLower(string(text)) {
 	case "debug":
 		*lvl = Debug
 	case "info":

@@ -19,7 +19,6 @@ import (
 	"github.com/absmach/magistrala"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	"github.com/absmach/magistrala/internal/server"
-	mplog "github.com/absmach/magistrala/kitlogger"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/mqtt"
 	"github.com/absmach/magistrala/mqtt/events"
@@ -81,8 +80,7 @@ func main() {
 		log.Fatalf("failed to init logger: %s", err)
 	}
 
-	var chClientLogger mflog.Logger
-	chClientLogger, err = mflog.New(os.Stdout, cfg.LogLevel)
+	chClientLogger, err := mflog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
 	}
@@ -197,12 +195,12 @@ func main() {
 
 	logger.Info(ctx, fmt.Sprintf("Starting MQTT proxy on port %s", cfg.MQTTPort))
 	g.Go(func() error {
-		return proxyMQTT(ctx, cfg, logger, h)
+		return proxyMQTT(ctx, cfg, chClientLogger, h)
 	})
 
 	logger.Info(ctx, fmt.Sprintf("Starting MQTT over WS  proxy on port %s", cfg.HTTPPort))
 	g.Go(func() error {
-		return proxyWS(ctx, cfg, logger, h)
+		return proxyWS(ctx, cfg, chClientLogger, h)
 	})
 
 	g.Go(func() error {
@@ -214,16 +212,10 @@ func main() {
 	}
 }
 
-func proxyMQTT(ctx context.Context, cfg config, logger mglog.Logger, sessionHandler session.Handler) error {
-	var mpLogger mplog.Logger
-	mpLogger, err := mplog.New(os.Stdout, cfg.LogLevel)
-	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
-	}
-
+func proxyMQTT(ctx context.Context, cfg config, logger mflog.Logger, sessionHandler session.Handler) error {
 	address := fmt.Sprintf(":%s", cfg.MQTTPort)
 	target := fmt.Sprintf("%s:%s", cfg.MQTTTargetHost, cfg.MQTTTargetPort)
-	mproxy := mp.New(address, target, sessionHandler, mpLogger)
+	mproxy := mp.New(address, target, sessionHandler, logger)
 
 	errCh := make(chan error)
 	go func() {
@@ -232,22 +224,16 @@ func proxyMQTT(ctx context.Context, cfg config, logger mglog.Logger, sessionHand
 
 	select {
 	case <-ctx.Done():
-		logger.Info(ctx, fmt.Sprintf("proxy MQTT shutdown at %s", target))
+		logger.Info(fmt.Sprintf("proxy MQTT shutdown at %s", target))
 		return nil
 	case err := <-errCh:
 		return err
 	}
 }
 
-func proxyWS(ctx context.Context, cfg config, logger mglog.Logger, sessionHandler session.Handler) error {
-	var mpLogger mplog.Logger
-	mpLogger, err := mplog.New(os.Stdout, cfg.LogLevel)
-	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
-	}
-
+func proxyWS(ctx context.Context, cfg config, logger mflog.Logger, sessionHandler session.Handler) error {
 	target := fmt.Sprintf("%s:%s", cfg.HTTPTargetHost, cfg.HTTPTargetPort)
-	wp := websocket.New(target, cfg.HTTPTargetPath, "ws", sessionHandler, mpLogger)
+	wp := websocket.New(target, cfg.HTTPTargetPath, "ws", sessionHandler, logger)
 	http.Handle("/mqtt", wp.Handler())
 
 	errCh := make(chan error)
@@ -258,7 +244,7 @@ func proxyWS(ctx context.Context, cfg config, logger mglog.Logger, sessionHandle
 
 	select {
 	case <-ctx.Done():
-		logger.Info(ctx, fmt.Sprintf("proxy MQTT WS shutdown at %s", target))
+		logger.Info(fmt.Sprintf("proxy MQTT WS shutdown at %s", target))
 		return nil
 	case err := <-errCh:
 		return err

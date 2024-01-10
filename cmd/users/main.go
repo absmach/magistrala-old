@@ -89,14 +89,12 @@ func main() {
 	}
 	cfg.PassRegex = passRegex
 
-	var logger mglog.Logger
-	logger, err = mglog.New(os.Stdout, cfg.LogLevel)
+	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		logger.Error(ctx, fmt.Sprintf("failed to init logger: %s", err.Error()))
 	}
 
-	var chClientLogger mflog.Logger
-	chClientLogger, err = mflog.New(os.Stdout, cfg.LogLevel)
+	chClientLogger, err := mflog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
 	}

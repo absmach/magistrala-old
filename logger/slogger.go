@@ -21,8 +21,8 @@ type Logger interface {
 }
 
 type logger struct {
-	slogLogger slog.Logger
-	level      Level
+	sLogger *slog.Logger
+	level   Level
 }
 
 // New returns a new slog logger.
@@ -34,35 +34,34 @@ func New(w io.Writer, levelText string) (Logger, error) {
 	}
 
 	logHandler := slog.NewJSONHandler(w, &slog.HandlerOptions{
-		Level:     slog.Level(level),
-		AddSource: true,
+		Level: slog.LevelDebug,
 	})
 
-	slogLogger := slog.New(logHandler)
+	sLogger := slog.New(logHandler)
 
-	return &logger{*slogLogger, level}, nil
+	return &logger{sLogger, level}, nil
 }
 
 func (l *logger) Debug(ctx context.Context, msg string) {
 	if Debug.isAllowed(l.level) {
-		l.slogLogger.Log(ctx, slog.LevelDebug, msg)
+		l.sLogger.Log(ctx, slog.LevelDebug, "msg", msg)
 	}
 }
 
 func (l *logger) Info(ctx context.Context, msg string) {
 	if Info.isAllowed(l.level) {
-		l.slogLogger.Log(ctx, slog.LevelInfo, msg)
+		l.sLogger.Log(ctx, slog.LevelInfo, msg)
 	}
 }
 
 func (l *logger) Warn(ctx context.Context, msg string) {
 	if Warn.isAllowed(l.level) {
-		l.slogLogger.Log(ctx, slog.LevelWarn, msg)
+		l.sLogger.Log(ctx, slog.LevelWarn, msg)
 	}
 }
 
 func (l *logger) Error(ctx context.Context, msg string) {
-	if Warn.isAllowed(l.level) {
-		l.slogLogger.Log(ctx, slog.LevelError, msg)
+	if Error.isAllowed(l.level) {
+		l.sLogger.Log(ctx, slog.LevelError, msg)
 	}
 }

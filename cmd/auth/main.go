@@ -83,8 +83,7 @@ func main() {
 		logger.Error(ctx, fmt.Sprintf("failed to init logger: %s", err.Error()))
 	}
 
-	var chClientLogger mflog.Logger
-	chClientLogger, err = mflog.New(os.Stdout, cfg.LogLevel)
+	chClientLogger, err := mflog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
 	}

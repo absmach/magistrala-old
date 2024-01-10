@@ -19,7 +19,6 @@ import (
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
-	mplog "github.com/absmach/magistrala/kitlogger"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/messaging"
@@ -68,8 +67,7 @@ func main() {
 		log.Fatalf("failed to init logger: %s", err)
 	}
 
-	var chClientLogger mflog.Logger
-	chClientLogger, err = mflog.New(os.Stdout, cfg.LogLevel)
+	chClientLogger, err := mflog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
 	}
@@ -146,7 +144,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return proxyHTTP(ctx, httpServerConfig, logger, svc)
+		return proxyHTTP(ctx, httpServerConfig, chClientLogger, svc)
 	})
 
 	g.Go(func() error {
@@ -167,17 +165,10 @@ func newService(pub messaging.Publisher, tc magistrala.AuthzServiceClient, logge
 	return svc
 }
 
-func proxyHTTP(ctx context.Context, cfg server.Config, logger mglog.Logger, sessionHandler session.Handler) error {
-	pcfg := config{}
-	var mpLogger mplog.Logger
-	mpLogger, err := mplog.New(os.Stdout, pcfg.LogLevel)
-	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
-	}
-
+func proxyHTTP(ctx context.Context, cfg server.Config, logger mflog.Logger, sessionHandler session.Handler) error {
 	address := fmt.Sprintf("%s:%s", "", cfg.Port)
 	target := fmt.Sprintf("%s:%s", targetHTTPHost, targetHTTPPort)
-	mp, err := mproxy.NewProxy(address, target, sessionHandler, mpLogger)
+	mp, err := mproxy.NewProxy(address, target, sessionHandler, logger)
 	if err != nil {
 		return err
 	}
@@ -189,17 +180,17 @@ func proxyHTTP(ctx context.Context, cfg server.Config, logger mglog.Logger, sess
 		go func() {
 			errCh <- mp.ListenTLS(cfg.CertFile, cfg.KeyFile)
 		}()
-		logger.Info(ctx, fmt.Sprintf("%s service https server listening at %s:%s with TLS cert %s and key %s", svcName, cfg.Host, cfg.Port, cfg.CertFile, cfg.KeyFile))
+		logger.Info(fmt.Sprintf("%s service https server listening at %s:%s with TLS cert %s and key %s", svcName, cfg.Host, cfg.Port, cfg.CertFile, cfg.KeyFile))
 	default:
 		go func() {
 			errCh <- mp.Listen()
 		}()
-		logger.Info(ctx, fmt.Sprintf("%s service http server listening at %s:%s without TLS", svcName, cfg.Host, cfg.Port))
+		logger.Info(fmt.Sprintf("%s service http server listening at %s:%s without TLS", svcName, cfg.Host, cfg.Port))
 	}
 
 	select {
 	case <-ctx.Done():
-		logger.Info(ctx, fmt.Sprintf("proxy HTTP shutdown at %s", target))
+		logger.Info(fmt.Sprintf("proxy HTTP shutdown at %s", target))
 		return nil
 	case err := <-errCh:
 		return err
