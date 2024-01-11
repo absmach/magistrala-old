@@ -27,18 +27,35 @@ type logger struct {
 // New returns a new slog logger.
 func New(w io.Writer, levelText string) (Logger, error) {
 	level := new(Level)
-	err := level.UnmarshalText([]byte(levelText))
+	err := level.UnmarshalText(levelText)
 	if err != nil {
 		return nil, fmt.Errorf(`{"level":"error","message":"%s: %s","ts":"%s"}`, err, levelText, time.RFC3339Nano)
 	}
 
+	slogLevel  :=mapLevelToSlog(*level)
+
 	logHandler := slog.NewJSONHandler(w, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
+		 Level : slogLevel,
 	})
 
 	sLogger := slog.New(logHandler)
 
 	return &logger{sLogger, *level}, nil
+}
+
+func mapLevelToSlog(level Level) slog.Level {
+    switch level {
+    case Debug:
+        return slog.LevelDebug
+    case Info:
+        return slog.LevelInfo
+    case Warn:
+        return slog.LevelWarn
+    case Error:
+        return slog.LevelError
+    default:
+        return slog.LevelInfo // default level
+    }
 }
 
 func (l *logger) Debug(ctx context.Context, msg string) {

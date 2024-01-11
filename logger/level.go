@@ -10,13 +10,13 @@ import (
 
 const (
 	// Error level is used when logging errors.
-	Error Level = iota + 1
+	Error Level = -4
 	// Warn level is used when logging warnings.
-	Warn
+	Warn Level = 0
 	// Info level is used when logging info data.
-	Info
+	Info Level = 4
 	// Debug level is used when logging debugging info.
-	Debug
+	Debug Level = 8
 )
 
 // ErrInvalidLogLevel indicates an unrecognized log level.
@@ -41,8 +41,8 @@ func (lvl Level) isAllowed(logLevel Level) bool {
 }
 
 // UnmarshalText returns log Level for the given string representation.
-func (lvl *Level) UnmarshalText(data []byte) error {
-	switch strings.ToLower(string(data)) {
+func (lvl *Level) UnmarshalText(text string) error {
+	switch strings.ToLower(text) {
 	case "debug":
 		*lvl = Debug
 	case "info":
