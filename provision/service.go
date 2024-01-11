@@ -4,11 +4,10 @@
 package provision
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 
-	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
 	sdk "github.com/absmach/magistrala/pkg/sdk/go"
 )
@@ -71,7 +70,7 @@ type Service interface {
 }
 
 type provisionService struct {
-	logger mglog.Logger
+	logger slog.Logger
 	sdk    sdk.SDK
 	conf   Config
 }
@@ -88,7 +87,7 @@ type Result struct {
 }
 
 // New returns new provision service.
-func New(cfg Config, mgsdk sdk.SDK, logger mglog.Logger) Service {
+func New(cfg Config, mgsdk sdk.SDK, logger slog.Logger) Service {
 	return &provisionService{
 		logger: logger,
 		conf:   cfg,
@@ -334,9 +333,8 @@ func (ps *provisionService) updateGateway(token string, bs sdk.BootstrapConfig, 
 }
 
 func (ps *provisionService) errLog(err error) {
-	ctx := context.Background()
 	if err != nil {
-		ps.logger.Error(ctx, fmt.Sprintf("Error recovering: %s", err))
+		ps.logger.Error(fmt.Sprintf("Error recovering: %s", err))
 	}
 }
 

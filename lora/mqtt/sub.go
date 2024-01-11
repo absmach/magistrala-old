@@ -8,9 +8,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"time"
 
-	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/lora"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 )
@@ -24,12 +24,12 @@ type Subscriber interface {
 type broker struct {
 	svc     lora.Service
 	client  mqtt.Client
-	logger  mglog.Logger
+	logger  slog.Logger
 	timeout time.Duration
 }
 
 // NewBroker returns new MQTT broker instance.
-func NewBroker(svc lora.Service, client mqtt.Client, t time.Duration, log mglog.Logger) Subscriber {
+func NewBroker(svc lora.Service, client mqtt.Client, t time.Duration, log slog.Logger) Subscriber {
 	return broker{
 		svc:     svc,
 		client:  client,
@@ -50,14 +50,13 @@ func (b broker) Subscribe(subject string) error {
 
 // handleMsg triggered when new message is received on Lora MQTT broker.
 func (b broker) handleMsg(c mqtt.Client, msg mqtt.Message) {
-	ctx := context.Background()
 	m := lora.Message{}
 	if err := json.Unmarshal(msg.Payload(), &m); err != nil {
-		b.logger.Warn(ctx, fmt.Sprintf("Failed to unmarshal message: %s", err.Error()))
+		b.logger.Warn(fmt.Sprintf("Failed to unmarshal message: %s", err.Error()))
 		return
 	}
 
-	if err := b.svc.Publish(ctx, &m); err != nil {
-		b.logger.Error(ctx, fmt.Sprintf("got error while publishing messages: %s", err))
+	if err := b.svc.Publish(context.Background(), &m); err != nil {
+		b.logger.Error(fmt.Sprintf("got error while publishing messages: %s", err))
 	}
 }

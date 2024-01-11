@@ -6,8 +6,8 @@ package mongodb
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
-	mglog "github.com/absmach/magistrala/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
@@ -20,11 +20,11 @@ type Config struct {
 }
 
 // Connect creates a connection to the MongoDB instance.
-func Connect(ctx context.Context, cfg Config, logger mglog.Logger) (*mongo.Database, error) {
+func Connect(cfg Config, logger slog.Logger) (*mongo.Database, error) {
 	addr := fmt.Sprintf("mongodb://%s:%s", cfg.Host, cfg.Port)
-	client, err := mongo.Connect(ctx, options.Client().ApplyURI(addr))
+	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(addr))
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("Failed to connect to database: %s", err))
+		logger.Error(fmt.Sprintf("Failed to connect to database: %s", err))
 		return nil, err
 	}
 

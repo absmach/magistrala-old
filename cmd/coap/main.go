@@ -20,6 +20,7 @@ import (
 	"github.com/absmach/magistrala/internal/server"
 	coapserver "github.com/absmach/magistrala/internal/server/coap"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
+	"github.com/absmach/magistrala/kitlogger"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/messaging/brokers"
@@ -27,7 +28,6 @@ import (
 	"github.com/absmach/magistrala/pkg/uuid"
 	"github.com/caarlos0/env/v10"
 	chclient "github.com/mainflux/callhome/pkg/client"
-	mflog "github.com/mainflux/mainflux/logger"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -60,12 +60,12 @@ func main() {
 
 	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		log.Fatalf("failed to init logger: %s", err)
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
-	chClientLogger, err := mflog.New(os.Stdout, cfg.LogLevel)
+	chClientLogger, err := kitlogger.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
@@ -73,7 +73,7 @@ func main() {
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
-			logger.Error(ctx, fmt.Sprintf("failed to generate instanceID: %s", err))
+			logger.Error(fmt.Sprintf("failed to generate instanceID: %s", err))
 			exitCode = 1
 			return
 		}
@@ -81,51 +81,51 @@ func main() {
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
 	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
 	coapServerConfig := server.Config{Port: defSvcCoAPPort}
 	if err := env.ParseWithOptions(&coapServerConfig, env.Options{Prefix: envPrefix}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s CoAP server configuration : %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to load %s CoAP server configuration : %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
 	authConfig := auth.Config{}
 	if err := env.ParseWithOptions(&authConfig, env.Options{Prefix: envPrefixAuthz}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
 	authClient, authHandler, err := auth.SetupAuthz(authConfig)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 		exitCode = 1
 		return
 	}
 	defer authHandler.Close()
 
-	logger.Info(ctx, "Successfully connected to things grpc server "+authHandler.Secure())
+	logger.Info("Successfully connected to things grpc server " + authHandler.Secure())
 
 	tp, err := jaegerclient.NewProvider(ctx, svcName, cfg.JaegerURL, cfg.InstanceID, cfg.TraceRatio)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("Failed to init Jaeger: %s", err))
+		logger.Error(fmt.Sprintf("Failed to init Jaeger: %s", err))
 		exitCode = 1
 		return
 	}
 	defer func() {
 		if err := tp.Shutdown(ctx); err != nil {
-			logger.Error(ctx, fmt.Sprintf("Error shutting down tracer provider: %v", err))
+			logger.Error(fmt.Sprintf("Error shutting down tracer provider: %v", err))
 		}
 	}()
 	tracer := tp.Tracer(svcName)
 
 	nps, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to connect to message broker: %s", err))
+		logger.Error(fmt.Sprintf("failed to connect to message broker: %s", err))
 		exitCode = 1
 		return
 	}
@@ -161,6 +161,6 @@ func main() {
 	})
 
 	if err := g.Wait(); err != nil {
-		logger.Error(ctx, fmt.Sprintf("CoAP adapter service terminated: %s", err))
+		logger.Error(fmt.Sprintf("CoAP adapter service terminated: %s", err))
 	}
 }

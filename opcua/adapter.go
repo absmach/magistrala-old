@@ -6,8 +6,8 @@ package opcua
 import (
 	"context"
 	"fmt"
+	"log/slog"
 
-	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/opcua/db"
 )
 
@@ -62,11 +62,11 @@ type adapterService struct {
 	channelsRM RouteMapRepository
 	connectRM  RouteMapRepository
 	cfg        Config
-	logger     mglog.Logger
+	logger     slog.Logger
 }
 
 // New instantiates the OPC-UA adapter implementation.
-func New(sub Subscriber, brow Browser, thingsRM, channelsRM, connectRM RouteMapRepository, cfg Config, log mglog.Logger) Service {
+func New(sub Subscriber, brow Browser, thingsRM, channelsRM, connectRM RouteMapRepository, cfg Config, log slog.Logger) Service {
 	return &adapterService{
 		subscriber: sub,
 		browser:    brow,
@@ -123,7 +123,7 @@ func (as *adapterService) ConnectThing(ctx context.Context, chanID, thingID stri
 
 	go func() {
 		if err := as.subscriber.Subscribe(ctx, as.cfg); err != nil {
-			as.logger.Warn(ctx, fmt.Sprintf("subscription failed: %s", err))
+			as.logger.Warn(fmt.Sprintf("subscription failed: %s", err))
 		}
 	}()
 

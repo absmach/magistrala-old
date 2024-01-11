@@ -7,10 +7,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 	"time"
 
-	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/messaging"
 	broker "github.com/nats-io/nats.go"
 	"github.com/nats-io/nats.go/jetstream"
@@ -42,7 +42,7 @@ var _ messaging.PubSub = (*pubsub)(nil)
 
 type pubsub struct {
 	publisher
-	logger mglog.Logger
+	logger slog.Logger
 	stream jetstream.Stream
 }
 
@@ -53,7 +53,7 @@ type pubsub struct {
 // from ordinary subscribe. For more information, please take a look
 // here: https://docs.nats.io/developing-with-nats/receiving/queues.
 // If the queue is empty, Subscribe will be used.
-func NewPubSub(ctx context.Context, url string, logger mglog.Logger, opts ...messaging.Option) (messaging.PubSub, error) {
+func NewPubSub(ctx context.Context, url string, logger slog.Logger, opts ...messaging.Option) (messaging.PubSub, error) {
 	conn, err := broker.Connect(url, broker.MaxReconnects(maxReconnects))
 	if err != nil {
 		return nil, err
@@ -94,7 +94,7 @@ func (ps *pubsub) Subscribe(ctx context.Context, cfg messaging.SubscriberConfig)
 		return ErrEmptyTopic
 	}
 
-	nh := ps.natsHandler(ctx, cfg.Handler)
+	nh := ps.natsHandler(cfg.Handler)
 
 	consumerConfig := jetstream.ConsumerConfig{
 		Name:          formatConsumerName(cfg.Topic, cfg.ID),
@@ -140,20 +140,20 @@ func (ps *pubsub) Unsubscribe(ctx context.Context, id, topic string) error {
 	}
 }
 
-func (ps *pubsub) natsHandler(ctx context.Context, h messaging.MessageHandler) func(m jetstream.Msg) {
+func (ps *pubsub) natsHandler(h messaging.MessageHandler) func(m jetstream.Msg) {
 	return func(m jetstream.Msg) {
 		var msg messaging.Message
 		if err := proto.Unmarshal(m.Data(), &msg); err != nil {
-			ps.logger.Warn(ctx, fmt.Sprintf("Failed to unmarshal received message: %s", err))
+			ps.logger.Warn(fmt.Sprintf("Failed to unmarshal received message: %s", err))
 
 			return
 		}
 
-		if err := h.Handle(ctx, &msg); err != nil {
-			ps.logger.Warn(ctx, fmt.Sprintf("Failed to handle Magistrala message: %s", err))
+		if err := h.Handle(&msg); err != nil {
+			ps.logger.Warn(fmt.Sprintf("Failed to handle Magistrala message: %s", err))
 		}
 		if err := m.Ack(); err != nil {
-			ps.logger.Warn(ctx, fmt.Sprintf("Failed to ack message: %s", err))
+			ps.logger.Warn(fmt.Sprintf("Failed to ack message: %s", err))
 		}
 	}
 }

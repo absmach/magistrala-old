@@ -4,7 +4,6 @@
 package ws_test
 
 import (
-	"context"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -49,7 +48,6 @@ func handler(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestHandle(t *testing.T) {
-	ctx := context.Background()
 	s := httptest.NewServer(http.HandlerFunc(handler))
 	defer s.Close()
 
@@ -87,7 +85,7 @@ func TestHandle(t *testing.T) {
 
 	for _, tc := range cases {
 		msg.Publisher = tc.publisher
-		err = c.Handle(ctx, &msg)
+		err = c.Handle(&msg)
 		assert.Nil(t, err, fmt.Sprintf("expected nil error from handle, got: %s", err))
 		receivedMsg := []byte{}
 		switch tc.expectMsg {

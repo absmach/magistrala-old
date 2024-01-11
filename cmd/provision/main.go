@@ -15,6 +15,7 @@ import (
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
+	"github.com/absmach/magistrala/kitlogger"
 	mglog "github.com/absmach/magistrala/logger"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
@@ -25,7 +26,6 @@ import (
 	"github.com/absmach/magistrala/provision/api"
 	"github.com/caarlos0/env/v10"
 	chclient "github.com/mainflux/callhome/pkg/client"
-	mflog "github.com/mainflux/mainflux/logger"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -51,12 +51,12 @@ func main() {
 
 	logger, err := mglog.New(os.Stdout, cfg.Server.LogLevel)
 	if err != nil {
-		log.Fatalf(err.Error())
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
-	chClientLogger, err := mflog.New(os.Stdout, cfg.LogLevel)
+	chClientLogger, err := kitlogger.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
@@ -64,19 +64,19 @@ func main() {
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
-			logger.Error(ctx, fmt.Sprintf("failed to generate instanceID: %s", err))
+			logger.Error(fmt.Sprintf("failed to generate instanceID: %s", err))
 			exitCode = 1
 			return
 		}
 	}
 
 	if cfgFromFile, err := loadConfigFromFile(cfg.File); err != nil {
-		logger.Warn(ctx, fmt.Sprintf("Continue with settings from env, failed to load from: %s: %s", cfg.File, err))
+		logger.Warn(fmt.Sprintf("Continue with settings from env, failed to load from: %s: %s", cfg.File, err))
 	} else {
 		// Merge environment variables and file settings.
 		mergeConfigs(&cfgFromFile, &cfg)
 		cfg = cfgFromFile
-		logger.Info(ctx, "Continue with settings from file: "+cfg.File)
+		logger.Info("Continue with settings from file: " + cfg.File)
 	}
 
 	SDKCfg := mgsdk.Config{
@@ -109,7 +109,7 @@ func main() {
 	})
 
 	if err := g.Wait(); err != nil {
-		logger.Error(ctx, fmt.Sprintf("Provision service terminated: %s", err))
+		logger.Error(fmt.Sprintf("Provision service terminated: %s", err))
 	}
 }
 

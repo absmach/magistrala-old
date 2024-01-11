@@ -5,6 +5,7 @@ package mocks
 
 import (
 	"encoding/json"
+	"log/slog"
 	"strconv"
 	"time"
 
@@ -29,7 +30,7 @@ func NewService() (twins.Service, *authmocks.Service) {
 	subs := map[string]string{"chanID": "chanID"}
 	broker := NewBroker(subs)
 
-	return twins.New(broker, auth, twinsRepo, twinCache, statesRepo, idProvider, "chanID", nil), auth
+	return twins.New(broker, auth, twinsRepo, twinCache, statesRepo, idProvider, "chanID", slog.Logger{}), auth
 }
 
 // CreateDefinition creates twin definition.

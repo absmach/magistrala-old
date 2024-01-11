@@ -8,21 +8,21 @@ package api
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/absmach/magistrala/certs"
-	mglog "github.com/absmach/magistrala/logger"
 )
 
 var _ certs.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
-	logger mglog.Logger
+	logger slog.Logger
 	svc    certs.Service
 }
 
 // LoggingMiddleware adds logging facilities to the bootstrap service.
-func LoggingMiddleware(svc certs.Service, logger mglog.Logger) certs.Service {
+func LoggingMiddleware(svc certs.Service, logger slog.Logger) certs.Service {
 	return &loggingMiddleware{logger, svc}
 }
 
@@ -32,10 +32,10 @@ func (lm *loggingMiddleware) IssueCert(ctx context.Context, token, thingID, ttl 
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method issue_cert using token %s and thing %s took %s to complete", token, thingID, time.Since(begin))
 		if err != nil {
-			lm.logger.Warn(ctx, fmt.Sprintf("%s with error: %s.", message, err))
+			lm.logger.Warn(fmt.Sprintf("%s with error: %s.", message, err))
 			return
 		}
-		lm.logger.Info(ctx, fmt.Sprintf("%s without errors.", message))
+		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
 
 	return lm.svc.IssueCert(ctx, token, thingID, ttl)
@@ -46,10 +46,10 @@ func (lm *loggingMiddleware) ListCerts(ctx context.Context, token, thingID strin
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method list_certs using token %s and thing id %s took %s to complete", token, thingID, time.Since(begin))
 		if err != nil {
-			lm.logger.Warn(ctx, fmt.Sprintf("%s with error: %s.", message, err))
+			lm.logger.Warn(fmt.Sprintf("%s with error: %s.", message, err))
 			return
 		}
-		lm.logger.Info(ctx, fmt.Sprintf("%s without errors.", message))
+		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
 
 	return lm.svc.ListCerts(ctx, token, thingID, offset, limit)
@@ -61,10 +61,10 @@ func (lm *loggingMiddleware) ListSerials(ctx context.Context, token, thingID str
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method list_serials using token %s and thing id %s took %s to complete", token, thingID, time.Since(begin))
 		if err != nil {
-			lm.logger.Warn(ctx, fmt.Sprintf("%s with error: %s.", message, err))
+			lm.logger.Warn(fmt.Sprintf("%s with error: %s.", message, err))
 			return
 		}
-		lm.logger.Info(ctx, fmt.Sprintf("%s without errors.", message))
+		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
 
 	return lm.svc.ListSerials(ctx, token, thingID, offset, limit)
@@ -76,10 +76,10 @@ func (lm *loggingMiddleware) ViewCert(ctx context.Context, token, serialID strin
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method view_cert using token %s and serial id %s took %s to complete", token, serialID, time.Since(begin))
 		if err != nil {
-			lm.logger.Warn(ctx, fmt.Sprintf("%s with error: %s.", message, err))
+			lm.logger.Warn(fmt.Sprintf("%s with error: %s.", message, err))
 			return
 		}
-		lm.logger.Info(ctx, fmt.Sprintf("%s without errors.", message))
+		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
 
 	return lm.svc.ViewCert(ctx, token, serialID)
@@ -91,10 +91,10 @@ func (lm *loggingMiddleware) RevokeCert(ctx context.Context, token, thingID stri
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method revoke_cert using token %s and thing %s took %s to complete", token, thingID, time.Since(begin))
 		if err != nil {
-			lm.logger.Warn(ctx, fmt.Sprintf("%s with error: %s.", message, err))
+			lm.logger.Warn(fmt.Sprintf("%s with error: %s.", message, err))
 			return
 		}
-		lm.logger.Info(ctx, fmt.Sprintf("%s without errors.", message))
+		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
 
 	return lm.svc.RevokeCert(ctx, token, thingID)

@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"regexp"
@@ -15,7 +16,6 @@ import (
 
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/coap"
-	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/go-chi/chi/v5"
@@ -44,7 +44,7 @@ var (
 )
 
 var (
-	logger  mglog.Logger
+	logger  slog.Logger
 	service coap.Service
 )
 
@@ -57,50 +57,37 @@ func MakeHandler(instanceID string) http.Handler {
 	return b
 }
 
-type ContextResponseWriter struct {
-	mux.ResponseWriter
-	Ctx context.Context
-}
-
 // MakeCoAPHandler creates handler for CoAP messages.
-func MakeCoAPHandler(svc coap.Service, l mglog.Logger) mux.HandlerFunc {
+func MakeCoAPHandler(svc coap.Service, l slog.Logger) mux.HandlerFunc {
 	logger = l
 	service = svc
 
-	return func(w mux.ResponseWriter, m *mux.Message) {
-		ctx := context.Background()
-		crw := &ContextResponseWriter{
-			ResponseWriter: w,
-			Ctx:            ctx,
-		}
-		handler(crw, m)
-	}
+	return handler
 }
 
-func sendResp(ctx context.Context, w mux.ResponseWriter, resp *message.Message) {
+func sendResp(w mux.ResponseWriter, resp *message.Message) {
 	if err := w.Client().WriteMessage(resp); err != nil {
-		logger.Warn(ctx, fmt.Sprintf("Can't set response: %s", err))
+		logger.Warn(fmt.Sprintf("Can't set response: %s", err))
 	}
 }
 
 func handler(w mux.ResponseWriter, m *mux.Message) {
-	ctx := context.Background()
 	resp := message.Message{
 		Code:    codes.Content,
 		Token:   m.Token,
 		Context: m.Context,
 		Options: make(message.Options, 0, 16),
 	}
-	defer sendResp(ctx, w, &resp)
+	defer sendResp(w, &resp)
 	msg, err := decodeMessage(m)
 	if err != nil {
-		logger.Warn(ctx, fmt.Sprintf("Error decoding message: %s", err))
+		logger.Warn(fmt.Sprintf("Error decoding message: %s", err))
 		resp.Code = codes.BadRequest
 		return
 	}
 	key, err := parseKey(m)
 	if err != nil {
-		logger.Warn(ctx, fmt.Sprintf("Error parsing auth: %s", err))
+		logger.Warn(fmt.Sprintf("Error parsing auth: %s", err))
 		resp.Code = codes.Unauthorized
 		return
 	}
@@ -132,7 +119,7 @@ func handleGet(ctx context.Context, m *mux.Message, c mux.Client, msg *messaging
 	var obs uint32
 	obs, err := m.Options.Observe()
 	if err != nil {
-		logger.Warn(ctx, fmt.Sprintf("Error reading observe option: %s", err))
+		logger.Warn(fmt.Sprintf("Error reading observe option: %s", err))
 		return errBadOptions
 	}
 	if obs == startObserve {

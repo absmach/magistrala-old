@@ -6,21 +6,21 @@ package api
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
-	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/ws"
 )
 
 var _ ws.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
-	logger mglog.Logger
+	logger slog.Logger
 	svc    ws.Service
 }
 
 // LoggingMiddleware adds logging facilities to the websocket service.
-func LoggingMiddleware(svc ws.Service, logger mglog.Logger) ws.Service {
+func LoggingMiddleware(svc ws.Service, logger slog.Logger) ws.Service {
 	return &loggingMiddleware{logger, svc}
 }
 
@@ -34,10 +34,10 @@ func (lm *loggingMiddleware) Subscribe(ctx context.Context, thingKey, chanID, su
 		}
 		message := fmt.Sprintf("Method subscribe to channel %s took %s to complete", destChannel, time.Since(begin))
 		if err != nil {
-			lm.logger.Warn(ctx, fmt.Sprintf("%s with error: %s", message, err))
+			lm.logger.Warn(fmt.Sprintf("%s with error: %s", message, err))
 			return
 		}
-		lm.logger.Info(ctx, fmt.Sprintf("%s without errors.", message))
+		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
 
 	return lm.svc.Subscribe(ctx, thingKey, chanID, subtopic, c)

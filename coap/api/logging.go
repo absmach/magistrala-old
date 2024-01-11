@@ -8,22 +8,22 @@ package api
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/absmach/magistrala/coap"
-	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/messaging"
 )
 
 var _ coap.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
-	logger mglog.Logger
+	logger slog.Logger
 	svc    coap.Service
 }
 
 // LoggingMiddleware adds logging facilities to the adapter.
-func LoggingMiddleware(svc coap.Service, logger mglog.Logger) coap.Service {
+func LoggingMiddleware(svc coap.Service, logger slog.Logger) coap.Service {
 	return &loggingMiddleware{logger, svc}
 }
 
@@ -37,10 +37,10 @@ func (lm *loggingMiddleware) Publish(ctx context.Context, key string, msg *messa
 		}
 		message := fmt.Sprintf("Method publish to %s took %s to complete", destChannel, time.Since(begin))
 		if err != nil {
-			lm.logger.Warn(ctx, fmt.Sprintf("%s with error: %s.", message, err))
+			lm.logger.Warn(fmt.Sprintf("%s with error: %s.", message, err))
 			return
 		}
-		lm.logger.Info(ctx, fmt.Sprintf("%s without errors.", message))
+		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
 
 	return lm.svc.Publish(ctx, key, msg)
@@ -56,10 +56,10 @@ func (lm *loggingMiddleware) Subscribe(ctx context.Context, key, chanID, subtopi
 		}
 		message := fmt.Sprintf("Method subscribe to %s for client %s took %s to complete", destChannel, c.Token(), time.Since(begin))
 		if err != nil {
-			lm.logger.Warn(ctx, fmt.Sprintf("%s with error: %s.", message, err))
+			lm.logger.Warn(fmt.Sprintf("%s with error: %s.", message, err))
 			return
 		}
-		lm.logger.Info(ctx, fmt.Sprintf("%s without errors.", message))
+		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
 
 	return lm.svc.Subscribe(ctx, key, chanID, subtopic, c)
@@ -75,10 +75,10 @@ func (lm *loggingMiddleware) Unsubscribe(ctx context.Context, key, chanID, subto
 		}
 		message := fmt.Sprintf("Method unsubscribe for the client %s from the channel %s took %s to complete", token, destChannel, time.Since(begin))
 		if err != nil {
-			lm.logger.Warn(ctx, fmt.Sprintf("%s with error: %s.", message, err))
+			lm.logger.Warn(fmt.Sprintf("%s with error: %s.", message, err))
 			return
 		}
-		lm.logger.Info(ctx, fmt.Sprintf("%s without errors.", message))
+		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
 
 	return lm.svc.Unsubscribe(ctx, key, chanID, subtopic, token)

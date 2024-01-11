@@ -8,21 +8,21 @@ package api
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/absmach/magistrala/consumers"
-	mglog "github.com/absmach/magistrala/logger"
 )
 
 var _ consumers.BlockingConsumer = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
-	logger   mglog.Logger
+	logger   slog.Logger
 	consumer consumers.BlockingConsumer
 }
 
 // LoggingMiddleware adds logging facilities to the adapter.
-func LoggingMiddleware(consumer consumers.BlockingConsumer, logger mglog.Logger) consumers.BlockingConsumer {
+func LoggingMiddleware(consumer consumers.BlockingConsumer, logger slog.Logger) consumers.BlockingConsumer {
 	return &loggingMiddleware{
 		logger:   logger,
 		consumer: consumer,
@@ -35,10 +35,10 @@ func (lm *loggingMiddleware) ConsumeBlocking(ctx context.Context, msgs interface
 	defer func(begin time.Time) {
 		message := fmt.Sprintf("Method consume took %s to complete", time.Since(begin))
 		if err != nil {
-			lm.logger.Warn(ctx, fmt.Sprintf("%s with error: %s.", message, err))
+			lm.logger.Warn(fmt.Sprintf("%s with error: %s.", message, err))
 			return
 		}
-		lm.logger.Info(ctx, fmt.Sprintf("%s without errors.", message))
+		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
 	}(time.Now())
 
 	return lm.consumer.ConsumeBlocking(ctx, msgs)

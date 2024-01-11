@@ -4,7 +4,6 @@
 package bench
 
 import (
-	"context"
 	"crypto/rand"
 	"crypto/tls"
 	"encoding/json"
@@ -19,11 +18,11 @@ import (
 )
 
 // Benchmark - main benchmarking function.
-func Benchmark(ctx context.Context, cfg Config) error {
+func Benchmark(cfg Config) error {
 	if err := checkConnection(cfg.MQTT.Broker.URL, 1); err != nil {
 		return err
 	}
-	logger, err := mglog.New(os.Stdout, mglog.Debug.String())
+	logger, err := mglog.New(os.Stdout, "debug")
 	if err != nil {
 		return err
 	}
@@ -35,11 +34,11 @@ func Benchmark(ctx context.Context, cfg Config) error {
 
 		defer func() {
 			if err = caFile.Close(); err != nil {
-				logger.Warn(ctx, fmt.Sprintf("Could  not close file: %s", err))
+				logger.Warn(fmt.Sprintf("Could  not close file: %s", err))
 			}
 		}()
 		if err != nil {
-			logger.Warn(ctx, err.Error())
+			logger.Warn(err.Error())
 		}
 		caByte, _ = io.ReadAll(caFile)
 	}

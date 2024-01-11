@@ -4,7 +4,6 @@
 package postgres_test
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
 	"os"
@@ -18,16 +17,14 @@ import (
 )
 
 var (
-	testLog, _ = mglog.New(os.Stdout, mglog.Info.String())
+	testLog, _ = mglog.New(os.Stdout, "info")
 	db         *sqlx.DB
 )
 
 func TestMain(m *testing.M) {
-	ctx := context.Background()
-
 	pool, err := dockertest.NewPool("")
 	if err != nil {
-		testLog.Error(ctx, fmt.Sprintf("Could not connect to docker: %s", err))
+		testLog.Error(fmt.Sprintf("Could not connect to docker: %s", err))
 		return
 	}
 
@@ -38,7 +35,7 @@ func TestMain(m *testing.M) {
 	}
 	container, err := pool.Run("postgres", "13.3-alpine", cfg)
 	if err != nil {
-		testLog.Error(ctx, fmt.Sprintf("Could not start container: %s", err))
+		testLog.Error(fmt.Sprintf("Could not start container: %s", err))
 	}
 
 	port := container.GetPort("5432/tcp")
@@ -51,7 +48,7 @@ func TestMain(m *testing.M) {
 		}
 		return db.Ping()
 	}); err != nil {
-		testLog.Error(ctx, fmt.Sprintf("Could not connect to docker: %s", err))
+		testLog.Error(fmt.Sprintf("Could not connect to docker: %s", err))
 	}
 
 	dbConfig := pgclient.Config{
@@ -67,7 +64,7 @@ func TestMain(m *testing.M) {
 	}
 
 	if db, err = pgclient.Setup(dbConfig, *postgres.Migration()); err != nil {
-		testLog.Error(ctx, fmt.Sprintf("Could not setup test DB connection: %s", err))
+		testLog.Error(fmt.Sprintf("Could not setup test DB connection: %s", err))
 	}
 
 	code := m.Run()
@@ -75,7 +72,7 @@ func TestMain(m *testing.M) {
 	// Defers will not be run when using os.Exit
 	db.Close()
 	if err := pool.Purge(container); err != nil {
-		testLog.Error(ctx, fmt.Sprintf("Could not purge container: %s", err))
+		testLog.Error(fmt.Sprintf("Could not purge container: %s", err))
 	}
 
 	os.Exit(code)

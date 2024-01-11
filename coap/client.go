@@ -7,9 +7,9 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log/slog"
 	"sync/atomic"
 
-	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/plgd-dev/go-coap/v2/message"
@@ -23,7 +23,7 @@ type Client interface {
 	Token() string
 
 	// Handle handles incoming messages.
-	Handle(ctx context.Context, m *messaging.Message) error
+	Handle(m *messaging.Message) error
 
 	// Cancel cancels the client.
 	Cancel() error
@@ -39,11 +39,11 @@ type client struct {
 	client  mux.Client
 	token   message.Token
 	observe uint32
-	logger  mglog.Logger
+	logger  slog.Logger
 }
 
 // NewClient instantiates a new Observer.
-func NewClient(c mux.Client, tkn message.Token, l mglog.Logger) Client {
+func NewClient(c mux.Client, tkn message.Token, l slog.Logger) Client {
 	return &client{
 		client:  c,
 		token:   tkn,
@@ -64,7 +64,7 @@ func (c *client) Cancel() error {
 		Options: make(message.Options, 0, 16),
 	}
 	if err := c.client.WriteMessage(&m); err != nil {
-		c.logger.Error(c.client.Context(), fmt.Sprintf("Error sending message: %s.", err))
+		c.logger.Error(fmt.Sprintf("Error sending message: %s.", err))
 	}
 	return c.client.Close()
 }
@@ -73,7 +73,7 @@ func (c *client) Token() string {
 	return c.token.String()
 }
 
-func (c *client) Handle(ctx context.Context, msg *messaging.Message) error {
+func (c *client) Handle(msg *messaging.Message) error {
 	m := message.Message{
 		Code:    codes.Content,
 		Token:   c.token,
@@ -90,7 +90,7 @@ func (c *client) Handle(ctx context.Context, msg *messaging.Message) error {
 		_, _, err = opts.SetContentFormat(buff, message.TextPlain)
 	}
 	if err != nil {
-		c.logger.Error(ctx, fmt.Sprintf("Can't set content format: %s.", err))
+		c.logger.Error(fmt.Sprintf("Can't set content format: %s.", err))
 		return errors.Wrap(ErrOption, err)
 	}
 	opts = append(opts, message.Option{ID: message.Observe, Value: []byte{byte(c.observe)}})

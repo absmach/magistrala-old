@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/url"
 	"os"
 	"regexp"
@@ -27,6 +28,7 @@ import (
 	"github.com/absmach/magistrala/internal/postgres"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
+	"github.com/absmach/magistrala/kitlogger"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/auth"
 	mgclients "github.com/absmach/magistrala/pkg/clients"
@@ -44,7 +46,6 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/jmoiron/sqlx"
 	chclient "github.com/mainflux/callhome/pkg/client"
-	mflog "github.com/mainflux/mainflux/logger"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 )
@@ -91,12 +92,12 @@ func main() {
 
 	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to init logger: %s", err.Error()))
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
-	chClientLogger, err := mflog.New(os.Stdout, cfg.LogLevel)
+	chClientLogger, err := kitlogger.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
@@ -104,7 +105,7 @@ func main() {
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
-			logger.Error(ctx, fmt.Sprintf("failed to generate instanceID: %s", err))
+			logger.Error(fmt.Sprintf("failed to generate instanceID: %s", err))
 			exitCode = 1
 			return
 		}
@@ -112,14 +113,14 @@ func main() {
 
 	ec := email.Config{}
 	if err := env.Parse(&ec); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load email configuration : %s", err.Error()))
+		logger.Error(fmt.Sprintf("failed to load email configuration : %s", err.Error()))
 		exitCode = 1
 		return
 	}
 
 	dbConfig := pgclient.Config{Name: defDB}
 	if err := env.ParseWithOptions(&dbConfig, env.Options{Prefix: envPrefixDB}); err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 		exitCode = 1
 		return
 	}
@@ -128,7 +129,7 @@ func main() {
 	cm.Migrations = append(cm.Migrations, gm.Migrations...)
 	db, err := pgclient.Setup(dbConfig, *cm)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 		exitCode = 1
 		return
 	}
@@ -136,43 +137,43 @@ func main() {
 
 	tp, err := jaegerclient.NewProvider(ctx, svcName, cfg.JaegerURL, cfg.InstanceID, cfg.TraceRatio)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to init Jaeger: %s", err))
+		logger.Error(fmt.Sprintf("failed to init Jaeger: %s", err))
 		exitCode = 1
 		return
 	}
 	defer func() {
 		if err := tp.Shutdown(ctx); err != nil {
-			logger.Error(ctx, fmt.Sprintf("error shutting down tracer provider: %v", err))
+			logger.Error(fmt.Sprintf("error shutting down tracer provider: %v", err))
 		}
 	}()
 	tracer := tp.Tracer(svcName)
 
 	authConfig := auth.Config{}
 	if err := env.ParseWithOptions(&authConfig, env.Options{Prefix: envPrefixAuth}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
 	authClient, authHandler, err := auth.Setup(authConfig)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 		exitCode = 1
 		return
 	}
 	defer authHandler.Close()
-	logger.Info(ctx, "Successfully connected to auth grpc server "+authHandler.Secure())
+	logger.Info("Successfully connected to auth grpc server " + authHandler.Secure())
 
 	csvc, gsvc, err := newService(ctx, authClient, db, dbConfig, tracer, cfg, ec, logger)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to setup service: %s", err))
+		logger.Error(fmt.Sprintf("failed to setup service: %s", err))
 		exitCode = 1
 		return
 	}
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
 	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err.Error()))
+		logger.Error(fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err.Error()))
 		exitCode = 1
 		return
 	}
@@ -194,11 +195,11 @@ func main() {
 	})
 
 	if err := g.Wait(); err != nil {
-		logger.Error(ctx, fmt.Sprintf("users service terminated: %s", err))
+		logger.Error(fmt.Sprintf("users service terminated: %s", err))
 	}
 }
 
-func newService(ctx context.Context, authClient magistrala.AuthServiceClient, db *sqlx.DB, dbConfig pgclient.Config, tracer trace.Tracer, c config, ec email.Config, logger mglog.Logger) (users.Service, groups.Service, error) {
+func newService(ctx context.Context, authClient magistrala.AuthServiceClient, db *sqlx.DB, dbConfig pgclient.Config, tracer trace.Tracer, c config, ec email.Config, logger slog.Logger) (users.Service, groups.Service, error) {
 	database := postgres.NewDatabase(db, dbConfig, tracer)
 	cRepo := clientspg.NewRepository(database)
 	gRepo := gpostgres.New(database)
@@ -208,7 +209,7 @@ func newService(ctx context.Context, authClient magistrala.AuthServiceClient, db
 
 	emailerClient, err := emailer.New(c.ResetURL, &ec)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to configure e-mailing util: %s", err.Error()))
+		logger.Error(fmt.Sprintf("failed to configure e-mailing util: %s", err.Error()))
 	}
 
 	csvc := users.NewService(cRepo, authClient, emailerClient, hsr, idp, c.PassRegex, c.SelfRegister)
@@ -235,7 +236,7 @@ func newService(ctx context.Context, authClient magistrala.AuthServiceClient, db
 
 	clientID, err := createAdmin(ctx, c, cRepo, hsr, csvc)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create admin client: %s", err))
+		logger.Error(fmt.Sprintf("failed to create admin client: %s", err))
 	}
 	if err := createAdminPolicy(ctx, clientID, authClient); err != nil {
 		return nil, nil, err

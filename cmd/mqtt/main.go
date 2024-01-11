@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 	"os"
@@ -19,6 +20,8 @@ import (
 	"github.com/absmach/magistrala"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	"github.com/absmach/magistrala/internal/server"
+	"github.com/absmach/magistrala/kitlogger"
+	mflog "github.com/absmach/magistrala/kitlogger"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/mqtt"
 	"github.com/absmach/magistrala/mqtt/events"
@@ -36,7 +39,6 @@ import (
 	"github.com/caarlos0/env/v10"
 	"github.com/cenkalti/backoff/v4"
 	chclient "github.com/mainflux/callhome/pkg/client"
-	mflog "github.com/mainflux/mainflux/logger"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -77,12 +79,12 @@ func main() {
 
 	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		log.Fatalf("failed to init logger: %s", err)
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
-	chClientLogger, err := mflog.New(os.Stdout, cfg.LogLevel)
+	chClientLogger, err := kitlogger.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
@@ -90,7 +92,7 @@ func main() {
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
-			logger.Error(ctx, fmt.Sprintf("failed to generate instanceID: %s", err))
+			logger.Error(fmt.Sprintf("failed to generate instanceID: %s", err))
 			exitCode = 1
 			return
 		}
@@ -98,12 +100,12 @@ func main() {
 
 	if cfg.MQTTTargetHealthCheck != "" {
 		notify := func(e error, next time.Duration) {
-			logger.Info(ctx, fmt.Sprintf("Broker not ready: %s, next try in %s", e.Error(), next))
+			logger.Info(fmt.Sprintf("Broker not ready: %s, next try in %s", e.Error(), next))
 		}
 
 		err := backoff.RetryNotify(healthcheck(cfg), backoff.NewExponentialBackOff(), notify)
 		if err != nil {
-			logger.Error(ctx, fmt.Sprintf("MQTT healthcheck limit exceeded, exiting. %s ", err))
+			logger.Error(fmt.Sprintf("MQTT healthcheck limit exceeded, exiting. %s ", err))
 			exitCode = 1
 			return
 		}
@@ -116,20 +118,20 @@ func main() {
 
 	tp, err := jaegerclient.NewProvider(ctx, svcName, cfg.JaegerURL, cfg.InstanceID, cfg.TraceRatio)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("Failed to init Jaeger: %s", err))
+		logger.Error(fmt.Sprintf("Failed to init Jaeger: %s", err))
 		exitCode = 1
 		return
 	}
 	defer func() {
 		if err := tp.Shutdown(ctx); err != nil {
-			logger.Error(ctx, fmt.Sprintf("Error shutting down tracer provider: %v", err))
+			logger.Error(fmt.Sprintf("Error shutting down tracer provider: %v", err))
 		}
 	}()
 	tracer := tp.Tracer(svcName)
 
 	bsub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to connect to message broker: %s", err))
+		logger.Error(fmt.Sprintf("failed to connect to message broker: %s", err))
 		exitCode = 1
 		return
 	}
@@ -138,7 +140,7 @@ func main() {
 
 	mpub, err := mqttpub.NewPublisher(fmt.Sprintf("mqtt://%s:%s", cfg.MQTTTargetHost, cfg.MQTTTargetPort), cfg.MQTTQoS, cfg.MQTTForwarderTimeout)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create MQTT publisher: %s", err))
+		logger.Error(fmt.Sprintf("failed to create MQTT publisher: %s", err))
 		exitCode = 1
 		return
 	}
@@ -147,14 +149,14 @@ func main() {
 	fwd := mqtt.NewForwarder(brokers.SubjectAllChannels, logger)
 	fwd = mqtttracing.New(serverConfig, tracer, fwd, brokers.SubjectAllChannels)
 	if err := fwd.Forward(ctx, svcName, bsub, mpub); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to forward message broker messages: %s", err))
+		logger.Error(fmt.Sprintf("failed to forward message broker messages: %s", err))
 		exitCode = 1
 		return
 	}
 
 	np, err := brokers.NewPublisher(ctx, cfg.BrokerURL)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to connect to message broker: %s", err))
+		logger.Error(fmt.Sprintf("failed to connect to message broker: %s", err))
 		exitCode = 1
 		return
 	}
@@ -163,27 +165,27 @@ func main() {
 
 	es, err := events.NewEventStore(ctx, cfg.ESURL, cfg.Instance)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create %s event store : %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to create %s event store : %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
 	authConfig := auth.Config{}
 	if err := env.ParseWithOptions(&authConfig, env.Options{Prefix: envPrefixAuthz}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
 	authClient, authHandler, err := auth.SetupAuthz(authConfig)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 		exitCode = 1
 		return
 	}
 	defer authHandler.Close()
 
-	logger.Info(ctx, "Successfully connected to things grpc server "+authHandler.Secure())
+	logger.Info("Successfully connected to things grpc server " + authHandler.Secure())
 
 	h := mqtt.NewHandler(np, es, logger, authClient)
 	h = handler.NewTracing(tracer, h)
@@ -193,12 +195,12 @@ func main() {
 		go chc.CallHome(ctx)
 	}
 
-	logger.Info(ctx, fmt.Sprintf("Starting MQTT proxy on port %s", cfg.MQTTPort))
+	logger.Info(fmt.Sprintf("Starting MQTT proxy on port %s", cfg.MQTTPort))
 	g.Go(func() error {
 		return proxyMQTT(ctx, cfg, chClientLogger, h)
 	})
 
-	logger.Info(ctx, fmt.Sprintf("Starting MQTT over WS  proxy on port %s", cfg.HTTPPort))
+	logger.Info(fmt.Sprintf("Starting MQTT over WS  proxy on port %s", cfg.HTTPPort))
 	g.Go(func() error {
 		return proxyWS(ctx, cfg, chClientLogger, h)
 	})
@@ -208,7 +210,7 @@ func main() {
 	})
 
 	if err := g.Wait(); err != nil {
-		logger.Error(ctx, fmt.Sprintf("mProxy terminated: %s", err))
+		logger.Error(fmt.Sprintf("mProxy terminated: %s", err))
 	}
 }
 
@@ -269,13 +271,13 @@ func healthcheck(cfg config) func() error {
 	}
 }
 
-func stopSignalHandler(ctx context.Context, cancel context.CancelFunc, logger mglog.Logger) error {
+func stopSignalHandler(ctx context.Context, cancel context.CancelFunc, logger slog.Logger) error {
 	c := make(chan os.Signal, 2)
 	signal.Notify(c, syscall.SIGINT, syscall.SIGABRT)
 	select {
 	case sig := <-c:
 		defer cancel()
-		logger.Info(ctx, fmt.Sprintf("%s service shutdown by signal: %s", svcName, sig))
+		logger.Info(fmt.Sprintf("%s service shutdown by signal: %s", svcName, sig))
 		return nil
 	case <-ctx.Done():
 		return nil

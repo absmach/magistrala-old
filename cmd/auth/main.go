@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/url"
 	"os"
 	"time"
@@ -27,6 +28,7 @@ import (
 	"github.com/absmach/magistrala/internal/server"
 	grpcserver "github.com/absmach/magistrala/internal/server/grpc"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
+	"github.com/absmach/magistrala/kitlogger"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/uuid"
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
@@ -35,7 +37,6 @@ import (
 	"github.com/caarlos0/env/v10"
 	"github.com/jmoiron/sqlx"
 	chclient "github.com/mainflux/callhome/pkg/client"
-	mflog "github.com/mainflux/mainflux/logger"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 	"google.golang.org/grpc"
@@ -80,20 +81,19 @@ func main() {
 
 	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to init logger: %s", err.Error()))
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
-	chClientLogger, err := mflog.New(os.Stdout, cfg.LogLevel)
+	chClientLogger, err := kitlogger.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
-
 	var exitCode int
 	defer mglog.ExitWithError(&exitCode)
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
-			logger.Error(ctx, fmt.Sprintf("failed to generate instanceID: %s", err))
+			logger.Error(fmt.Sprintf("failed to generate instanceID: %s", err))
 			exitCode = 1
 			return
 		}
@@ -101,12 +101,12 @@ func main() {
 
 	dbConfig := pgclient.Config{Name: defDB}
 	if err := env.ParseWithOptions(&dbConfig, env.Options{Prefix: envPrefixDB}); err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 	}
 
 	db, err := pgclient.Setup(dbConfig, *apostgres.Migration())
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 		exitCode = 1
 		return
 	}
@@ -114,20 +114,20 @@ func main() {
 
 	tp, err := jaegerclient.NewProvider(ctx, svcName, cfg.JaegerURL, cfg.InstanceID, cfg.TraceRatio)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to init Jaeger: %s", err))
+		logger.Error(fmt.Sprintf("failed to init Jaeger: %s", err))
 		exitCode = 1
 		return
 	}
 	defer func() {
 		if err := tp.Shutdown(ctx); err != nil {
-			logger.Error(ctx, fmt.Sprintf("error shutting down tracer provider: %v", err))
+			logger.Error(fmt.Sprintf("error shutting down tracer provider: %v", err))
 		}
 	}()
 	tracer := tp.Tracer(svcName)
 
 	spicedbclient, err := initSpiceDB(ctx, cfg)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to init spicedb grpc client : %s\n", err.Error()))
+		logger.Error(fmt.Sprintf("failed to init spicedb grpc client : %s\n", err.Error()))
 		exitCode = 1
 		return
 	}
@@ -136,7 +136,7 @@ func main() {
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
 	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err.Error()))
+		logger.Error(fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err.Error()))
 		exitCode = 1
 		return
 	}
@@ -144,7 +144,7 @@ func main() {
 
 	grpcServerConfig := server.Config{Port: defSvcGRPCPort}
 	if err := env.ParseWithOptions(&grpcServerConfig, env.Options{Prefix: envPrefixGrpc}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s gRPC server configuration : %s", svcName, err.Error()))
+		logger.Error(fmt.Sprintf("failed to load %s gRPC server configuration : %s", svcName, err.Error()))
 		exitCode = 1
 		return
 	}
@@ -172,7 +172,7 @@ func main() {
 	})
 
 	if err := g.Wait(); err != nil {
-		logger.Error(ctx, fmt.Sprintf("users service terminated: %s", err))
+		logger.Error(fmt.Sprintf("users service terminated: %s", err))
 	}
 }
 
@@ -206,7 +206,7 @@ func initSchema(ctx context.Context, client *authzed.ClientWithExperimental, sch
 	return nil
 }
 
-func newService(db *sqlx.DB, tracer trace.Tracer, cfg config, dbConfig pgclient.Config, logger mglog.Logger, spicedbClient *authzed.ClientWithExperimental) auth.Service {
+func newService(db *sqlx.DB, tracer trace.Tracer, cfg config, dbConfig pgclient.Config, logger slog.Logger, spicedbClient *authzed.ClientWithExperimental) auth.Service {
 	database := postgres.NewDatabase(db, dbConfig, tracer)
 	keysRepo := apostgres.New(database)
 	domainsRepo := apostgres.NewDomainRepository(database)

@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/url"
 	"os"
 
@@ -21,6 +22,7 @@ import (
 	pgclient "github.com/absmach/magistrala/internal/clients/postgres"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
+	"github.com/absmach/magistrala/kitlogger"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/messaging/brokers"
 	brokerstracing "github.com/absmach/magistrala/pkg/messaging/brokers/tracing"
@@ -28,7 +30,6 @@ import (
 	"github.com/caarlos0/env/v10"
 	"github.com/jmoiron/sqlx"
 	chclient "github.com/mainflux/callhome/pkg/client"
-	mflog "github.com/mainflux/mainflux/logger"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -61,12 +62,12 @@ func main() {
 
 	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		log.Fatalf("failed to init logger: %s", err)
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
-	chClientLogger, err := mflog.New(os.Stdout, cfg.LogLevel)
+	chClientLogger, err := kitlogger.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
@@ -74,7 +75,7 @@ func main() {
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
-			logger.Error(ctx, fmt.Sprintf("failed to generate instanceID: %s", err))
+			logger.Error(fmt.Sprintf("failed to generate instanceID: %s", err))
 			exitCode = 1
 			return
 		}
@@ -82,39 +83,39 @@ func main() {
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
 	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
 	dbConfig := pgclient.Config{Name: defDB}
 	if err := env.ParseWithOptions(&dbConfig, env.Options{Prefix: envPrefixDB}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s Postgres configuration : %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to load %s Postgres configuration : %s", svcName, err))
 		exitCode = 1
 		return
 	}
 	db, err := pgclient.Setup(dbConfig, *writerpg.Migration())
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 	}
 	defer db.Close()
 
 	tp, err := jaegerclient.NewProvider(ctx, svcName, cfg.JaegerURL, cfg.InstanceID, cfg.TraceRatio)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("Failed to init Jaeger: %s", err))
+		logger.Error(fmt.Sprintf("Failed to init Jaeger: %s", err))
 		exitCode = 1
 		return
 	}
 	defer func() {
 		if err := tp.Shutdown(ctx); err != nil {
-			logger.Error(ctx, fmt.Sprintf("Error shutting down tracer provider: %v", err))
+			logger.Error(fmt.Sprintf("Error shutting down tracer provider: %v", err))
 		}
 	}()
 	tracer := tp.Tracer(svcName)
 
 	pubSub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to connect to message broker: %s", err))
+		logger.Error(fmt.Sprintf("failed to connect to message broker: %s", err))
 		exitCode = 1
 		return
 	}
@@ -125,7 +126,7 @@ func main() {
 	repo = consumertracing.NewBlocking(tracer, repo, httpServerConfig)
 
 	if err = consumers.Start(ctx, svcName, pubSub, repo, cfg.ConfigPath, logger); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create Postgres writer: %s", err))
+		logger.Error(fmt.Sprintf("failed to create Postgres writer: %s", err))
 		exitCode = 1
 		return
 	}
@@ -146,11 +147,11 @@ func main() {
 	})
 
 	if err := g.Wait(); err != nil {
-		logger.Error(ctx, fmt.Sprintf("Postgres writer service terminated: %s", err))
+		logger.Error(fmt.Sprintf("Postgres writer service terminated: %s", err))
 	}
 }
 
-func newService(db *sqlx.DB, logger mglog.Logger) consumers.BlockingConsumer {
+func newService(db *sqlx.DB, logger slog.Logger) consumers.BlockingConsumer {
 	svc := writerpg.New(db)
 	svc = api.LoggingMiddleware(svc, logger)
 	counter, latency := internal.MakeMetrics("postgres", "message_writer")

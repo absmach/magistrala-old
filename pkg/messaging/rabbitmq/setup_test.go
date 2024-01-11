@@ -4,9 +4,9 @@
 package rabbitmq_test
 
 import (
-	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -30,7 +30,7 @@ const (
 var (
 	publisher messaging.Publisher
 	pubsub    messaging.PubSub
-	logger    mglog.Logger
+	logger    slog.Logger
 	address   string
 )
 
@@ -54,7 +54,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Could not connect to docker: %s", err)
 	}
 
-	logger, err = mglog.New(os.Stdout, mglog.Debug.String())
+	logger, err = mglog.New(os.Stdout, "info")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
@@ -90,15 +90,15 @@ func newConn() (*amqp.Connection, *amqp.Channel, error) {
 	return conn, ch, nil
 }
 
-func rabbitHandler(ctx context.Context, deliveries <-chan amqp.Delivery, h messaging.MessageHandler) {
+func rabbitHandler(deliveries <-chan amqp.Delivery, h messaging.MessageHandler) {
 	for d := range deliveries {
 		var msg messaging.Message
 		if err := proto.Unmarshal(d.Body, &msg); err != nil {
-			logger.Warn(ctx, fmt.Sprintf("Failed to unmarshal received message: %s", err))
+			logger.Warn(fmt.Sprintf("Failed to unmarshal received message: %s", err))
 			return
 		}
-		if err := h.Handle(ctx, &msg); err != nil {
-			logger.Warn(ctx, fmt.Sprintf("Failed to handle Magistrala message: %s", err))
+		if err := h.Handle(&msg); err != nil {
+			logger.Warn(fmt.Sprintf("Failed to handle Magistrala message: %s", err))
 			return
 		}
 	}

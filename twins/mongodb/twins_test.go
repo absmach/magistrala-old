@@ -36,7 +36,7 @@ const (
 var (
 	port        string
 	addr        string
-	testLog, _  = mglog.New(os.Stdout, mglog.Info.String())
+	testLog, _  = mglog.New(os.Stdout, "info")
 	idProvider  = uuid.New()
 	invalidName = strings.Repeat("m", maxNameSize+1)
 )
@@ -87,8 +87,6 @@ func TestTwinsSave(t *testing.T) {
 }
 
 func TestTwinsUpdate(t *testing.T) {
-	ctx := context.Background()
-
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(addr))
 	require.Nil(t, err, fmt.Sprintf("Creating new MongoDB client expected to succeed: %s.\n", err))
 
@@ -107,7 +105,7 @@ func TestTwinsUpdate(t *testing.T) {
 	}
 
 	if _, err := repo.Save(context.Background(), twin); err != nil {
-		testLog.Error(ctx, err.Error())
+		testLog.Error(err.Error())
 	}
 
 	twin.Name = "new_name"
@@ -146,8 +144,6 @@ func TestTwinsUpdate(t *testing.T) {
 }
 
 func TestTwinsRetrieveByID(t *testing.T) {
-	ctx := context.Background()
-
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(addr))
 	require.Nil(t, err, fmt.Sprintf("Creating new MongoDB client expected to succeed: %s.\n", err))
 
@@ -165,7 +161,7 @@ func TestTwinsRetrieveByID(t *testing.T) {
 	}
 
 	if _, err := repo.Save(context.Background(), twin); err != nil {
-		testLog.Error(ctx, err.Error())
+		testLog.Error(err.Error())
 	}
 
 	cases := []struct {
@@ -349,8 +345,6 @@ func TestTwinsRetrieveAll(t *testing.T) {
 }
 
 func TestTwinsRemove(t *testing.T) {
-	ctx := context.Background()
-
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(addr))
 	require.Nil(t, err, fmt.Sprintf("Creating new MongoDB client expected to succeed: %s.\n", err))
 
@@ -368,7 +362,7 @@ func TestTwinsRemove(t *testing.T) {
 	}
 
 	if _, err := repo.Save(context.Background(), twin); err != nil {
-		testLog.Error(ctx, err.Error())
+		testLog.Error(err.Error())
 	}
 
 	cases := []struct {

@@ -7,10 +7,10 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sync"
 	"time"
 
-	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/messaging"
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"google.golang.org/protobuf/proto"
@@ -51,7 +51,7 @@ type subscription struct {
 
 type pubsub struct {
 	publisher
-	logger        mglog.Logger
+	logger        slog.Logger
 	mu            sync.RWMutex
 	address       string
 	timeout       time.Duration
@@ -59,7 +59,7 @@ type pubsub struct {
 }
 
 // NewPubSub returns MQTT message publisher/subscriber.
-func NewPubSub(url string, qos uint8, timeout time.Duration, logger mglog.Logger) (messaging.PubSub, error) {
+func NewPubSub(url string, qos uint8, timeout time.Duration, logger slog.Logger) (messaging.PubSub, error) {
 	client, err := newClient(url, "mqtt-publisher", timeout)
 	if err != nil {
 		return nil, err
@@ -111,7 +111,7 @@ func (ps *pubsub) Subscribe(ctx context.Context, cfg messaging.SubscriberConfig)
 	s.topics = append(s.topics, cfg.Topic)
 	ps.subscriptions[cfg.ID] = s
 
-	token := s.client.Subscribe(cfg.Topic, byte(ps.qos), ps.mqttHandler(ctx, cfg.Handler))
+	token := s.client.Subscribe(cfg.Topic, byte(ps.qos), ps.mqttHandler(cfg.Handler))
 	if token.Error() != nil {
 		return token.Error()
 	}
@@ -187,16 +187,16 @@ func newClient(address, id string, timeout time.Duration) (mqtt.Client, error) {
 	return client, nil
 }
 
-func (ps *pubsub) mqttHandler(ctx context.Context, h messaging.MessageHandler) mqtt.MessageHandler {
+func (ps *pubsub) mqttHandler(h messaging.MessageHandler) mqtt.MessageHandler {
 	return func(_ mqtt.Client, m mqtt.Message) {
 		var msg messaging.Message
 		if err := proto.Unmarshal(m.Payload(), &msg); err != nil {
-			ps.logger.Warn(ctx, fmt.Sprintf("Failed to unmarshal received message: %s", err))
+			ps.logger.Warn(fmt.Sprintf("Failed to unmarshal received message: %s", err))
 			return
 		}
 
-		if err := h.Handle(ctx, &msg); err != nil {
-			ps.logger.Warn(ctx, fmt.Sprintf("Failed to handle Magistrala message: %s", err))
+		if err := h.Handle(&msg); err != nil {
+			ps.logger.Warn(fmt.Sprintf("Failed to handle Magistrala message: %s", err))
 		}
 	}
 }

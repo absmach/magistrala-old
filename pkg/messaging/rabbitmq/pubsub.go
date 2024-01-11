@@ -7,9 +7,9 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"log/slog"
 	"sync"
 
-	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/messaging"
 	amqp "github.com/rabbitmq/amqp091-go"
 	"google.golang.org/protobuf/proto"
@@ -40,13 +40,13 @@ type subscription struct {
 }
 type pubsub struct {
 	publisher
-	logger        mglog.Logger
+	logger        slog.Logger
 	subscriptions map[string]map[string]subscription
 	mu            sync.Mutex
 }
 
 // NewPubSub returns RabbitMQ message publisher/subscriber.
-func NewPubSub(url string, logger mglog.Logger, opts ...messaging.Option) (messaging.PubSub, error) {
+func NewPubSub(url string, logger slog.Logger, opts ...messaging.Option) (messaging.PubSub, error) {
 	conn, err := amqp.Dial(url)
 	if err != nil {
 		return nil, err
@@ -126,7 +126,7 @@ func (ps *pubsub) Subscribe(ctx context.Context, cfg messaging.SubscriberConfig)
 	if err != nil {
 		return err
 	}
-	go ps.handle(ctx, msgs, cfg.Handler)
+	go ps.handle(msgs, cfg.Handler)
 	s[cfg.ID] = subscription{
 		cancel: func() error {
 			if err := ps.channel.Cancel(clientID, false); err != nil {
@@ -176,15 +176,15 @@ func (ps *pubsub) Unsubscribe(ctx context.Context, id, topic string) error {
 	return nil
 }
 
-func (ps *pubsub) handle(ctx context.Context, deliveries <-chan amqp.Delivery, h messaging.MessageHandler) {
+func (ps *pubsub) handle(deliveries <-chan amqp.Delivery, h messaging.MessageHandler) {
 	for d := range deliveries {
 		var msg messaging.Message
 		if err := proto.Unmarshal(d.Body, &msg); err != nil {
-			ps.logger.Warn(ctx, fmt.Sprintf("Failed to unmarshal received message: %s", err))
+			ps.logger.Warn(fmt.Sprintf("Failed to unmarshal received message: %s", err))
 			return
 		}
-		if err := h.Handle(ctx, &msg); err != nil {
-			ps.logger.Warn(ctx, fmt.Sprintf("Failed to handle Magistrala message: %s", err))
+		if err := h.Handle(&msg); err != nil {
+			ps.logger.Warn(fmt.Sprintf("Failed to handle Magistrala message: %s", err))
 			return
 		}
 	}

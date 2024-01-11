@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/url"
 	"os"
 
@@ -22,6 +23,7 @@ import (
 	"github.com/absmach/magistrala/invitations/api"
 	"github.com/absmach/magistrala/invitations/middleware"
 	invitationspg "github.com/absmach/magistrala/invitations/postgres"
+	"github.com/absmach/magistrala/kitlogger"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/auth"
 	mgsdk "github.com/absmach/magistrala/pkg/sdk/go"
@@ -29,7 +31,6 @@ import (
 	"github.com/caarlos0/env/v10"
 	"github.com/jmoiron/sqlx"
 	chclient "github.com/mainflux/callhome/pkg/client"
-	mflog "github.com/mainflux/mainflux/logger"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 )
@@ -64,12 +65,12 @@ func main() {
 
 	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		log.Fatalf("failed to init logger: %s", err)
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
-	chClientLogger, err := mflog.New(os.Stdout, cfg.LogLevel)
+	chClientLogger, err := kitlogger.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
@@ -77,7 +78,7 @@ func main() {
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
-			logger.Error(ctx, fmt.Sprintf("failed to generate instanceID: %s", err))
+			logger.Error(fmt.Sprintf("failed to generate instanceID: %s", err))
 			exitCode = 1
 			return
 		}
@@ -85,13 +86,13 @@ func main() {
 
 	dbConfig := clientspg.Config{Name: defDB}
 	if err := env.ParseWithOptions(&dbConfig, env.Options{Prefix: envPrefixDB}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s database configuration : %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to load %s database configuration : %s", svcName, err))
 		exitCode = 1
 		return
 	}
 	db, err := clientspg.Setup(dbConfig, *invitationspg.Migration())
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 		exitCode = 1
 		return
 	}
@@ -99,42 +100,42 @@ func main() {
 
 	authConfig := auth.Config{}
 	if err := env.ParseWithOptions(&authConfig, env.Options{Prefix: envPrefixAuth}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load auth configuration : %s", err.Error()))
+		logger.Error(fmt.Sprintf("failed to load auth configuration : %s", err.Error()))
 		exitCode = 1
 		return
 	}
 	authClient, authHandler, err := auth.Setup(authConfig)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 		exitCode = 1
 		return
 	}
 	defer authHandler.Close()
-	logger.Info(ctx, "Successfully connected to auth grpc server "+authHandler.Secure())
+	logger.Info("Successfully connected to auth grpc server " + authHandler.Secure())
 
 	tp, err := jaeger.NewProvider(ctx, svcName, cfg.JaegerURL, cfg.InstanceID, cfg.TraceRatio)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to init Jaeger: %s", err))
+		logger.Error(fmt.Sprintf("failed to init Jaeger: %s", err))
 		exitCode = 1
 		return
 	}
 	defer func() {
 		if err := tp.Shutdown(ctx); err != nil {
-			logger.Error(ctx, fmt.Sprintf("error shutting down tracer provider: %v", err))
+			logger.Error(fmt.Sprintf("error shutting down tracer provider: %v", err))
 		}
 	}()
 	tracer := tp.Tracer(svcName)
 
 	svc, err := newService(db, dbConfig, authClient, tracer, cfg, logger)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create %s service: %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to create %s service: %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
 	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
 		exitCode = 1
 		return
 	}
@@ -155,11 +156,11 @@ func main() {
 	})
 
 	if err := g.Wait(); err != nil {
-		logger.Error(ctx, fmt.Sprintf("%s service terminated: %s", svcName, err))
+		logger.Error(fmt.Sprintf("%s service terminated: %s", svcName, err))
 	}
 }
 
-func newService(db *sqlx.DB, dbConfig clientspg.Config, authClient magistrala.AuthServiceClient, tracer trace.Tracer, conf config, logger mglog.Logger) (invitations.Service, error) {
+func newService(db *sqlx.DB, dbConfig clientspg.Config, authClient magistrala.AuthServiceClient, tracer trace.Tracer, conf config, logger slog.Logger) (invitations.Service, error) {
 	database := postgres.NewDatabase(db, dbConfig, tracer)
 	repo := invitationspg.NewRepository(database)
 

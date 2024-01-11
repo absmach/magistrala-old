@@ -6,11 +6,11 @@ package consumers
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"strings"
 
 	"github.com/absmach/magistrala/internal/apiutil"
-	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
 	"github.com/absmach/magistrala/pkg/messaging"
 	"github.com/absmach/magistrala/pkg/messaging/brokers"
@@ -33,13 +33,13 @@ var (
 // Start method starts consuming messages received from Message broker.
 // This method transforms messages to SenML format before
 // using MessageRepository to store them.
-func Start(ctx context.Context, id string, sub messaging.Subscriber, consumer interface{}, configPath string, logger mglog.Logger) error {
+func Start(ctx context.Context, id string, sub messaging.Subscriber, consumer interface{}, configPath string, logger slog.Logger) error {
 	cfg, err := loadConfig(configPath)
 	if err != nil {
-		logger.Warn(ctx, fmt.Sprintf("Failed to load consumer config: %s", err))
+		logger.Warn(fmt.Sprintf("Failed to load consumer config: %s", err))
 	}
 
-	transformer := makeTransformer(ctx, cfg.TransformerCfg, logger)
+	transformer := makeTransformer(cfg.TransformerCfg, logger)
 
 	for _, subject := range cfg.SubscriberCfg.Subjects {
 		subCfg := messaging.SubscriberConfig{
@@ -66,7 +66,7 @@ func Start(ctx context.Context, id string, sub messaging.Subscriber, consumer in
 }
 
 func handleSync(ctx context.Context, t transformers.Transformer, sc BlockingConsumer) handleFunc {
-	return func(ctx context.Context, msg *messaging.Message) error {
+	return func(msg *messaging.Message) error {
 		m := interface{}(msg)
 		var err error
 		if t != nil {
@@ -80,7 +80,7 @@ func handleSync(ctx context.Context, t transformers.Transformer, sc BlockingCons
 }
 
 func handleAsync(ctx context.Context, t transformers.Transformer, ac AsyncConsumer) handleFunc {
-	return func(ctx context.Context, msg *messaging.Message) error {
+	return func(msg *messaging.Message) error {
 		m := interface{}(msg)
 		var err error
 		if t != nil {
@@ -95,10 +95,10 @@ func handleAsync(ctx context.Context, t transformers.Transformer, ac AsyncConsum
 	}
 }
 
-type handleFunc func(ctx context.Context, msg *messaging.Message) error
+type handleFunc func(msg *messaging.Message) error
 
-func (h handleFunc) Handle(ctx context.Context, msg *messaging.Message) error {
-	return h(ctx, msg)
+func (h handleFunc) Handle(msg *messaging.Message) error {
+	return h(msg)
 }
 
 func (h handleFunc) Cancel() error {
@@ -143,16 +143,16 @@ func loadConfig(configPath string) (config, error) {
 	return cfg, nil
 }
 
-func makeTransformer(ctx context.Context, cfg transformerConfig, logger mglog.Logger) transformers.Transformer {
+func makeTransformer(cfg transformerConfig, logger slog.Logger) transformers.Transformer {
 	switch strings.ToUpper(cfg.Format) {
 	case "SENML":
-		logger.Info(ctx, "Using SenML transformer")
+		logger.Info("Using SenML transformer")
 		return senml.New(cfg.ContentType)
 	case "JSON":
-		logger.Info(ctx, "Using JSON transformer")
+		logger.Info("Using JSON transformer")
 		return json.New(cfg.TimeFields)
 	default:
-		logger.Error(ctx, fmt.Sprintf("Can't create transformer: unknown transformer type %s", cfg.Format))
+		logger.Error(fmt.Sprintf("Can't create transformer: unknown transformer type %s", cfg.Format))
 		os.Exit(1)
 		return nil
 	}

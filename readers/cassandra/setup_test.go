@@ -4,7 +4,6 @@
 package cassandra_test
 
 import (
-	"context"
 	"fmt"
 	"os"
 	"testing"
@@ -15,19 +14,17 @@ import (
 	"github.com/ory/dockertest/v3"
 )
 
-var logger, _ = mglog.New(os.Stdout, mglog.Info.String())
+var logger, _ = mglog.New(os.Stdout, "info")
 
 func TestMain(m *testing.M) {
-	ctx := context.Background()
-
 	pool, err := dockertest.NewPool("")
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("Could not connect to docker: %s", err))
+		logger.Error(fmt.Sprintf("Could not connect to docker: %s", err))
 	}
 
 	container, err := pool.Run("cassandra", "3.11.10", []string{})
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("Could not start container: %s", err))
+		logger.Error(fmt.Sprintf("Could not start container: %s", err))
 	}
 
 	port := container.GetPort("9042/tcp")
@@ -49,13 +46,13 @@ func TestMain(m *testing.M) {
 
 		return nil
 	}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("Could not connect to docker: %s", err))
+		logger.Error(fmt.Sprintf("Could not connect to docker: %s", err))
 	}
 
 	code := m.Run()
 
 	if err := pool.Purge(container); err != nil {
-		logger.Error(ctx, fmt.Sprintf("Could not purge container: %s", err))
+		logger.Error(fmt.Sprintf("Could not purge container: %s", err))
 	}
 
 	os.Exit(code)

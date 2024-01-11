@@ -6,9 +6,9 @@ package mqtt
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"strings"
 
-	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/messaging"
 )
 
@@ -21,11 +21,11 @@ type Forwarder interface {
 
 type forwarder struct {
 	topic  string
-	logger mglog.Logger
+	logger slog.Logger
 }
 
 // NewForwarder returns new Forwarder implementation.
-func NewForwarder(topic string, logger mglog.Logger) Forwarder {
+func NewForwarder(topic string, logger slog.Logger) Forwarder {
 	return forwarder{
 		topic:  topic,
 		logger: logger,
@@ -42,8 +42,8 @@ func (f forwarder) Forward(ctx context.Context, id string, sub messaging.Subscri
 	return sub.Subscribe(ctx, subCfg)
 }
 
-func handle(ctx context.Context, pub messaging.Publisher, logger mglog.Logger) handleFunc {
-	return func(ctx context.Context, msg *messaging.Message) error {
+func handle(ctx context.Context, pub messaging.Publisher, logger slog.Logger) handleFunc {
+	return func(msg *messaging.Message) error {
 		if msg.Protocol == protocol {
 			return nil
 		}
@@ -56,7 +56,7 @@ func handle(ctx context.Context, pub messaging.Publisher, logger mglog.Logger) h
 
 		go func() {
 			if err := pub.Publish(ctx, topic, msg); err != nil {
-				logger.Warn(ctx, fmt.Sprintf("Failed to forward message: %s", err))
+				logger.Warn(fmt.Sprintf("Failed to forward message: %s", err))
 			}
 		}()
 
@@ -64,10 +64,10 @@ func handle(ctx context.Context, pub messaging.Publisher, logger mglog.Logger) h
 	}
 }
 
-type handleFunc func(ctx context.Context, msg *messaging.Message) error
+type handleFunc func(msg *messaging.Message) error
 
-func (h handleFunc) Handle(ctx context.Context, msg *messaging.Message) error {
-	return h(ctx, msg)
+func (h handleFunc) Handle(msg *messaging.Message) error {
+	return h(msg)
 }
 
 func (h handleFunc) Cancel() error {

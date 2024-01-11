@@ -7,9 +7,9 @@ import (
 	"context"
 	"fmt"
 	"io"
+	"log/slog"
 
 	"github.com/absmach/magistrala/auth"
-	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
 	svcerr "github.com/absmach/magistrala/pkg/errors/service"
 	v1 "github.com/authzed/authzed-go/proto/authzed/api/v1"
@@ -33,10 +33,10 @@ var (
 type policyAgent struct {
 	client           *authzed.ClientWithExperimental
 	permissionClient v1.PermissionsServiceClient
-	logger           mglog.Logger
+	logger           slog.Logger
 }
 
-func NewPolicyAgent(client *authzed.ClientWithExperimental, logger mglog.Logger) auth.PolicyAgent {
+func NewPolicyAgent(client *authzed.ClientWithExperimental, logger slog.Logger) auth.PolicyAgent {
 	return &policyAgent{
 		client:           client,
 		permissionClient: client.PermissionsServiceClient,
@@ -408,25 +408,25 @@ func (pa *policyAgent) Watch(ctx context.Context, continueToken string) {
 		OptionalStartCursor: &v1.ZedToken{Token: continueToken},
 	})
 	if err != nil {
-		pa.logger.Error(ctx, fmt.Sprintf("got error while watching: %s", err.Error()))
+		pa.logger.Error(fmt.Sprintf("got error while watching: %s", err.Error()))
 	}
 	for {
 		watchResp, err := stream.Recv()
 		switch err {
 		case nil:
-			pa.publishToStream(ctx, watchResp)
+			pa.publishToStream(watchResp)
 		case io.EOF:
-			pa.logger.Info(ctx, "got EOF while watch streaming")
+			pa.logger.Info("got EOF while watch streaming")
 			return
 		default:
-			pa.logger.Error(ctx, fmt.Sprintf("got error while watch streaming : %s", err.Error()))
+			pa.logger.Error(fmt.Sprintf("got error while watch streaming : %s", err.Error()))
 			return
 		}
 	}
 }
 
-func (pa *policyAgent) publishToStream(ctx context.Context, resp *v1.WatchResponse) {
-	pa.logger.Info(ctx, fmt.Sprintf("Publish next token %s", resp.ChangesThrough.Token))
+func (pa *policyAgent) publishToStream(resp *v1.WatchResponse) {
+	pa.logger.Info(fmt.Sprintf("Publish next token %s", resp.ChangesThrough.Token))
 
 	for _, update := range resp.Updates {
 		operation := v1.RelationshipUpdate_Operation_name[int32(update.Operation)]
@@ -437,7 +437,7 @@ func (pa *policyAgent) publishToStream(ctx context.Context, resp *v1.WatchRespon
 		subjectRelation := update.Relationship.Subject.OptionalRelation
 		subjectID := update.Relationship.Subject.Object.ObjectId
 
-		pa.logger.Info(ctx, fmt.Sprintf(`
+		pa.logger.Info(fmt.Sprintf(`
 		Operation : %s	object_type: %s		object_id: %s 	relation: %s 	subject_type: %s 	subject_relation: %s	subject_id: %s
 		`, operation, objectType, objectID, relation, subjectType, subjectRelation, subjectID))
 	}

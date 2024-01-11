@@ -3,25 +3,14 @@
 
 package logger
 
-import "context"
-
-var _ Logger = (*loggerMock)(nil)
-
-type loggerMock struct{}
+import (
+	"bytes"
+	"log/slog"
+)
 
 // NewMock returns wrapped logger mock.
-func NewMock() Logger {
-	return &loggerMock{}
-}
+func NewMock() slog.Logger {
+	buf := &bytes.Buffer{}
 
-func (l loggerMock) Debug(ctx context.Context, msg string) {
-}
-
-func (l loggerMock) Info(ctx context.Context, msg string) {
-}
-
-func (l loggerMock) Warn(ctx context.Context, msg string) {
-}
-
-func (l loggerMock) Error(ctx context.Context, msg string) {
+	return *slog.New(slog.NewJSONHandler(buf, nil))
 }

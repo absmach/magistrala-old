@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 
 	"github.com/absmach/magistrala"
@@ -15,6 +16,7 @@ import (
 	pgclient "github.com/absmach/magistrala/internal/clients/postgres"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
+	"github.com/absmach/magistrala/kitlogger"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/uuid"
@@ -24,7 +26,6 @@ import (
 	"github.com/caarlos0/env/v10"
 	"github.com/jmoiron/sqlx"
 	chclient "github.com/mainflux/callhome/pkg/client"
-	mflog "github.com/mainflux/mainflux/logger"
 	"golang.org/x/sync/errgroup"
 )
 
@@ -55,12 +56,12 @@ func main() {
 
 	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		log.Fatalf("failed to init logger: %s", err)
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
-	chClientLogger, err := mflog.New(os.Stdout, cfg.LogLevel)
+	chClientLogger, err := kitlogger.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
@@ -68,7 +69,7 @@ func main() {
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
-			logger.Error(ctx, fmt.Sprintf("failed to generate instanceID: %s", err))
+			logger.Error(fmt.Sprintf("failed to generate instanceID: %s", err))
 			exitCode = 1
 			return
 		}
@@ -76,13 +77,13 @@ func main() {
 
 	dbConfig := pgclient.Config{Name: defDB}
 	if err := env.ParseWithOptions(&dbConfig, env.Options{Prefix: envPrefixDB}); err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 		exitCode = 1
 		return
 	}
 	db, err := pgclient.Connect(dbConfig)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 	}
 	defer db.Close()
 
@@ -90,41 +91,41 @@ func main() {
 
 	authConfig := auth.Config{}
 	if err := env.ParseWithOptions(&authConfig, env.Options{Prefix: envPrefixAuth}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
 	ac, acHandler, err := auth.Setup(authConfig)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 		exitCode = 1
 		return
 	}
 	defer acHandler.Close()
 
-	logger.Info(ctx, "Successfully connected to auth grpc server "+acHandler.Secure())
+	logger.Info("Successfully connected to auth grpc server " + acHandler.Secure())
 
 	authConfig = auth.Config{}
 	if err := env.ParseWithOptions(&authConfig, env.Options{Prefix: envPrefixAuthz}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
 	tc, tcHandler, err := auth.SetupAuthz(authConfig)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 		exitCode = 1
 		return
 	}
 	defer tcHandler.Close()
 
-	logger.Info(ctx, "Successfully connected to things grpc server "+tcHandler.Secure())
+	logger.Info("Successfully connected to things grpc server " + tcHandler.Secure())
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
 	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
 		exitCode = 1
 		return
 	}
@@ -144,11 +145,11 @@ func main() {
 	})
 
 	if err := g.Wait(); err != nil {
-		logger.Error(ctx, fmt.Sprintf("Timescale reader service terminated: %s", err))
+		logger.Error(fmt.Sprintf("Timescale reader service terminated: %s", err))
 	}
 }
 
-func newService(db *sqlx.DB, logger mglog.Logger) readers.MessageRepository {
+func newService(db *sqlx.DB, logger slog.Logger) readers.MessageRepository {
 	svc := timescale.New(db)
 	svc = api.LoggingMiddleware(svc, logger)
 	counter, latency := internal.MakeMetrics("timescale", "message_reader")

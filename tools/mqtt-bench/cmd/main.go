@@ -5,7 +5,6 @@
 package main
 
 import (
-	"context"
 	"log"
 
 	bench "github.com/absmach/magistrala/tools/mqtt-bench"
@@ -16,7 +15,6 @@ import (
 func main() {
 	confFile := ""
 	bconf := bench.Config{}
-	ctx := context.Background()
 
 	// Command
 	rootCmd := &cobra.Command{
@@ -37,7 +35,7 @@ Complete documentation is available at https://docs.mainflux.io`,
 				}
 			}
 
-			if err := bench.Benchmark(ctx, bconf); err != nil {
+			if err := bench.Benchmark(bconf); err != nil {
 				log.Fatal(err)
 			}
 		},

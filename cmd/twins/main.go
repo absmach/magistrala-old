@@ -8,6 +8,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"net/url"
 	"os"
 
@@ -18,6 +19,7 @@ import (
 	redisclient "github.com/absmach/magistrala/internal/clients/redis"
 	"github.com/absmach/magistrala/internal/server"
 	httpserver "github.com/absmach/magistrala/internal/server/http"
+	"github.com/absmach/magistrala/kitlogger"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/auth"
 	"github.com/absmach/magistrala/pkg/messaging"
@@ -34,7 +36,6 @@ import (
 	"github.com/caarlos0/env/v10"
 	"github.com/go-redis/redis/v8"
 	chclient "github.com/mainflux/callhome/pkg/client"
-	mflog "github.com/mainflux/mainflux/logger"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
@@ -73,12 +74,12 @@ func main() {
 
 	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		log.Fatalf("failed to init logger: %s", err)
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
-	chClientLogger, err := mflog.New(os.Stdout, cfg.LogLevel)
+	chClientLogger, err := kitlogger.New(os.Stdout, cfg.LogLevel)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create logger: %s", err.Error()))
+		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
 	var exitCode int
@@ -86,7 +87,7 @@ func main() {
 
 	if cfg.InstanceID == "" {
 		if cfg.InstanceID, err = uuid.New().ID(); err != nil {
-			logger.Error(ctx, fmt.Sprintf("failed to generate instanceID: %s", err))
+			logger.Error(fmt.Sprintf("failed to generate instanceID: %s", err))
 			exitCode = 1
 			return
 		}
@@ -94,14 +95,14 @@ func main() {
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
 	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to load %s HTTP server configuration : %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
 	cacheClient, err := redisclient.Connect(cfg.CacheURL)
 	if err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 		exitCode = 1
 		return
 	}
@@ -109,20 +110,20 @@ func main() {
 
 	db, err := mongoclient.Setup(envPrefixDB)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to setup postgres database : %s", err))
+		logger.Error(fmt.Sprintf("failed to setup postgres database : %s", err))
 		exitCode = 1
 		return
 	}
 
 	tp, err := jaegerclient.NewProvider(ctx, svcName, cfg.JaegerURL, cfg.InstanceID, cfg.TraceRatio)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to init Jaeger: %s", err))
+		logger.Error(fmt.Sprintf("failed to init Jaeger: %s", err))
 		exitCode = 1
 		return
 	}
 	defer func() {
 		if err := tp.Shutdown(ctx); err != nil {
-			logger.Error(ctx, fmt.Sprintf("Error shutting down tracer provider: %v", err))
+			logger.Error(fmt.Sprintf("Error shutting down tracer provider: %v", err))
 		}
 	}()
 	tracer := tp.Tracer(svcName)
@@ -134,25 +135,25 @@ func main() {
 	default:
 		authConfig := auth.Config{}
 		if err := env.ParseWithOptions(&authConfig, env.Options{Prefix: envPrefixAuth}); err != nil {
-			logger.Error(ctx, fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
+			logger.Error(fmt.Sprintf("failed to load %s auth configuration : %s", svcName, err))
 			exitCode = 1
 			return
 		}
 
 		authServiceClient, authHandler, err := auth.Setup(authConfig)
 		if err != nil {
-			logger.Error(ctx, err.Error())
+			logger.Error(err.Error())
 			exitCode = 1
 			return
 		}
 		defer authHandler.Close()
 		authClient = authServiceClient
-		logger.Info(ctx, "Successfully connected to auth grpc server "+authHandler.Secure())
+		logger.Info("Successfully connected to auth grpc server " + authHandler.Secure())
 	}
 
 	pubSub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to connect to message broker: %s", err))
+		logger.Error(fmt.Sprintf("failed to connect to message broker: %s", err))
 		exitCode = 1
 		return
 	}
@@ -161,7 +162,7 @@ func main() {
 
 	svc, err := newService(ctx, svcName, pubSub, cfg, authClient, tracer, db, cacheClient, logger)
 	if err != nil {
-		logger.Error(ctx, fmt.Sprintf("failed to create %s service: %s", svcName, err))
+		logger.Error(fmt.Sprintf("failed to create %s service: %s", svcName, err))
 		exitCode = 1
 		return
 	}
@@ -182,11 +183,11 @@ func main() {
 	})
 
 	if err := g.Wait(); err != nil {
-		logger.Error(ctx, fmt.Sprintf("Twins service terminated: %s", err))
+		logger.Error(fmt.Sprintf("Twins service terminated: %s", err))
 	}
 }
 
-func newService(ctx context.Context, id string, ps messaging.PubSub, cfg config, users magistrala.AuthServiceClient, tracer trace.Tracer, db *mongo.Database, cacheclient *redis.Client, logger mglog.Logger) (twins.Service, error) {
+func newService(ctx context.Context, id string, ps messaging.PubSub, cfg config, users magistrala.AuthServiceClient, tracer trace.Tracer, db *mongo.Database, cacheclient *redis.Client, logger slog.Logger) (twins.Service, error) {
 	twinRepo := twmongodb.NewTwinRepository(db)
 	twinRepo = tracing.TwinRepositoryMiddleware(tracer, twinRepo)
 
@@ -215,20 +216,20 @@ func newService(ctx context.Context, id string, ps messaging.PubSub, cfg config,
 		Handler: handle(ctx, logger, cfg.ChannelID, svc),
 	}
 	if err = ps.Subscribe(ctx, subCfg); err != nil {
-		logger.Error(ctx, err.Error())
+		logger.Error(err.Error())
 	}
 
 	return svc, nil
 }
 
-func handle(ctx context.Context, logger mglog.Logger, chanID string, svc twins.Service) handlerFunc {
-	return func(ctx context.Context, msg *messaging.Message) error {
+func handle(ctx context.Context, logger slog.Logger, chanID string, svc twins.Service) handlerFunc {
+	return func(msg *messaging.Message) error {
 		if msg.Channel == chanID {
 			return nil
 		}
 
 		if err := svc.SaveStates(ctx, msg); err != nil {
-			logger.Error(ctx, fmt.Sprintf("State save failed: %s", err))
+			logger.Error(fmt.Sprintf("State save failed: %s", err))
 			return err
 		}
 
@@ -236,10 +237,10 @@ func handle(ctx context.Context, logger mglog.Logger, chanID string, svc twins.S
 	}
 }
 
-type handlerFunc func(ctx context.Context, msg *messaging.Message) error
+type handlerFunc func(msg *messaging.Message) error
 
-func (h handlerFunc) Handle(ctx context.Context, msg *messaging.Message) error {
-	return h(ctx, msg)
+func (h handlerFunc) Handle(msg *messaging.Message) error {
+	return h(msg)
 }
 
 func (h handlerFunc) Cancel() error {

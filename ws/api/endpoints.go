@@ -20,14 +20,14 @@ var channelPartRegExp = regexp.MustCompile(`^/channels/([\w\-]+)/messages(/[^?]*
 
 func handshake(ctx context.Context, svc ws.Service) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		req, err := decodeRequest(ctx, r)
+		req, err := decodeRequest(r)
 		if err != nil {
-			encodeError(ctx, w, err)
+			encodeError(w, err)
 			return
 		}
 		conn, err := upgrader.Upgrade(w, r, nil)
 		if err != nil {
-			logger.Warn(ctx, fmt.Sprintf("Failed to upgrade connection to websocket: %s", err.Error()))
+			logger.Warn(fmt.Sprintf("Failed to upgrade connection to websocket: %s", err.Error()))
 			return
 		}
 		req.conn = conn
@@ -38,16 +38,16 @@ func handshake(ctx context.Context, svc ws.Service) http.HandlerFunc {
 			return
 		}
 
-		logger.Debug(ctx, fmt.Sprintf("Successfully upgraded communication to WS on channel %s", req.chanID))
+		logger.Debug(fmt.Sprintf("Successfully upgraded communication to WS on channel %s", req.chanID))
 	}
 }
 
-func decodeRequest(ctx context.Context, r *http.Request) (connReq, error) {
+func decodeRequest(r *http.Request) (connReq, error) {
 	authKey := r.Header.Get("Authorization")
 	if authKey == "" {
 		authKeys := r.URL.Query()["authorization"]
 		if len(authKeys) == 0 {
-			logger.Debug(ctx, "Missing authorization key.")
+			logger.Debug("Missing authorization key.")
 			return connReq{}, errUnauthorizedAccess
 		}
 		authKey = authKeys[0]
@@ -62,7 +62,7 @@ func decodeRequest(ctx context.Context, r *http.Request) (connReq, error) {
 
 	channelParts := channelPartRegExp.FindStringSubmatch(r.RequestURI)
 	if len(channelParts) < 2 {
-		logger.Warn(ctx, "Empty channel id or malformed url")
+		logger.Warn("Empty channel id or malformed url")
 		return connReq{}, errors.ErrMalformedEntity
 	}
 
@@ -107,7 +107,7 @@ func parseSubTopic(subtopic string) (string, error) {
 	return subtopic, nil
 }
 
-func encodeError(ctx context.Context, w http.ResponseWriter, err error) {
+func encodeError(w http.ResponseWriter, err error) {
 	var statusCode int
 
 	switch err {
@@ -120,6 +120,6 @@ func encodeError(ctx context.Context, w http.ResponseWriter, err error) {
 	default:
 		statusCode = http.StatusNotFound
 	}
-	logger.Warn(ctx, fmt.Sprintf("Failed to authorize: %s", err.Error()))
+	logger.Warn(fmt.Sprintf("Failed to authorize: %s", err.Error()))
 	w.WriteHeader(statusCode)
 }
