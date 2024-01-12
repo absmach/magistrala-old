@@ -156,7 +156,7 @@ func TestRemove(t *testing.T) {
 		},
 		{
 			desc: "Remove non existing thing from cache",
-			key:  "",
+			key:  testID2,
 			err:  nil,
 		},
 		{
