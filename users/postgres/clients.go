@@ -102,22 +102,27 @@ func (repo clientRepo) RetrieveByID(ctx context.Context, id string) (mgclients.C
 		ID: id,
 	}
 
-	row, err := repo.DB.NamedQueryContext(ctx, q, dbc)
+	rows, err := repo.ClientRepository.DB.NamedQueryContext(ctx, q, dbc)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return mgclients.Client{}, errors.Wrap(errors.ErrNotFound, err)
-		}
-		return mgclients.Client{}, errors.Wrap(errors.ErrViewEntity, err)
+		return mgclients.Client{}, postgres.HandleError(repoerr.ErrViewEntity, err)
 	}
+	defer rows.Close()
 
-	defer row.Close()
-	row.Next()
 	dbc = pgclients.DBClient{}
-	if err := row.StructScan(&dbc); err != nil {
-		return mgclients.Client{}, errors.Wrap(errors.ErrNotFound, err)
+	if rows.Next() {
+		if err = rows.StructScan(&dbc); err != nil {
+			return mgclients.Client{}, postgres.HandleError(repoerr.ErrViewEntity, err)
+		}
+
+		client, err := pgclients.ToClient(dbc)
+		if err != nil {
+			return mgclients.Client{}, errors.Wrap(repoerr.ErrFailedOpDB, err)
+		}
+
+		return client, nil
 	}
 
-	return pgclients.ToClient(dbc)
+	return mgclients.Client{}, repoerr.ErrNotFound
 }
 
 func (repo clientRepo) RetrieveAll(ctx context.Context, pm mgclients.Page) (mgclients.ClientsPage, error) {
