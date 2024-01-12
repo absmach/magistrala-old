@@ -9,6 +9,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/0x6flab/namegenerator"
 	"github.com/absmach/magistrala/internal/testsutil"
 	"github.com/absmach/magistrala/pkg/clients"
 	"github.com/absmach/magistrala/pkg/errors"
@@ -25,6 +26,7 @@ var (
 	clientIdentity  = "client-identity@example.com"
 	clientName      = "client name"
 	invalidClientID = "invalidClientID"
+	namesgen        = namegenerator.NewNameGenerator()
 )
 
 func TestClientsSave(t *testing.T) {
@@ -149,6 +151,21 @@ func TestClientsSave(t *testing.T) {
 				Metadata: clients.Metadata{},
 			},
 			err: nil,
+		},
+		{
+			desc: "add a client with invalid metadata",
+			client: clients.Client{
+				ID:   testsutil.GenerateUUID(t),
+				Name: namesgen.Generate(),
+				Credentials: clients.Credentials{
+					Identity: fmt.Sprintf("%s@example.com", namesgen.Generate()),
+					Secret:   testsutil.GenerateUUID(t),
+				},
+				Metadata: map[string]interface{}{
+					"key": make(chan int),
+				},
+			},
+			err: errors.ErrMalformedEntity,
 		},
 	}
 	for _, tc := range cases {

@@ -102,7 +102,7 @@ func (repo clientRepo) RetrieveBySecret(ctx context.Context, key string) (mgclie
 		Secret: key,
 	}
 
-	rows, err := repo.ClientRepository.DB.NamedQueryContext(ctx, q, dbc)
+	rows, err := repo.DB.NamedQueryContext(ctx, q, dbc)
 	if err != nil {
 		return mgclients.Client{}, postgres.HandleError(repoerr.ErrViewEntity, err)
 	}
@@ -128,7 +128,7 @@ func (repo clientRepo) RetrieveBySecret(ctx context.Context, key string) (mgclie
 func (repo clientRepo) Delete(ctx context.Context, id string) error {
 	q := "DELETE FROM clients AS c  WHERE c.id = $1 ;"
 
-	result, err := repo.ClientRepository.DB.ExecContext(ctx, q, id)
+	result, err := repo.DB.ExecContext(ctx, q, id)
 	if err != nil {
 		return postgres.HandleError(repoerr.ErrRemoveEntity, err)
 	}
