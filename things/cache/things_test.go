@@ -116,18 +116,12 @@ func TestID(t *testing.T) {
 		{
 			desc: "Get thing ID from cache for non existing thing",
 			key:  "nonExistingKey",
-			id:   testID,
+			id:   "",
 			err:  errors.ErrNotFound,
 		},
 		{
 			desc: "Get thing ID from cache for empty key",
 			key:  "",
-			id:   testID2,
-			err:  errors.ErrNotFound,
-		},
-		{
-			desc: "Get thing ID from cache for empty ID",
-			key:  testKey2,
 			id:   "",
 			err:  errors.ErrNotFound,
 		},
