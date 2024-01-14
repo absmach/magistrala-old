@@ -17,10 +17,26 @@ func TestStatusString(t *testing.T) {
 		status   clients.Status
 		expected string
 	}{
-		{"Enabled", clients.EnabledStatus, "enabled"},
-		{"Disabled", clients.DisabledStatus, "disabled"},
-		{"All", clients.AllStatus, "all"},
-		{"Unknown", clients.Status(100), "unknown"},
+		{
+			desc:     "Enabled",
+			status:   clients.EnabledStatus,
+			expected: "enabled",
+		},
+		{
+			desc:     "Disabled",
+			status:   clients.DisabledStatus,
+			expected: "disabled",
+		},
+		{
+			desc:     "All",
+			status:   clients.AllStatus,
+			expected: "all",
+		},
+		{
+			desc:     "Unknown",
+			status:   clients.Status(100),
+			expected: "unknown",
+		},
 	}
 
 	for _, tc := range cases {
@@ -38,10 +54,30 @@ func TestToStatus(t *testing.T) {
 		expetcted clients.Status
 		err       error
 	}{
-		{"Enabled", "enabled", clients.EnabledStatus, nil},
-		{"Disabled", "disabled", clients.DisabledStatus, nil},
-		{"All", "all", clients.AllStatus, nil},
-		{"Unknown", "unknown", clients.Status(0), apiutil.ErrInvalidStatus},
+		{
+			desc:      "Enabled",
+			status:    "enabled",
+			expetcted: clients.EnabledStatus,
+			err:       nil,
+		},
+		{
+			desc:      "Disabled",
+			status:    "disabled",
+			expetcted: clients.DisabledStatus,
+			err:       nil,
+		},
+		{
+			desc:      "All",
+			status:    "all",
+			expetcted: clients.AllStatus,
+			err:       nil,
+		},
+		{
+			desc:      "Unknown",
+			status:    "unknown",
+			expetcted: clients.Status(0),
+			err:       apiutil.ErrInvalidStatus,
+		},
 	}
 
 	for _, tc := range cases {
@@ -60,10 +96,30 @@ func TestStatusMarshalJSON(t *testing.T) {
 		status   clients.Status
 		err      error
 	}{
-		{"Enabled", []byte(`"enabled"`), clients.EnabledStatus, nil},
-		{"Disabled", []byte(`"disabled"`), clients.DisabledStatus, nil},
-		{"All", []byte(`"all"`), clients.AllStatus, nil},
-		{"Unknown", []byte(`"unknown"`), clients.Status(100), nil},
+		{
+			desc:     "Enabled",
+			expected: []byte(`"enabled"`),
+			status:   clients.EnabledStatus,
+			err:      nil,
+		},
+		{
+			desc:     "Disabled",
+			expected: []byte(`"disabled"`),
+			status:   clients.DisabledStatus,
+			err:      nil,
+		},
+		{
+			desc:     "All",
+			expected: []byte(`"all"`),
+			status:   clients.AllStatus,
+			err:      nil,
+		},
+		{
+			desc:     "Unknown",
+			expected: []byte(`"unknown"`),
+			status:   clients.Status(100),
+			err:      nil,
+		},
 	}
 
 	for _, tc := range cases {
@@ -82,10 +138,30 @@ func TestStatusUnmarshalJSON(t *testing.T) {
 		status   []byte
 		err      error
 	}{
-		{"Enabled", clients.EnabledStatus, []byte(`"enabled"`), nil},
-		{"Disabled", clients.DisabledStatus, []byte(`"disabled"`), nil},
-		{"All", clients.AllStatus, []byte(`"all"`), nil},
-		{"Unknown", clients.Status(0), []byte(`"unknown"`), apiutil.ErrInvalidStatus},
+		{
+			desc:     "Enabled",
+			expected: clients.EnabledStatus,
+			status:   []byte(`"enabled"`),
+			err:      nil,
+		},
+		{
+			desc:     "Disabled",
+			expected: clients.DisabledStatus,
+			status:   []byte(`"disabled"`),
+			err:      nil,
+		},
+		{
+			desc:     "All",
+			expected: clients.AllStatus,
+			status:   []byte(`"all"`),
+			err:      nil,
+		},
+		{
+			desc:     "Unknown",
+			expected: clients.Status(0),
+			status:   []byte(`"unknown"`),
+			err:      apiutil.ErrInvalidStatus,
+		},
 	}
 
 	for _, tc := range cases {
@@ -105,10 +181,30 @@ func TestUserMarshalJSON(t *testing.T) {
 		user     clients.Client
 		err      error
 	}{
-		{"Enabled", []byte(`{"id":"","credentials":{},"created_at":"0001-01-01T00:00:00Z","updated_at":"0001-01-01T00:00:00Z","status":"enabled"}`), clients.Client{Status: clients.EnabledStatus}, nil},
-		{"Disabled", []byte(`{"id":"","credentials":{},"created_at":"0001-01-01T00:00:00Z","updated_at":"0001-01-01T00:00:00Z","status":"disabled"}`), clients.Client{Status: clients.DisabledStatus}, nil},
-		{"All", []byte(`{"id":"","credentials":{},"created_at":"0001-01-01T00:00:00Z","updated_at":"0001-01-01T00:00:00Z","status":"all"}`), clients.Client{Status: clients.AllStatus}, nil},
-		{"Unknown", []byte(`{"id":"","credentials":{},"created_at":"0001-01-01T00:00:00Z","updated_at":"0001-01-01T00:00:00Z","status":"unknown"}`), clients.Client{Status: clients.Status(100)}, nil},
+		{
+			desc:     "Enabled",
+			expected: []byte(`{"id":"","credentials":{},"created_at":"0001-01-01T00:00:00Z","updated_at":"0001-01-01T00:00:00Z","status":"enabled"}`),
+			user:     clients.Client{Status: clients.EnabledStatus},
+			err:      nil,
+		},
+		{
+			desc:     "Disabled",
+			expected: []byte(`{"id":"","credentials":{},"created_at":"0001-01-01T00:00:00Z","updated_at":"0001-01-01T00:00:00Z","status":"disabled"}`),
+			user:     clients.Client{Status: clients.DisabledStatus},
+			err:      nil,
+		},
+		{
+			desc:     "All",
+			expected: []byte(`{"id":"","credentials":{},"created_at":"0001-01-01T00:00:00Z","updated_at":"0001-01-01T00:00:00Z","status":"all"}`),
+			user:     clients.Client{Status: clients.AllStatus},
+			err:      nil,
+		},
+		{
+			desc:     "Unknown",
+			expected: []byte(`{"id":"","credentials":{},"created_at":"0001-01-01T00:00:00Z","updated_at":"0001-01-01T00:00:00Z","status":"unknown"}`),
+			user:     clients.Client{Status: clients.Status(100)},
+			err:      nil,
+		},
 	}
 
 	for _, tc := range cases {

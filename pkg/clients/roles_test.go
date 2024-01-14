@@ -17,10 +17,26 @@ func TestRoleString(t *testing.T) {
 		role     clients.Role
 		expected string
 	}{
-		{"User", clients.UserRole, "user"},
-		{"Admin", clients.AdminRole, "admin"},
-		{"All", clients.AllRole, "all"},
-		{"Unknown", clients.Role(100), "unknown"},
+		{
+			desc:     "User",
+			role:     clients.UserRole,
+			expected: "user",
+		},
+		{
+			desc:     "Admin",
+			role:     clients.AdminRole,
+			expected: "admin",
+		},
+		{
+			desc:     "All",
+			role:     clients.AllRole,
+			expected: "all",
+		},
+		{
+			desc:     "Unknown",
+			role:     clients.Role(100),
+			expected: "unknown",
+		},
 	}
 
 	for _, c := range cases {
@@ -33,22 +49,42 @@ func TestRoleString(t *testing.T) {
 
 func TestToRole(t *testing.T) {
 	cases := []struct {
-		desc      string
-		role      string
-		expetcted clients.Role
-		err       error
+		desc     string
+		role     string
+		expected clients.Role
+		err      error
 	}{
-		{"User", "user", clients.UserRole, nil},
-		{"Admin", "admin", clients.AdminRole, nil},
-		{"All", "all", clients.AllRole, nil},
-		{"Unknown", "unknown", clients.Role(0), apiutil.ErrInvalidRole},
+		{
+			desc:     "User",
+			role:     "user",
+			expected: clients.UserRole,
+			err:      nil,
+		},
+		{
+			desc:     "Admin",
+			role:     "admin",
+			expected: clients.AdminRole,
+			err:      nil,
+		},
+		{
+			desc:     "All",
+			role:     "all",
+			expected: clients.AllRole,
+			err:      nil,
+		},
+		{
+			desc:     "Unknown",
+			role:     "unknown",
+			expected: clients.Role(0),
+			err:      apiutil.ErrInvalidRole,
+		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.desc, func(t *testing.T) {
 			got, err := clients.ToRole(c.role)
 			assert.Equal(t, c.err, err, "ToRole() error = %v, expected %v", err, c.err)
-			assert.Equal(t, c.expetcted, got, "ToRole() = %v, expected %v", got, c.expetcted)
+			assert.Equal(t, c.expected, got, "ToRole() = %v, expected %v", got, c.expected)
 		})
 	}
 }
@@ -60,10 +96,30 @@ func TestRoleMarshalJSON(t *testing.T) {
 		role     clients.Role
 		err      error
 	}{
-		{"User", []byte(`"user"`), clients.UserRole, nil},
-		{"Admin", []byte(`"admin"`), clients.AdminRole, nil},
-		{"All", []byte(`"all"`), clients.AllRole, nil},
-		{"Unknown", []byte(`"unknown"`), clients.Role(100), nil},
+		{
+			desc:     "User",
+			expected: []byte(`"user"`),
+			role:     clients.UserRole,
+			err:      nil,
+		},
+		{
+			desc:     "Admin",
+			expected: []byte(`"admin"`),
+			role:     clients.AdminRole,
+			err:      nil,
+		},
+		{
+			desc:     "All",
+			expected: []byte(`"all"`),
+			role:     clients.AllRole,
+			err:      nil,
+		},
+		{
+			desc:     "Unknown",
+			expected: []byte(`"unknown"`),
+			role:     clients.Role(100),
+			err:      nil,
+		},
 	}
 
 	for _, tc := range cases {
@@ -82,10 +138,30 @@ func TestRoleUnmarshalJSON(t *testing.T) {
 		role     []byte
 		err      error
 	}{
-		{"User", clients.UserRole, []byte(`"user"`), nil},
-		{"Admin", clients.AdminRole, []byte(`"admin"`), nil},
-		{"All", clients.AllRole, []byte(`"all"`), nil},
-		{"Unknown", clients.Role(0), []byte(`"unknown"`), apiutil.ErrInvalidRole},
+		{
+			desc:     "User",
+			expected: clients.UserRole,
+			role:     []byte(`"user"`),
+			err:      nil,
+		},
+		{
+			desc:     "Admin",
+			expected: clients.AdminRole,
+			role:     []byte(`"admin"`),
+			err:      nil,
+		},
+		{
+			desc:     "All",
+			expected: clients.AllRole,
+			role:     []byte(`"all"`),
+			err:      nil,
+		},
+		{
+			desc:     "Unknown",
+			expected: clients.Role(0),
+			role:     []byte(`"unknown"`),
+			err:      apiutil.ErrInvalidRole,
+		},
 	}
 
 	for _, tc := range cases {
