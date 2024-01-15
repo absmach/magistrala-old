@@ -5,7 +5,6 @@ package postgres
 
 import (
 	"context"
-	"database/sql"
 	"fmt"
 
 	"github.com/absmach/magistrala/internal/postgres"
@@ -79,19 +78,17 @@ func (repo clientRepo) CheckSuperAdmin(ctx context.Context, adminID string) erro
 	q := "SELECT 1 FROM clients WHERE id = $1 AND role = $2"
 	rows, err := repo.DB.QueryContext(ctx, q, adminID, mgclients.AdminRole)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return errors.ErrAuthorization
-		}
 		return errors.Wrap(errors.ErrAuthorization, err)
 	}
 	defer rows.Close()
-	if !rows.Next() {
-		return errors.ErrAuthorization
+
+	if rows.Next() {
+		if err := rows.Err(); err != nil {
+			return errors.Wrap(errors.ErrAuthorization, err)
+		}
+		return nil
 	}
-	if err := rows.Err(); err != nil {
-		return errors.Wrap(errors.ErrAuthorization, err)
-	}
-	return nil
+	return errors.ErrAuthorization
 }
 
 func (repo clientRepo) RetrieveByID(ctx context.Context, id string) (mgclients.Client, error) {

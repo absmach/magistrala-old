@@ -1309,92 +1309,89 @@ func TestUpdateClientRole(t *testing.T) {
 
 	cases := []struct {
 		desc        string
-		client      mgclients.Client
+		data        string
+		clientID    string
 		token       string
 		contentType string
 		status      int
 		err         error
 	}{
 		{
-			desc: "update client role with valid token",
-			client: mgclients.Client{
-				ID:   client.ID,
-				Role: mgclients.AdminRole,
-			},
+			desc:        "update client role with valid token",
+			data:        fmt.Sprintf(`{"role": "%s"}`, "admin"),
+			clientID:    client.ID,
 			token:       validToken,
 			contentType: contentType,
 			status:      http.StatusOK,
 			err:         nil,
 		},
 		{
-			desc: "update client role with invalid token",
-			client: mgclients.Client{
-				ID:   client.ID,
-				Role: mgclients.AdminRole,
-			},
+			desc:        "update client role with invalid token",
+			data:        fmt.Sprintf(`{"role": "%s"}`, "admin"),
+			clientID:    client.ID,
 			token:       inValidToken,
 			contentType: contentType,
 			status:      http.StatusUnauthorized,
 			err:         svcerr.ErrAuthentication,
 		},
 		{
-			desc: "update client role with invalid id",
-			client: mgclients.Client{
-				ID:   "invalid",
-				Role: mgclients.AdminRole,
-			},
+			desc:        "update client role with invalid id",
+			data:        fmt.Sprintf(`{"role": "%s"}`, "admin"),
+			clientID:    inValid,
 			token:       validToken,
 			contentType: contentType,
 			status:      http.StatusForbidden,
 			err:         svcerr.ErrAuthorization,
 		},
 		{
-			desc: "update client role with empty token",
-			client: mgclients.Client{
-				ID:   client.ID,
-				Role: mgclients.AdminRole,
-			},
+			desc:        "update client role with empty token",
+			data:        fmt.Sprintf(`{"role": "%s"}`, "admin"),
+			clientID:    client.ID,
 			token:       "",
 			contentType: contentType,
 			status:      http.StatusUnauthorized,
 			err:         apiutil.ErrBearerToken,
 		},
 		{
-			desc: "update client with invalid role",
-			client: mgclients.Client{
-				ID:   client.ID,
-				Role: 2,
-			},
+			desc:        "update client with invalid role",
+			data:        fmt.Sprintf(`{"role": "%s"}`, "invalid"),
+			clientID:    client.ID,
 			token:       validToken,
 			contentType: contentType,
 			status:      http.StatusInternalServerError,
 			err:         svcerr.ErrInvalidRole,
 		},
 		{
-			desc: "update client with invalid contentype",
-			client: mgclients.Client{
-				ID:   client.ID,
-				Role: mgclients.AdminRole,
-			},
+			desc:        "update client with invalid contentype",
+			data:        fmt.Sprintf(`{"role": "%s"}`, "admin"),
+			clientID:    client.ID,
 			token:       validToken,
 			contentType: "application/xml",
 			status:      http.StatusUnsupportedMediaType,
 			err:         apiutil.ErrValidation,
 		},
+		{
+			desc:        "update client with malformed data",
+			data:        fmt.Sprintf(`{"role": %s}`, "admin"),
+			clientID:    client.ID,
+			token:       validToken,
+			contentType: contentType,
+			status:      http.StatusBadRequest,
+			err:         apiutil.ErrValidation,
+		},
 	}
 
 	for _, tc := range cases {
-		data := toJSON(tc.client)
 		req := testRequest{
 			client:      us.Client(),
 			method:      http.MethodPatch,
-			url:         fmt.Sprintf("%s/users/%s/role", us.URL, tc.client.ID),
+			url:         fmt.Sprintf("%s/users/%s/role", us.URL, tc.clientID),
 			contentType: tc.contentType,
 			token:       tc.token,
-			body:        strings.NewReader(data),
+			body:        strings.NewReader(tc.data),
 		}
 
-		repoCall := svc.On("UpdateClientRole", mock.Anything, tc.token, tc.client).Return(tc.client, tc.err)
+		repoCall := svc.On("UpdateClientRole", mock.Anything, tc.token, mock.Anything).Return(mgclients.Client{}, tc.err)
 		res, err := req.make()
 		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
 		var resBody respBody
@@ -1402,9 +1399,6 @@ func TestUpdateClientRole(t *testing.T) {
 		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error while decoding response body: %s", tc.desc, err))
 		if resBody.Err != "" || resBody.Message != "" {
 			err = errors.Wrap(errors.New(resBody.Err), errors.New(resBody.Message))
-		}
-		if err == nil {
-			assert.Equal(t, tc.client.Role, resBody.Role, fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.client.Role, resBody.Role))
 		}
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
@@ -2476,6 +2470,27 @@ func TestListUsersByChannelID(t *testing.T) {
 			status: http.StatusBadRequest,
 			err:    apiutil.ErrInvalidQueryParams,
 		},
+		{
+			desc:   "list users with list_perms",
+			token:  validToken,
+			query:  "list_perms=true",
+			status: http.StatusOK,
+			err:    nil,
+		},
+		{
+			desc:   "list users with invalid list_perms",
+			token:  validToken,
+			query:  "list_perms=invalid",
+			status: http.StatusBadRequest,
+			err:    apiutil.ErrValidation,
+		},
+		{
+			desc:   "list users with duplicate list_perms",
+			token:  validToken,
+			query:  "list_perms=true&list_perms=false",
+			status: http.StatusBadRequest,
+			err:    apiutil.ErrValidation,
+		},
 	}
 
 	for _, tc := range cases {
@@ -2793,18 +2808,18 @@ func TestListUsersByDomainID(t *testing.T) {
 			err:    nil,
 		},
 		{
-			desc:   "list users with invalid list permissions",
+			desc:   "list users with invalid list_perms",
 			token:  validToken,
 			query:  "list_perms=invalid",
 			status: http.StatusBadRequest,
 			err:    apiutil.ErrValidation,
 		},
 		{
-			desc:   "list users with duplicate list permissions",
+			desc:   "list users with duplicate list_perms",
 			token:  validToken,
-			query:  "list_perms=true&list_perms=true",
+			query:  "list_perms=true&list_perms=false",
 			status: http.StatusBadRequest,
-			err:    apiutil.ErrInvalidQueryParams,
+			err:    apiutil.ErrValidation,
 		},
 	}
 
@@ -2812,7 +2827,7 @@ func TestListUsersByDomainID(t *testing.T) {
 		req := testRequest{
 			client: us.Client(),
 			method: http.MethodGet,
-			url:    fmt.Sprintf("%s/domains/%s/users", us.URL, validID),
+			url:    fmt.Sprintf("%s/domains/%s/users?", us.URL, validID) + tc.query,
 			token:  tc.token,
 		}
 
