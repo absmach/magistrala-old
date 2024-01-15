@@ -32,12 +32,23 @@ func (lm *loggingMiddleware) Subscribe(ctx context.Context, thingKey, chanID, su
 		if subtopic != "" {
 			destChannel = fmt.Sprintf("%s.%s", destChannel, subtopic)
 		}
-		message := fmt.Sprintf("Method subscribe to channel %s took %s to complete", destChannel, time.Since(begin))
+		message := "Method subscribe completed"
 		if err != nil {
-			lm.logger.Warn(fmt.Sprintf("%s with error: %s", message, err))
+			lm.logger.Warn(
+				fmt.Sprintf("%s with error.", message),
+				slog.String("method", "subscribe"),
+				slog.String("error", err.Error()),
+				slog.String("duration", time.Since(begin).String()),
+			)
 			return
 		}
-		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
+		lm.logger.Info(
+			fmt.Sprintf("%s without errors.", message),
+			slog.String("method", "subscribe"),
+			slog.String("channel", destChannel),
+			slog.String("thing_key", thingKey),
+			slog.String("duration", time.Since(begin).String()),
+		)
 	}(time.Now())
 
 	return lm.svc.Subscribe(ctx, thingKey, chanID, subtopic, c)
