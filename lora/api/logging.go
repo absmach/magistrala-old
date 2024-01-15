@@ -14,6 +14,8 @@ import (
 	"github.com/absmach/magistrala/lora"
 )
 
+const message = "Method completed"
+
 var _ lora.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
@@ -31,10 +33,9 @@ func LoggingMiddleware(svc lora.Service, logger *slog.Logger) lora.Service {
 
 func (lm loggingMiddleware) CreateThing(ctx context.Context, thingID, loraDevEUI string) (err error) {
 	defer func(begin time.Time) {
-		message := "create_thing completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
+				fmt.Sprintf("%s with error.", message),
 				slog.String("method", "create_thing"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
@@ -55,10 +56,9 @@ func (lm loggingMiddleware) CreateThing(ctx context.Context, thingID, loraDevEUI
 
 func (lm loggingMiddleware) UpdateThing(ctx context.Context, thingID, loraDevEUI string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method update_thing completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
+				fmt.Sprintf("%s with error.", message),
 				slog.String("method", "update_thing"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
@@ -79,10 +79,9 @@ func (lm loggingMiddleware) UpdateThing(ctx context.Context, thingID, loraDevEUI
 
 func (lm loggingMiddleware) RemoveThing(ctx context.Context, thingID string) (err error) {
 	defer func(begin time.Time) {
-		message := "remove_thing complete"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
+				fmt.Sprintf("%s with error.", message),
 				slog.String("method", "remove_thing"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
@@ -102,10 +101,9 @@ func (lm loggingMiddleware) RemoveThing(ctx context.Context, thingID string) (er
 
 func (lm loggingMiddleware) CreateChannel(ctx context.Context, chanID, loraApp string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method create_channel completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
+				fmt.Sprintf("%s with error.", message),
 				slog.String("method", "create_channel"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
@@ -126,10 +124,9 @@ func (lm loggingMiddleware) CreateChannel(ctx context.Context, chanID, loraApp s
 
 func (lm loggingMiddleware) UpdateChannel(ctx context.Context, chanID, loraApp string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method update_channel completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
+				fmt.Sprintf("%s with error.", message),
 				slog.String("method", "update_channel"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
@@ -150,10 +147,9 @@ func (lm loggingMiddleware) UpdateChannel(ctx context.Context, chanID, loraApp s
 
 func (lm loggingMiddleware) RemoveChannel(ctx context.Context, chanID string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method remove_channel completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
+				fmt.Sprintf("%s with error.", message),
 				slog.String("method", "remove_channel"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
@@ -173,10 +169,9 @@ func (lm loggingMiddleware) RemoveChannel(ctx context.Context, chanID string) (e
 
 func (lm loggingMiddleware) ConnectThing(ctx context.Context, chanID, thingID string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method connect_thing completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
+				fmt.Sprintf("%s with error.", message),
 				slog.String("method", "connect_thing"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
@@ -197,10 +192,10 @@ func (lm loggingMiddleware) ConnectThing(ctx context.Context, chanID, thingID st
 
 func (lm loggingMiddleware) DisconnectThing(ctx context.Context, chanID, thingID string) (err error) {
 	defer func(begin time.Time) {
-		message := fmt.Sprintf("disconnect_thing mgx-%s : mgx-%s, took %s to complete", chanID, thingID, time.Since(begin))
+		message := fmt.Sprintf("Method disconnect_thing mgx-%s : mgx-%s, took %s to complete", chanID, thingID, time.Since(begin))
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
+				fmt.Sprintf("%s with error.", message),
 				slog.String("method", "disconnect_thing"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
@@ -221,10 +216,10 @@ func (lm loggingMiddleware) DisconnectThing(ctx context.Context, chanID, thingID
 
 func (lm loggingMiddleware) Publish(ctx context.Context, msg *lora.Message) (err error) {
 	defer func(begin time.Time) {
-		message := fmt.Sprintf("publish application/%s/device/%s/rx took %s to complete", msg.ApplicationID, msg.DevEUI, time.Since(begin))
+		message := fmt.Sprintf("Method publish application/%s/device/%s/rx took %s to complete", msg.ApplicationID, msg.DevEUI, time.Since(begin))
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
+				fmt.Sprintf("%s with error.", message),
 				slog.String("method", "publish"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),

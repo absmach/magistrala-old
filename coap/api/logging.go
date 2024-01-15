@@ -15,6 +15,8 @@ import (
 	"github.com/absmach/magistrala/pkg/messaging"
 )
 
+const logmessage = "Method completed"
+
 var _ coap.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
@@ -35,10 +37,9 @@ func (lm *loggingMiddleware) Publish(ctx context.Context, key string, msg *messa
 		if msg.GetSubtopic() != "" {
 			destChannel = fmt.Sprintf("%s.%s", destChannel, msg.GetSubtopic())
 		}
-		message := "Method publish complete"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
+				fmt.Sprintf("%s with error.", logmessage),
 				slog.String("method", "publish"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
@@ -46,7 +47,7 @@ func (lm *loggingMiddleware) Publish(ctx context.Context, key string, msg *messa
 			return
 		}
 		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
+			fmt.Sprintf("%s without errors.", logmessage),
 			slog.String("method", "publish"),
 			slog.String("channel", destChannel),
 			slog.String("duration", time.Since(begin).String()),
@@ -64,10 +65,9 @@ func (lm *loggingMiddleware) Subscribe(ctx context.Context, key, chanID, subtopi
 		if subtopic != "" {
 			destChannel = fmt.Sprintf("%s.%s", destChannel, subtopic)
 		}
-		message := "Method subscribe completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
+				fmt.Sprintf("%s with error.", logmessage),
 				slog.String("method", "subscribe"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
@@ -75,7 +75,7 @@ func (lm *loggingMiddleware) Subscribe(ctx context.Context, key, chanID, subtopi
 			return
 		}
 		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
+			fmt.Sprintf("%s without errors.", logmessage),
 			slog.String("method", "subscribe"),
 			slog.String("channel", destChannel),
 			slog.String("client", c.Token()),
@@ -95,10 +95,9 @@ func (lm *loggingMiddleware) Unsubscribe(ctx context.Context, key, chanID, subto
 		if subtopic != "" {
 			destChannel = fmt.Sprintf("%s.%s", destChannel, subtopic)
 		}
-		message := "Method unsubscribe completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
+				fmt.Sprintf("%s with error: %s.", logmessage, err),
 				slog.String("method", "unsubscribe"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
@@ -106,7 +105,7 @@ func (lm *loggingMiddleware) Unsubscribe(ctx context.Context, key, chanID, subto
 			return
 		}
 		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
+			fmt.Sprintf("%s without errors.", logmessage),
 			slog.String("method", "unsubscribe"),
 			slog.String("channel", destChannel),
 			slog.String("token", token),

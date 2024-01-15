@@ -32,7 +32,7 @@ func (lm *loggingMiddleware) Subscribe(ctx context.Context, thingKey, chanID, su
 		if subtopic != "" {
 			destChannel = fmt.Sprintf("%s.%s", destChannel, subtopic)
 		}
-		message := "Method subscribe completed"
+		message := "Method completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),

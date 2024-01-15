@@ -50,7 +50,7 @@ func (lm *loggingMiddleware) Provision(token, name, externalID, externalKey stri
 
 func (lm *loggingMiddleware) Cert(token, thingID, duration string) (cert, key string, err error) {
 	defer func(begin time.Time) {
-		message := "Method cert complete completed"
+		message := "Method completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error: %s", message, err),
@@ -74,7 +74,7 @@ func (lm *loggingMiddleware) Cert(token, thingID, duration string) (cert, key st
 
 func (lm *loggingMiddleware) Mapping(token string) (res map[string]interface{}, err error) {
 	defer func(begin time.Time) {
-		message := "Method mapping completed"
+		message := "Method completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error: %s", message, err),

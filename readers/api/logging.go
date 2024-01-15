@@ -30,7 +30,7 @@ func LoggingMiddleware(svc readers.MessageRepository, logger *slog.Logger) reade
 
 func (lm *loggingMiddleware) ReadAll(chanID string, rpm readers.PageMetadata) (page readers.MessagesPage, err error) {
 	defer func(begin time.Time) {
-		message := "Method read_all completed"
+		message := "Method completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),

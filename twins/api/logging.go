@@ -15,6 +15,8 @@ import (
 	"github.com/absmach/magistrala/twins"
 )
 
+const message = "Method completed"
+
 var _ twins.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
@@ -29,7 +31,6 @@ func LoggingMiddleware(svc twins.Service, logger *slog.Logger) twins.Service {
 
 func (lm *loggingMiddleware) AddTwin(ctx context.Context, token string, twin twins.Twin, def twins.Definition) (tw twins.Twin, err error) {
 	defer func(begin time.Time) {
-		message := "Method add_twin completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -54,7 +55,6 @@ func (lm *loggingMiddleware) AddTwin(ctx context.Context, token string, twin twi
 
 func (lm *loggingMiddleware) UpdateTwin(ctx context.Context, token string, twin twins.Twin, def twins.Definition) (err error) {
 	defer func(begin time.Time) {
-		message := "Method update_twin completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -79,7 +79,6 @@ func (lm *loggingMiddleware) UpdateTwin(ctx context.Context, token string, twin 
 
 func (lm *loggingMiddleware) ViewTwin(ctx context.Context, token, twinID string) (tw twins.Twin, err error) {
 	defer func(begin time.Time) {
-		message := "Method view_twin completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -103,7 +102,6 @@ func (lm *loggingMiddleware) ViewTwin(ctx context.Context, token, twinID string)
 
 func (lm *loggingMiddleware) ListTwins(ctx context.Context, token string, offset, limit uint64, name string, metadata twins.Metadata) (page twins.Page, err error) {
 	defer func(begin time.Time) {
-		message := "Method list_twins completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -128,7 +126,6 @@ func (lm *loggingMiddleware) ListTwins(ctx context.Context, token string, offset
 
 func (lm *loggingMiddleware) SaveStates(ctx context.Context, msg *messaging.Message) (err error) {
 	defer func(begin time.Time) {
-		message := "Method save_states completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -150,7 +147,6 @@ func (lm *loggingMiddleware) SaveStates(ctx context.Context, msg *messaging.Mess
 
 func (lm *loggingMiddleware) ListStates(ctx context.Context, token string, offset, limit uint64, twinID string) (page twins.StatesPage, err error) {
 	defer func(begin time.Time) {
-		message := "Method list_states completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -175,7 +171,6 @@ func (lm *loggingMiddleware) ListStates(ctx context.Context, token string, offse
 
 func (lm *loggingMiddleware) RemoveTwin(ctx context.Context, token, twinID string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method remove_twin completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),

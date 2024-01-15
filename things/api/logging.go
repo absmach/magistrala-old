@@ -14,6 +14,8 @@ import (
 	"github.com/absmach/magistrala/things"
 )
 
+const message = "Method completed"
+
 var _ things.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
@@ -49,7 +51,6 @@ func (lm *loggingMiddleware) CreateThings(ctx context.Context, token string, cli
 
 func (lm *loggingMiddleware) ViewClient(ctx context.Context, token, id string) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		message := "Method view_thing completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -72,7 +73,6 @@ func (lm *loggingMiddleware) ViewClient(ctx context.Context, token, id string) (
 
 func (lm *loggingMiddleware) ViewClientPerms(ctx context.Context, token, id string) (p []string, err error) {
 	defer func(begin time.Time) {
-		message := "Method view_thing_permissions completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -95,7 +95,6 @@ func (lm *loggingMiddleware) ViewClientPerms(ctx context.Context, token, id stri
 
 func (lm *loggingMiddleware) ListClients(ctx context.Context, token, reqUserID string, pm mgclients.Page) (cp mgclients.ClientsPage, err error) {
 	defer func(begin time.Time) {
-		message := "Method list_things completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -117,7 +116,6 @@ func (lm *loggingMiddleware) ListClients(ctx context.Context, token, reqUserID s
 
 func (lm *loggingMiddleware) UpdateClient(ctx context.Context, token string, client mgclients.Client) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		message := "Method update_thing_name_and_metadata completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -140,7 +138,6 @@ func (lm *loggingMiddleware) UpdateClient(ctx context.Context, token string, cli
 
 func (lm *loggingMiddleware) UpdateClientTags(ctx context.Context, token string, client mgclients.Client) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		message := "Method update_thing_tags completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -163,7 +160,6 @@ func (lm *loggingMiddleware) UpdateClientTags(ctx context.Context, token string,
 
 func (lm *loggingMiddleware) UpdateClientSecret(ctx context.Context, token, oldSecret, newSecret string) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		message := "Method update_thing_secret completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error", message),
@@ -186,7 +182,6 @@ func (lm *loggingMiddleware) UpdateClientSecret(ctx context.Context, token, oldS
 
 func (lm *loggingMiddleware) EnableClient(ctx context.Context, token, id string) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		message := "Method enable_thing completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with errors.", message),
@@ -209,7 +204,6 @@ func (lm *loggingMiddleware) EnableClient(ctx context.Context, token, id string)
 
 func (lm *loggingMiddleware) DisableClient(ctx context.Context, token, id string) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		message := "Method disable_thing completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -232,7 +226,6 @@ func (lm *loggingMiddleware) DisableClient(ctx context.Context, token, id string
 
 func (lm *loggingMiddleware) ListClientsByGroup(ctx context.Context, token, channelID string, cp mgclients.Page) (mp mgclients.MembersPage, err error) {
 	defer func(begin time.Time) {
-		message := "Method list_things_by_channel completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -255,7 +248,6 @@ func (lm *loggingMiddleware) ListClientsByGroup(ctx context.Context, token, chan
 
 func (lm *loggingMiddleware) Identify(ctx context.Context, key string) (id string, err error) {
 	defer func(begin time.Time) {
-		message := "Method identify completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -278,7 +270,6 @@ func (lm *loggingMiddleware) Identify(ctx context.Context, key string) (id strin
 
 func (lm *loggingMiddleware) Authorize(ctx context.Context, req *magistrala.AuthorizeReq) (id string, err error) {
 	defer func(begin time.Time) {
-		message := "Method authorise completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -301,7 +292,6 @@ func (lm *loggingMiddleware) Authorize(ctx context.Context, req *magistrala.Auth
 
 func (lm *loggingMiddleware) Share(ctx context.Context, token, id, relation string, userids ...string) (err error) {
 	defer func(begin time.Time) {
-		message := fmt.Sprintf("Method share for users %v completex", userids)
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -315,6 +305,7 @@ func (lm *loggingMiddleware) Share(ctx context.Context, token, id, relation stri
 			fmt.Sprintf("%s without errors.", message),
 			slog.String("method", "share"),
 			slog.String("thing_id", id),
+			slog.String("user_IDs", fmt.Sprintf("%v", userids)),
 			slog.String("relation", relation),
 			slog.String("token", token),
 			slog.String("duration", time.Since(begin).String()),
@@ -325,7 +316,6 @@ func (lm *loggingMiddleware) Share(ctx context.Context, token, id, relation stri
 
 func (lm *loggingMiddleware) Unshare(ctx context.Context, token, id, relation string, userids ...string) (err error) {
 	defer func(begin time.Time) {
-		message := fmt.Sprintf("Method unshare for users %v completed", userids)
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error: %s.", message, err),
@@ -339,6 +329,7 @@ func (lm *loggingMiddleware) Unshare(ctx context.Context, token, id, relation st
 			fmt.Sprintf("%s without errors.", message),
 			slog.String("method", "unshare"),
 			slog.String("thing_id", id),
+			slog.String("user_IDs", fmt.Sprintf("%v", userids)),
 			slog.String("relation", relation),
 			slog.String("token", token),
 			slog.String("duration", time.Since(begin).String()),
@@ -349,7 +340,6 @@ func (lm *loggingMiddleware) Unshare(ctx context.Context, token, id, relation st
 
 func (lm *loggingMiddleware) DeleteClient(ctx context.Context, token, id string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method delete_client completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error: %s.", message, err),
