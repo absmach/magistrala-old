@@ -20,8 +20,6 @@ import (
 	"github.com/absmach/magistrala"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
 	"github.com/absmach/magistrala/internal/server"
-	"github.com/absmach/magistrala/kitlogger"
-	mflog "github.com/absmach/magistrala/kitlogger"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/mqtt"
 	"github.com/absmach/magistrala/mqtt/events"
@@ -82,7 +80,7 @@ func main() {
 		log.Fatalf("failed to init logger: %s", err.Error())
 	}
 
-	chClientLogger, err := kitlogger.New(os.Stdout, cfg.LogLevel)
+	chClientLogger, err := mglog.NewKitLog(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		log.Fatalf("failed to init logger: %s", err.Error())
 	}
@@ -214,7 +212,7 @@ func main() {
 	}
 }
 
-func proxyMQTT(ctx context.Context, cfg config, logger mflog.Logger, sessionHandler session.Handler) error {
+func proxyMQTT(ctx context.Context, cfg config, logger mglog.Logger, sessionHandler session.Handler) error {
 	address := fmt.Sprintf(":%s", cfg.MQTTPort)
 	target := fmt.Sprintf("%s:%s", cfg.MQTTTargetHost, cfg.MQTTTargetPort)
 	mproxy := mp.New(address, target, sessionHandler, logger)
@@ -233,7 +231,7 @@ func proxyMQTT(ctx context.Context, cfg config, logger mflog.Logger, sessionHand
 	}
 }
 
-func proxyWS(ctx context.Context, cfg config, logger mflog.Logger, sessionHandler session.Handler) error {
+func proxyWS(ctx context.Context, cfg config, logger mglog.Logger, sessionHandler session.Handler) error {
 	target := fmt.Sprintf("%s:%s", cfg.HTTPTargetHost, cfg.HTTPTargetPort)
 	wp := websocket.New(target, cfg.HTTPTargetPath, "ws", sessionHandler, logger)
 	http.Handle("/mqtt", wp.Handler())

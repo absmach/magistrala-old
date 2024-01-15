@@ -14,7 +14,6 @@ import (
 
 	"github.com/absmach/magistrala"
 	authmocks "github.com/absmach/magistrala/auth/mocks"
-	"github.com/absmach/magistrala/kitlogger"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/messaging/mocks"
 	"github.com/absmach/magistrala/ws"
@@ -49,7 +48,7 @@ func newHTTPServer(svc ws.Service) *httptest.Server {
 
 func newProxyHTPPServer(svc session.Handler, targetServer *httptest.Server) (*httptest.Server, error) {
 	turl := strings.ReplaceAll(targetServer.URL, "http", "ws")
-	mp, err := websockets.NewProxy("", turl, kitlogger.NewMock(), svc)
+	mp, err := websockets.NewProxy("", turl, mglog.NewKitMock(), svc)
 	if err != nil {
 		return nil, err
 	}

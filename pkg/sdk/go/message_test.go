@@ -15,7 +15,6 @@ import (
 	"github.com/absmach/magistrala/http/api"
 	"github.com/absmach/magistrala/http/mocks"
 	"github.com/absmach/magistrala/internal/apiutil"
-	"github.com/absmach/magistrala/kitlogger"
 	mglog "github.com/absmach/magistrala/logger"
 	"github.com/absmach/magistrala/pkg/errors"
 	svcerr "github.com/absmach/magistrala/pkg/errors/service"
@@ -33,7 +32,7 @@ func setupMessages() (*httptest.Server, *authmocks.Service) {
 	mux := api.MakeHandler("")
 	target := httptest.NewServer(mux)
 
-	mp, err := mproxy.NewProxy("", target.URL, handler, kitlogger.NewMock())
+	mp, err := mproxy.NewProxy("", target.URL, handler, mglog.NewKitMock())
 	if err != nil {
 		return nil, nil
 	}
