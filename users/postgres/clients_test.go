@@ -329,6 +329,11 @@ func TestRetrieveAll(t *testing.T) {
 	repo := cpostgres.NewRepository(database)
 
 	ownerID := testsutil.GenerateUUID(t)
+	role := new(mgclients.Role)
+	*role = mgclients.AdminRole
+	invalidRole := new(mgclients.Role)
+	*invalidRole = 4
+
 	num := 200
 	var items []mgclients.Client
 	for i := 0; i < num; i++ {
@@ -345,6 +350,10 @@ func TestRetrieveAll(t *testing.T) {
 		}
 		if i%50 == 0 {
 			client.Owner = ownerID
+			client.Metadata = map[string]interface{}{
+				"key": "value",
+			}
+			client.Role = mgclients.AdminRole
 		}
 		_, err := repo.Save(context.Background(), client)
 		require.Nil(t, err, fmt.Sprintf("failed to save client %s", client.ID))
@@ -550,7 +559,7 @@ func TestRetrieveAll(t *testing.T) {
 			},
 		},
 		{
-			desc: "retrieve by owner id",
+			desc: "retrieve with owner id",
 			page: mgclients.Page{
 				Owner:  ownerID,
 				Offset: 0,
@@ -567,7 +576,7 @@ func TestRetrieveAll(t *testing.T) {
 			err: nil,
 		},
 		{
-			desc: "retrieve by owner id with invalid owner id",
+			desc: "retrieve with invalid owner id",
 			page: mgclients.Page{
 				Owner:  invalidName,
 				Offset: 0,
@@ -586,6 +595,7 @@ func TestRetrieveAll(t *testing.T) {
 		{
 			desc: "retrieve by tags",
 			page: mgclients.Page{
+				Tag:    "tag1",
 				Offset: 0,
 				Limit:  200,
 			},
@@ -614,6 +624,95 @@ func TestRetrieveAll(t *testing.T) {
 				},
 				Clients: []mgclients.Client{},
 			},
+		},
+		{
+			desc: "retrieve with metadata",
+			page: mgclients.Page{
+				Metadata: map[string]interface{}{
+					"key": "value",
+				},
+				Offset: 0,
+				Limit:  200,
+			},
+			response: mgclients.ClientsPage{
+				Page: mgclients.Page{
+					Total:  4,
+					Offset: 0,
+					Limit:  200,
+				},
+				Clients: []mgclients.Client{items[0], items[50], items[100], items[150]},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve with invalid metadata",
+			page: mgclients.Page{
+				Metadata: map[string]interface{}{
+					"key": "value1",
+				},
+				Offset: 0,
+				Limit:  200,
+			},
+			response: mgclients.ClientsPage{
+				Page: mgclients.Page{
+					Total:  0,
+					Offset: 0,
+					Limit:  200,
+				},
+				Clients: []mgclients.Client{},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve with role",
+			page: mgclients.Page{
+				Role:   role,
+				Offset: 0,
+				Limit:  200,
+			},
+			response: mgclients.ClientsPage{
+				Page: mgclients.Page{
+					Total:  4,
+					Offset: 0,
+					Limit:  200,
+				},
+				Clients: []mgclients.Client{items[0], items[50], items[100], items[150]},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve with invalid role",
+			page: mgclients.Page{
+				Role:   invalidRole,
+				Offset: 0,
+				Limit:  200,
+			},
+			response: mgclients.ClientsPage{
+				Page: mgclients.Page{
+					Total:  0,
+					Offset: 0,
+					Limit:  200,
+				},
+				Clients: []mgclients.Client{},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve with identity",
+			page: mgclients.Page{
+				Identity: items[0].Credentials.Identity,
+				Offset:   0,
+				Limit:    3,
+			},
+			response: mgclients.ClientsPage{
+				Page: mgclients.Page{
+					Total:  1,
+					Offset: 0,
+					Limit:  3,
+				},
+				Clients: []mgclients.Client{items[0]},
+			},
+			err: nil,
 		},
 	}
 

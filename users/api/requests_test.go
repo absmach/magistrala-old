@@ -177,15 +177,6 @@ func TestListClientsReqValidate(t *testing.T) {
 			err: apiutil.ErrLimitSize,
 		},
 		{
-			desc: "invalid visibility",
-			req: listClientsReq{
-				token:      valid,
-				limit:      10,
-				visibility: "invalid",
-			},
-			err: apiutil.ErrInvalidVisibilityType,
-		},
-		{
 			desc: "invalid direction",
 			req: listClientsReq{
 				token: valid,
