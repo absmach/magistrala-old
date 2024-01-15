@@ -123,7 +123,7 @@ func main() {
 	}()
 	tracer := tp.Tracer(svcName)
 
-	nps, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
+	nps, err := brokers.NewPubSub(ctx, cfg.BrokerURL, *logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to connect to message broker: %s", err))
 		exitCode = 1
@@ -136,14 +136,14 @@ func main() {
 
 	svc = tracing.New(tracer, svc)
 
-	svc = api.LoggingMiddleware(svc, logger)
+	svc = api.LoggingMiddleware(svc, *logger)
 
 	counter, latency := internal.MakeMetrics(svcName, "api")
 	svc = api.MetricsMiddleware(svc, counter, latency)
 
-	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(cfg.InstanceID), logger)
+	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(cfg.InstanceID), *logger)
 
-	cs := coapserver.New(ctx, cancel, svcName, coapServerConfig, api.MakeCoAPHandler(svc, logger), logger)
+	cs := coapserver.New(ctx, cancel, svcName, coapServerConfig, api.MakeCoAPHandler(svc, *logger), *logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -157,7 +157,7 @@ func main() {
 		return cs.Start()
 	})
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, logger, svcName, hs, cs)
+		return server.StopSignalHandler(ctx, cancel, *logger, svcName, hs, cs)
 	})
 
 	if err := g.Wait(); err != nil {

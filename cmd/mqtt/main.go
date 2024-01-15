@@ -129,7 +129,7 @@ func main() {
 	}()
 	tracer := tp.Tracer(svcName)
 
-	bsub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
+	bsub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, *logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to connect to message broker: %s", err))
 		exitCode = 1
@@ -146,7 +146,7 @@ func main() {
 	}
 	defer mpub.Close()
 
-	fwd := mqtt.NewForwarder(brokers.SubjectAllChannels, logger)
+	fwd := mqtt.NewForwarder(brokers.SubjectAllChannels, *logger)
 	fwd = mqtttracing.New(serverConfig, tracer, fwd, brokers.SubjectAllChannels)
 	if err := fwd.Forward(ctx, svcName, bsub, mpub); err != nil {
 		logger.Error(fmt.Sprintf("failed to forward message broker messages: %s", err))
@@ -187,7 +187,7 @@ func main() {
 
 	logger.Info("Successfully connected to things grpc server " + authHandler.Secure())
 
-	h := mqtt.NewHandler(np, es, logger, authClient)
+	h := mqtt.NewHandler(np, es, *logger, authClient)
 	h = handler.NewTracing(tracer, h)
 
 	if cfg.SendTelemetry {
@@ -206,7 +206,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return stopSignalHandler(ctx, cancel, logger)
+		return stopSignalHandler(ctx, cancel, *logger)
 	})
 
 	if err := g.Wait(); err != nil {

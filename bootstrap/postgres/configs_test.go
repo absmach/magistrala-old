@@ -38,7 +38,7 @@ var (
 )
 
 func TestSave(t *testing.T) {
-	repo := postgres.NewConfigRepository(db, testLog)
+	repo := postgres.NewConfigRepository(db, *testLog)
 	err := deleteChannels(context.Background(), repo)
 	require.Nil(t, err, "Channels cleanup expected to succeed.")
 
@@ -100,7 +100,7 @@ func TestSave(t *testing.T) {
 }
 
 func TestRetrieveByID(t *testing.T) {
-	repo := postgres.NewConfigRepository(db, testLog)
+	repo := postgres.NewConfigRepository(db, *testLog)
 	err := deleteChannels(context.Background(), repo)
 	require.Nil(t, err, "Channels cleanup expected to succeed.")
 
@@ -156,7 +156,7 @@ func TestRetrieveByID(t *testing.T) {
 }
 
 func TestRetrieveAll(t *testing.T) {
-	repo := postgres.NewConfigRepository(db, testLog)
+	repo := postgres.NewConfigRepository(db, *testLog)
 	err := deleteChannels(context.Background(), repo)
 	require.Nil(t, err, "Channels cleanup expected to succeed.")
 
@@ -237,7 +237,7 @@ func TestRetrieveAll(t *testing.T) {
 }
 
 func TestRetrieveByExternalID(t *testing.T) {
-	repo := postgres.NewConfigRepository(db, testLog)
+	repo := postgres.NewConfigRepository(db, *testLog)
 	err := deleteChannels(context.Background(), repo)
 	require.Nil(t, err, "Channels cleanup expected to succeed.")
 
@@ -275,7 +275,7 @@ func TestRetrieveByExternalID(t *testing.T) {
 }
 
 func TestUpdate(t *testing.T) {
-	repo := postgres.NewConfigRepository(db, testLog)
+	repo := postgres.NewConfigRepository(db, *testLog)
 	err := deleteChannels(context.Background(), repo)
 	require.Nil(t, err, "Channels cleanup expected to succeed.")
 
@@ -320,7 +320,7 @@ func TestUpdate(t *testing.T) {
 }
 
 func TestUpdateCert(t *testing.T) {
-	repo := postgres.NewConfigRepository(db, testLog)
+	repo := postgres.NewConfigRepository(db, *testLog)
 	err := deleteChannels(context.Background(), repo)
 	require.Nil(t, err, "Channels cleanup expected to succeed.")
 
@@ -386,7 +386,7 @@ func TestUpdateCert(t *testing.T) {
 }
 
 func TestUpdateConnections(t *testing.T) {
-	repo := postgres.NewConfigRepository(db, testLog)
+	repo := postgres.NewConfigRepository(db, *testLog)
 	err := deleteChannels(context.Background(), repo)
 	require.Nil(t, err, "Channels cleanup expected to succeed.")
 
@@ -459,7 +459,7 @@ func TestUpdateConnections(t *testing.T) {
 }
 
 func TestRemove(t *testing.T) {
-	repo := postgres.NewConfigRepository(db, testLog)
+	repo := postgres.NewConfigRepository(db, *testLog)
 	err := deleteChannels(context.Background(), repo)
 	require.Nil(t, err, "Channels cleanup expected to succeed.")
 
@@ -486,7 +486,7 @@ func TestRemove(t *testing.T) {
 }
 
 func TestChangeState(t *testing.T) {
-	repo := postgres.NewConfigRepository(db, testLog)
+	repo := postgres.NewConfigRepository(db, *testLog)
 	err := deleteChannels(context.Background(), repo)
 	require.Nil(t, err, "Channels cleanup expected to succeed.")
 
@@ -542,7 +542,7 @@ func TestChangeState(t *testing.T) {
 }
 
 func TestListExisting(t *testing.T) {
-	repo := postgres.NewConfigRepository(db, testLog)
+	repo := postgres.NewConfigRepository(db, *testLog)
 	err := deleteChannels(context.Background(), repo)
 	require.Nil(t, err, "Channels cleanup expected to succeed.")
 
@@ -593,7 +593,7 @@ func TestListExisting(t *testing.T) {
 }
 
 func TestRemoveThing(t *testing.T) {
-	repo := postgres.NewConfigRepository(db, testLog)
+	repo := postgres.NewConfigRepository(db, *testLog)
 	err := deleteChannels(context.Background(), repo)
 	require.Nil(t, err, "Channels cleanup expected to succeed.")
 
@@ -614,7 +614,7 @@ func TestRemoveThing(t *testing.T) {
 }
 
 func TestUpdateChannel(t *testing.T) {
-	repo := postgres.NewConfigRepository(db, testLog)
+	repo := postgres.NewConfigRepository(db, *testLog)
 	err := deleteChannels(context.Background(), repo)
 	require.Nil(t, err, "Channels cleanup expected to succeed.")
 
@@ -652,7 +652,7 @@ func TestUpdateChannel(t *testing.T) {
 }
 
 func TestRemoveChannel(t *testing.T) {
-	repo := postgres.NewConfigRepository(db, testLog)
+	repo := postgres.NewConfigRepository(db, *testLog)
 	err := deleteChannels(context.Background(), repo)
 	require.Nil(t, err, "Channels cleanup expected to succeed.")
 
@@ -675,7 +675,7 @@ func TestRemoveChannel(t *testing.T) {
 }
 
 func TestDisconnectThing(t *testing.T) {
-	repo := postgres.NewConfigRepository(db, testLog)
+	repo := postgres.NewConfigRepository(db, *testLog)
 	err := deleteChannels(context.Background(), repo)
 	require.Nil(t, err, "Channels cleanup expected to succeed.")
 

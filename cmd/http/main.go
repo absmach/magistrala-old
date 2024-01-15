@@ -131,10 +131,10 @@ func main() {
 	defer pub.Close()
 	pub = brokerstracing.NewPublisher(httpServerConfig, tracer, pub)
 
-	svc := newService(pub, authClient, logger, tracer)
+	svc := newService(pub, authClient, *logger, tracer)
 	targetServerCfg := server.Config{Port: targetHTTPPort}
 
-	hs := httpserver.New(ctx, cancel, svcName, targetServerCfg, api.MakeHandler(cfg.InstanceID), logger)
+	hs := httpserver.New(ctx, cancel, svcName, targetServerCfg, api.MakeHandler(cfg.InstanceID), *logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -150,7 +150,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, logger, svcName, hs)
+		return server.StopSignalHandler(ctx, cancel, *logger, svcName, hs)
 	})
 
 	if err := g.Wait(); err != nil {

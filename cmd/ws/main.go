@@ -126,7 +126,7 @@ func main() {
 	}()
 	tracer := tp.Tracer(svcName)
 
-	nps, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
+	nps, err := brokers.NewPubSub(ctx, cfg.BrokerURL, *logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("Failed to connect to message broker: %s", err))
 		exitCode = 1
@@ -135,9 +135,9 @@ func main() {
 	defer nps.Close()
 	nps = brokerstracing.NewPubSub(targetServerConfig, tracer, nps)
 
-	svc := newService(authClient, nps, logger, tracer)
+	svc := newService(authClient, nps, *logger, tracer)
 
-	hs := httpserver.New(ctx, cancel, svcName, targetServerConfig, api.MakeHandler(ctx, svc, logger, cfg.InstanceID), logger)
+	hs := httpserver.New(ctx, cancel, svcName, targetServerConfig, api.MakeHandler(ctx, svc, *logger, cfg.InstanceID), *logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -148,12 +148,12 @@ func main() {
 		g.Go(func() error {
 			return hs.Start()
 		})
-		handler := ws.NewHandler(nps, logger, authClient)
+		handler := ws.NewHandler(nps, *logger, authClient)
 		return proxyWS(ctx, httpServerConfig, targetServerConfig, chClientLogger, handler)
 	})
 
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, logger, svcName, hs)
+		return server.StopSignalHandler(ctx, cancel, *logger, svcName, hs)
 	})
 
 	if err := g.Wait(); err != nil {

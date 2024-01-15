@@ -132,7 +132,7 @@ func main() {
 		return
 	}
 
-	svc := newService(db, tracer, cfg, dbConfig, logger, spicedbclient)
+	svc := newService(db, tracer, cfg, dbConfig, *logger, spicedbclient)
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
 	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
@@ -140,7 +140,7 @@ func main() {
 		exitCode = 1
 		return
 	}
-	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, httpapi.MakeHandler(svc, logger, cfg.InstanceID), logger)
+	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, httpapi.MakeHandler(svc, *logger, cfg.InstanceID), *logger)
 
 	grpcServerConfig := server.Config{Port: defSvcGRPCPort}
 	if err := env.ParseWithOptions(&grpcServerConfig, env.Options{Prefix: envPrefixGrpc}); err != nil {
@@ -153,7 +153,7 @@ func main() {
 		magistrala.RegisterAuthServiceServer(srv, grpcapi.NewServer(svc))
 	}
 
-	gs := grpcserver.New(ctx, cancel, svcName, grpcServerConfig, registerAuthServiceServer, logger)
+	gs := grpcserver.New(ctx, cancel, svcName, grpcServerConfig, registerAuthServiceServer, *logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -168,7 +168,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, logger, svcName, hs, gs)
+		return server.StopSignalHandler(ctx, cancel, *logger, svcName, hs, gs)
 	})
 
 	if err := g.Wait(); err != nil {
