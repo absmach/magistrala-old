@@ -803,7 +803,7 @@ func TestUpdateClient(t *testing.T) {
 		err            error
 	}{
 		{
-			desc:        "update thing with valid token",
+			desc:        "update user with valid token",
 			id:          client.ID,
 			data:        fmt.Sprintf(`{"name":"%s","metadata":%s}`, newName, toJSON(newMetadata)),
 			token:       validToken,
@@ -817,7 +817,7 @@ func TestUpdateClient(t *testing.T) {
 			err:    nil,
 		},
 		{
-			desc:        "update thing with invalid token",
+			desc:        "update user with invalid token",
 			id:          client.ID,
 			data:        fmt.Sprintf(`{"name":"%s","metadata":%s}`, newName, toJSON(newMetadata)),
 			token:       inValidToken,
@@ -826,7 +826,7 @@ func TestUpdateClient(t *testing.T) {
 			err:         svcerr.ErrAuthentication,
 		},
 		{
-			desc:        "update thing with empty token",
+			desc:        "update user with empty token",
 			id:          client.ID,
 			data:        fmt.Sprintf(`{"name":"%s","metadata":%s}`, newName, toJSON(newMetadata)),
 			token:       "",
@@ -835,7 +835,7 @@ func TestUpdateClient(t *testing.T) {
 			err:         apiutil.ErrBearerToken,
 		},
 		{
-			desc:        "update thing with invalid id",
+			desc:        "update user with invalid id",
 			id:          inValid,
 			data:        fmt.Sprintf(`{"name":"%s","metadata":%s}`, newName, toJSON(newMetadata)),
 			token:       validToken,
@@ -844,7 +844,7 @@ func TestUpdateClient(t *testing.T) {
 			err:         svcerr.ErrAuthorization,
 		},
 		{
-			desc:        "update thing with invalid contentype",
+			desc:        "update user with invalid contentype",
 			id:          client.ID,
 			data:        fmt.Sprintf(`{"name":"%s","metadata":%s}`, newName, toJSON(newMetadata)),
 			token:       validToken,
@@ -853,7 +853,7 @@ func TestUpdateClient(t *testing.T) {
 			err:         apiutil.ErrValidation,
 		},
 		{
-			desc:        "update thing with malformed data",
+			desc:        "update user with malformed data",
 			id:          client.ID,
 			data:        fmt.Sprintf(`{"name":%s}`, "invalid"),
 			token:       validToken,
@@ -862,7 +862,7 @@ func TestUpdateClient(t *testing.T) {
 			err:         apiutil.ErrValidation,
 		},
 		{
-			desc:        "update thing with empty id",
+			desc:        "update user with empty id",
 			id:          " ",
 			data:        fmt.Sprintf(`{"name":"%s","metadata":%s}`, newName, toJSON(newMetadata)),
 			token:       validToken,
@@ -913,7 +913,7 @@ func TestUpdateClientTags(t *testing.T) {
 		err            error
 	}{
 		{
-			desc:        "update thing tags with valid token",
+			desc:        "update user tags with valid token",
 			id:          client.ID,
 			data:        fmt.Sprintf(`{"tags":["%s"]}`, newTag),
 			contentType: contentType,
@@ -926,7 +926,7 @@ func TestUpdateClientTags(t *testing.T) {
 			err:    nil,
 		},
 		{
-			desc:        "update thing tags with empty token",
+			desc:        "update user tags with empty token",
 			id:          client.ID,
 			data:        fmt.Sprintf(`{"tags":["%s"]}`, newTag),
 			contentType: contentType,
@@ -935,7 +935,7 @@ func TestUpdateClientTags(t *testing.T) {
 			err:         apiutil.ErrBearerToken,
 		},
 		{
-			desc:        "update thing tags with invalid token",
+			desc:        "update user tags with invalid token",
 			id:          client.ID,
 			data:        fmt.Sprintf(`{"tags":["%s"]}`, newTag),
 			contentType: contentType,
@@ -944,7 +944,7 @@ func TestUpdateClientTags(t *testing.T) {
 			err:         svcerr.ErrAuthentication,
 		},
 		{
-			desc:        "update thing tags with invalid id",
+			desc:        "update user tags with invalid id",
 			id:          client.ID,
 			data:        fmt.Sprintf(`{"tags":["%s"]}`, newTag),
 			contentType: contentType,
@@ -953,7 +953,7 @@ func TestUpdateClientTags(t *testing.T) {
 			err:         svcerr.ErrAuthorization,
 		},
 		{
-			desc:        "update thing tags with invalid contentype",
+			desc:        "update user tags with invalid contentype",
 			id:          client.ID,
 			data:        fmt.Sprintf(`{"tags":["%s"]}`, newTag),
 			contentType: "application/xml",
@@ -962,7 +962,7 @@ func TestUpdateClientTags(t *testing.T) {
 			err:         apiutil.ErrValidation,
 		},
 		{
-			desc:        "update things tags with empty id",
+			desc:        "update user tags with empty id",
 			id:          "",
 			data:        fmt.Sprintf(`{"tags":["%s"]}`, newTag),
 			contentType: contentType,
@@ -971,7 +971,7 @@ func TestUpdateClientTags(t *testing.T) {
 			err:         apiutil.ErrValidation,
 		},
 		{
-			desc:        "update things with malfomed data",
+			desc:        "update user with malfomed data",
 			id:          client.ID,
 			data:        fmt.Sprintf(`{"tags":%s}`, newTag),
 			contentType: contentType,
@@ -1426,7 +1426,7 @@ func TestUpdateClientSecret(t *testing.T) {
 		err         error
 	}{
 		{
-			desc: "update thing secret with valid token",
+			desc: "update user secret with valid token",
 			data: fmt.Sprintf(`{"secret": "%s"}`, "strongersecret"),
 			client: mgclients.Client{
 				ID: client.ID,
@@ -1441,7 +1441,7 @@ func TestUpdateClientSecret(t *testing.T) {
 			err:         nil,
 		},
 		{
-			desc: "update thing secret with empty token",
+			desc: "update user secret with empty token",
 			data: fmt.Sprintf(`{"secret": "%s"}`, "strongersecret"),
 			client: mgclients.Client{
 				ID: client.ID,
@@ -1456,7 +1456,7 @@ func TestUpdateClientSecret(t *testing.T) {
 			err:         apiutil.ErrBearerToken,
 		},
 		{
-			desc: "update thing secret with invalid token",
+			desc: "update user secret with invalid token",
 			data: fmt.Sprintf(`{"secret": "%s"}`, "strongersecret"),
 			client: mgclients.Client{
 				ID: client.ID,
@@ -1472,7 +1472,7 @@ func TestUpdateClientSecret(t *testing.T) {
 		},
 
 		{
-			desc: "update thing secret with empty secret",
+			desc: "update user secret with empty secret",
 			data: fmt.Sprintf(`{"secret": "%s"}`, ""),
 			client: mgclients.Client{
 				ID: client.ID,
@@ -1487,7 +1487,7 @@ func TestUpdateClientSecret(t *testing.T) {
 			err:         apiutil.ErrBearerKey,
 		},
 		{
-			desc: "update thing secret with invalid contentype",
+			desc: "update user secret with invalid contentype",
 			data: fmt.Sprintf(`{"secret": "%s"}`, ""),
 			client: mgclients.Client{
 				ID: client.ID,
@@ -1502,7 +1502,7 @@ func TestUpdateClientSecret(t *testing.T) {
 			err:         apiutil.ErrValidation,
 		},
 		{
-			desc: "update thing secret with malformed data",
+			desc: "update user secret with malformed data",
 			data: fmt.Sprintf(`{"secret": %s}`, "invalid"),
 			client: mgclients.Client{
 				ID: client.ID,
