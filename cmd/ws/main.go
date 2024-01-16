@@ -162,7 +162,7 @@ func main() {
 func newService(tc magistrala.AuthzServiceClient, nps messaging.PubSub, logger slog.Logger, tracer trace.Tracer) ws.Service {
 	svc := ws.New(tc, nps)
 	svc = tracing.New(tracer, svc)
-	svc = api.LoggingMiddleware(svc, logger)
+	svc = api.LoggingMiddleware(svc, &logger)
 	counter, latency := internal.MakeMetrics("ws_adapter", "api")
 	svc = api.MetricsMiddleware(svc, counter, latency)
 	return svc

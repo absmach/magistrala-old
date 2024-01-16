@@ -17,12 +17,12 @@ import (
 var _ opcua.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
-	logger slog.Logger
+	logger *slog.Logger
 	svc    opcua.Service
 }
 
 // LoggingMiddleware adds logging facilities to the core service.
-func LoggingMiddleware(svc opcua.Service, logger slog.Logger) opcua.Service {
+func LoggingMiddleware(svc opcua.Service, logger *slog.Logger) opcua.Service {
 	return &loggingMiddleware{
 		logger: logger,
 		svc:    svc,

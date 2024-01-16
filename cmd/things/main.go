@@ -248,12 +248,12 @@ func newService(ctx context.Context, db *sqlx.DB, dbConfig pgclient.Config, auth
 	}
 
 	csvc = ctracing.New(csvc, tracer)
-	csvc = api.LoggingMiddleware(csvc, logger)
+	csvc = api.LoggingMiddleware(csvc, &logger)
 	counter, latency := internal.MakeMetrics(svcName, "api")
 	csvc = api.MetricsMiddleware(csvc, counter, latency)
 
 	gsvc = gtracing.New(gsvc, tracer)
-	gsvc = gapi.LoggingMiddleware(gsvc, logger)
+	gsvc = gapi.LoggingMiddleware(gsvc, &logger)
 	counter, latency = internal.MakeMetrics(fmt.Sprintf("%s_groups", svcName), "api")
 	gsvc = gapi.MetricsMiddleware(gsvc, counter, latency)
 

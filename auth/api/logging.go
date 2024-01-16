@@ -17,12 +17,12 @@ import (
 var _ auth.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
-	logger slog.Logger
+	logger *slog.Logger
 	svc    auth.Service
 }
 
 // LoggingMiddleware adds logging facilities to the core service.
-func LoggingMiddleware(svc auth.Service, logger slog.Logger) auth.Service {
+func LoggingMiddleware(svc auth.Service, logger *slog.Logger) auth.Service {
 	return &loggingMiddleware{logger, svc}
 }
 

@@ -192,7 +192,7 @@ func newService(ctx context.Context, authClient magistrala.AuthServiceClient, db
 	}
 
 	svc = producer.NewEventStoreMiddleware(svc, publisher)
-	svc = api.LoggingMiddleware(svc, logger)
+	svc = api.LoggingMiddleware(svc, &logger)
 	counter, latency := internal.MakeMetrics(svcName, "api")
 	svc = api.MetricsMiddleware(svc, counter, latency)
 	svc = tracing.New(svc, tracer)

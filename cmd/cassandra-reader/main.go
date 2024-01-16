@@ -150,7 +150,7 @@ func main() {
 
 func newService(csdSession *gocql.Session, logger slog.Logger) readers.MessageRepository {
 	repo := cassandra.New(csdSession)
-	repo = api.LoggingMiddleware(repo, logger)
+	repo = api.LoggingMiddleware(repo, &logger)
 	counter, latency := internal.MakeMetrics("cassandra", "message_reader")
 	repo = api.MetricsMiddleware(repo, counter, latency)
 	return repo

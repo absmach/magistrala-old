@@ -17,12 +17,12 @@ import (
 var _ certs.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
-	logger slog.Logger
+	logger *slog.Logger
 	svc    certs.Service
 }
 
 // LoggingMiddleware adds logging facilities to the bootstrap service.
-func LoggingMiddleware(svc certs.Service, logger slog.Logger) certs.Service {
+func LoggingMiddleware(svc certs.Service, logger *slog.Logger) certs.Service {
 	return &loggingMiddleware{logger, svc}
 }
 

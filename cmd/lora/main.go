@@ -226,7 +226,7 @@ func newService(pub messaging.Publisher, rmConn *redis.Client, thingsRMPrefix, c
 	connsRM := newRouteMapRepository(rmConn, connsRMPrefix, logger)
 
 	svc := lora.New(pub, thingsRM, chansRM, connsRM)
-	svc = api.LoggingMiddleware(svc, logger)
+	svc = api.LoggingMiddleware(svc, &logger)
 	counter, latency := internal.MakeMetrics("lora_adapter", "api")
 	svc = api.MetricsMiddleware(svc, counter, latency)
 

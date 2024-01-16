@@ -17,11 +17,11 @@ import (
 var _ things.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
-	logger slog.Logger
+	logger *slog.Logger
 	svc    things.Service
 }
 
-func LoggingMiddleware(svc things.Service, logger slog.Logger) things.Service {
+func LoggingMiddleware(svc things.Service, logger *slog.Logger) things.Service {
 	return &loggingMiddleware{logger, svc}
 }
 

@@ -205,7 +205,7 @@ func newRouteMapRepositoy(ctx context.Context, client *redis.Client, prefix stri
 
 func newService(sub opcua.Subscriber, browser opcua.Browser, thingRM, chanRM, connRM opcua.RouteMapRepository, opcuaConfig opcua.Config, logger slog.Logger) opcua.Service {
 	svc := opcua.New(sub, browser, thingRM, chanRM, connRM, opcuaConfig, logger)
-	svc = api.LoggingMiddleware(svc, logger)
+	svc = api.LoggingMiddleware(svc, &logger)
 	counter, latency := internal.MakeMetrics("opc_ua_adapter", "api")
 	svc = api.MetricsMiddleware(svc, counter, latency)
 

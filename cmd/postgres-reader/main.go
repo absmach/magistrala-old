@@ -152,7 +152,7 @@ func main() {
 
 func newService(db *sqlx.DB, logger slog.Logger) readers.MessageRepository {
 	svc := postgres.New(db)
-	svc = api.LoggingMiddleware(svc, logger)
+	svc = api.LoggingMiddleware(svc, &logger)
 	counter, latency := internal.MakeMetrics("postgres", "message_reader")
 	svc = api.MetricsMiddleware(svc, counter, latency)
 

@@ -158,7 +158,7 @@ func main() {
 
 func newService(client influxdb2.Client, repocfg influxdb.RepoConfig, logger slog.Logger) readers.MessageRepository {
 	repo := influxdb.New(client, repocfg)
-	repo = api.LoggingMiddleware(repo, logger)
+	repo = api.LoggingMiddleware(repo, &logger)
 	counter, latency := internal.MakeMetrics("influxdb", "message_reader")
 	repo = api.MetricsMiddleware(repo, counter, latency)
 

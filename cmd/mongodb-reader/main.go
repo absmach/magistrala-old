@@ -144,7 +144,7 @@ func main() {
 
 func newService(db *mongo.Database, logger slog.Logger) readers.MessageRepository {
 	repo := mongodb.New(db)
-	repo = api.LoggingMiddleware(repo, logger)
+	repo = api.LoggingMiddleware(repo, &logger)
 	counter, latency := internal.MakeMetrics("mongodb", "message_reader")
 	repo = api.MetricsMiddleware(repo, counter, latency)
 

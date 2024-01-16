@@ -184,7 +184,7 @@ func newService(db *sqlx.DB, tracer trace.Tracer, authClient magistrala.AuthServ
 	idp := ulid.New()
 	notifier := mgsmpp.New(sc)
 	svc := notifiers.New(authClient, repo, idp, notifier, c.From)
-	svc = api.LoggingMiddleware(svc, logger)
+	svc = api.LoggingMiddleware(svc, &logger)
 	counter, latency := internal.MakeMetrics("notifier", "smpp")
 	svc = api.MetricsMiddleware(svc, counter, latency)
 

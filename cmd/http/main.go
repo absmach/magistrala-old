@@ -159,7 +159,7 @@ func main() {
 func newService(pub messaging.Publisher, tc magistrala.AuthzServiceClient, logger slog.Logger, tracer trace.Tracer) session.Handler {
 	svc := adapter.NewHandler(pub, logger, tc)
 	svc = handler.NewTracing(tracer, svc)
-	svc = handler.LoggingMiddleware(svc, logger)
+	svc = handler.LoggingMiddleware(svc, &logger)
 	counter, latency := internal.MakeMetrics(svcName, "api")
 	svc = handler.MetricsMiddleware(svc, counter, latency)
 	return svc

@@ -184,7 +184,7 @@ func newService(authClient magistrala.AuthServiceClient, db *sqlx.DB, tracer tra
 	}
 	sdk := mgsdk.NewSDK(config)
 	svc := certs.New(authClient, certsRepo, sdk, pkiAgent)
-	svc = api.LoggingMiddleware(svc, logger)
+	svc = api.LoggingMiddleware(svc, &logger)
 	counter, latency := internal.MakeMetrics(svcName, "api")
 	svc = api.MetricsMiddleware(svc, counter, latency)
 	svc = tracing.New(svc, tracer)

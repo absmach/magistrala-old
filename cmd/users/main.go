@@ -224,12 +224,12 @@ func newService(ctx context.Context, authClient magistrala.AuthServiceClient, db
 	}
 
 	csvc = ctracing.New(csvc, tracer)
-	csvc = capi.LoggingMiddleware(csvc, logger)
+	csvc = capi.LoggingMiddleware(csvc, &logger)
 	counter, latency := internal.MakeMetrics(svcName, "api")
 	csvc = capi.MetricsMiddleware(csvc, counter, latency)
 
 	gsvc = gtracing.New(gsvc, tracer)
-	gsvc = gapi.LoggingMiddleware(gsvc, logger)
+	gsvc = gapi.LoggingMiddleware(gsvc, &logger)
 	counter, latency = internal.MakeMetrics("groups", "api")
 	gsvc = gapi.MetricsMiddleware(gsvc, counter, latency)
 

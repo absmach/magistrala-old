@@ -135,7 +135,7 @@ func main() {
 
 	svc = tracing.New(tracer, svc)
 
-	svc = api.LoggingMiddleware(svc, *logger)
+	svc = api.LoggingMiddleware(svc, logger)
 
 	counter, latency := internal.MakeMetrics(svcName, "api")
 	svc = api.MetricsMiddleware(svc, counter, latency)

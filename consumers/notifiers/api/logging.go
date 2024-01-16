@@ -17,12 +17,12 @@ import (
 var _ notifiers.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
-	logger slog.Logger
+	logger *slog.Logger
 	svc    notifiers.Service
 }
 
 // LoggingMiddleware adds logging facilities to the core service.
-func LoggingMiddleware(svc notifiers.Service, logger slog.Logger) notifiers.Service {
+func LoggingMiddleware(svc notifiers.Service, logger *slog.Logger) notifiers.Service {
 	return &loggingMiddleware{logger, svc}
 }
 

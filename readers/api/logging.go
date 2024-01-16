@@ -16,12 +16,12 @@ import (
 var _ readers.MessageRepository = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
-	logger slog.Logger
+	logger *slog.Logger
 	svc    readers.MessageRepository
 }
 
 // LoggingMiddleware adds logging facilities to the core service.
-func LoggingMiddleware(svc readers.MessageRepository, logger slog.Logger) readers.MessageRepository {
+func LoggingMiddleware(svc readers.MessageRepository, logger *slog.Logger) readers.MessageRepository {
 	return &loggingMiddleware{
 		logger: logger,
 		svc:    svc,

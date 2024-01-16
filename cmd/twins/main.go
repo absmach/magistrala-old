@@ -205,7 +205,7 @@ func newService(ctx context.Context, id string, ps messaging.PubSub, cfg config,
 		return nil, err
 	}
 
-	svc = api.LoggingMiddleware(svc, logger)
+	svc = api.LoggingMiddleware(svc, &logger)
 	counter, latency := internal.MakeMetrics(svcName, "api")
 	svc = api.MetricsMiddleware(svc, counter, latency)
 
