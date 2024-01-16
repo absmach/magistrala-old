@@ -99,7 +99,7 @@ func (repo clientRepo) RetrieveByID(ctx context.Context, id string) (mgclients.C
 		ID: id,
 	}
 
-	rows, err := repo.ClientRepository.DB.NamedQueryContext(ctx, q, dbc)
+	rows, err := repo.DB.NamedQueryContext(ctx, q, dbc)
 	if err != nil {
 		return mgclients.Client{}, postgres.HandleError(repoerr.ErrViewEntity, err)
 	}

@@ -329,10 +329,6 @@ func TestRetrieveAll(t *testing.T) {
 	repo := cpostgres.NewRepository(database)
 
 	ownerID := testsutil.GenerateUUID(t)
-	role := new(mgclients.Role)
-	*role = mgclients.AdminRole
-	invalidRole := new(mgclients.Role)
-	*invalidRole = 4
 
 	num := 200
 	var items []mgclients.Client
@@ -371,6 +367,7 @@ func TestRetrieveAll(t *testing.T) {
 			page: mgclients.Page{
 				Offset: 0,
 				Limit:  50,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -387,6 +384,7 @@ func TestRetrieveAll(t *testing.T) {
 			page: mgclients.Page{
 				Offset: 50,
 				Limit:  200,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -403,6 +401,7 @@ func TestRetrieveAll(t *testing.T) {
 			page: mgclients.Page{
 				Offset: 0,
 				Limit:  50,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -418,6 +417,7 @@ func TestRetrieveAll(t *testing.T) {
 			page: mgclients.Page{
 				Offset: 1000,
 				Limit:  200,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -434,6 +434,7 @@ func TestRetrieveAll(t *testing.T) {
 			page: mgclients.Page{
 				Offset: 0,
 				Limit:  1000,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -450,7 +451,7 @@ func TestRetrieveAll(t *testing.T) {
 			page: mgclients.Page{},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
-					Total:  200,
+					Total:  196,
 					Offset: 0,
 					Limit:  0,
 				},
@@ -464,6 +465,7 @@ func TestRetrieveAll(t *testing.T) {
 				IDs:    []string{items[0].ID},
 				Offset: 0,
 				Limit:  3,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -481,6 +483,7 @@ func TestRetrieveAll(t *testing.T) {
 				IDs:    []string{invalidName},
 				Offset: 0,
 				Limit:  3,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -498,6 +501,7 @@ func TestRetrieveAll(t *testing.T) {
 				Name:   items[0].Name,
 				Offset: 0,
 				Limit:  3,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -515,6 +519,7 @@ func TestRetrieveAll(t *testing.T) {
 				Status: mgclients.EnabledStatus,
 				Offset: 0,
 				Limit:  200,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -532,6 +537,7 @@ func TestRetrieveAll(t *testing.T) {
 				Status: mgclients.DisabledStatus,
 				Offset: 0,
 				Limit:  200,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -548,6 +554,7 @@ func TestRetrieveAll(t *testing.T) {
 				Status: mgclients.AllStatus,
 				Offset: 0,
 				Limit:  200,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -564,6 +571,7 @@ func TestRetrieveAll(t *testing.T) {
 				Owner:  ownerID,
 				Offset: 0,
 				Limit:  5,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -581,6 +589,7 @@ func TestRetrieveAll(t *testing.T) {
 				Owner:  invalidName,
 				Offset: 0,
 				Limit:  200,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -598,6 +607,7 @@ func TestRetrieveAll(t *testing.T) {
 				Tag:    "tag1",
 				Offset: 0,
 				Limit:  200,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -615,6 +625,7 @@ func TestRetrieveAll(t *testing.T) {
 				Name:   invalidName,
 				Offset: 0,
 				Limit:  3,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -633,6 +644,7 @@ func TestRetrieveAll(t *testing.T) {
 				},
 				Offset: 0,
 				Limit:  200,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -652,6 +664,7 @@ func TestRetrieveAll(t *testing.T) {
 				},
 				Offset: 0,
 				Limit:  200,
+				Role:   mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -666,7 +679,7 @@ func TestRetrieveAll(t *testing.T) {
 		{
 			desc: "retrieve with role",
 			page: mgclients.Page{
-				Role:   role,
+				Role:   mgclients.AdminRole,
 				Offset: 0,
 				Limit:  200,
 			},
@@ -683,7 +696,7 @@ func TestRetrieveAll(t *testing.T) {
 		{
 			desc: "retrieve with invalid role",
 			page: mgclients.Page{
-				Role:   invalidRole,
+				Role:   mgclients.AdminRole + 2,
 				Offset: 0,
 				Limit:  200,
 			},
@@ -703,6 +716,7 @@ func TestRetrieveAll(t *testing.T) {
 				Identity: items[0].Credentials.Identity,
 				Offset:   0,
 				Limit:    3,
+				Role:     mgclients.AllRole,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
