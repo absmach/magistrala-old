@@ -350,6 +350,7 @@ func TestRetrieveAll(t *testing.T) {
 				"key": "value",
 			}
 			client.Role = mgclients.AdminRole
+			client.Status = mgclients.DisabledStatus
 		}
 		_, err := repo.Save(context.Background(), client)
 		require.Nil(t, err, fmt.Sprintf("failed to save client %s", client.ID))
@@ -368,6 +369,7 @@ func TestRetrieveAll(t *testing.T) {
 				Offset: 0,
 				Limit:  50,
 				Role:   mgclients.AllRole,
+				Status: mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -385,6 +387,7 @@ func TestRetrieveAll(t *testing.T) {
 				Offset: 50,
 				Limit:  200,
 				Role:   mgclients.AllRole,
+				Status: mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -402,6 +405,7 @@ func TestRetrieveAll(t *testing.T) {
 				Offset: 0,
 				Limit:  50,
 				Role:   mgclients.AllRole,
+				Status: mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -418,6 +422,7 @@ func TestRetrieveAll(t *testing.T) {
 				Offset: 1000,
 				Limit:  200,
 				Role:   mgclients.AllRole,
+				Status: mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -435,6 +440,7 @@ func TestRetrieveAll(t *testing.T) {
 				Offset: 0,
 				Limit:  1000,
 				Role:   mgclients.AllRole,
+				Status: mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -466,6 +472,7 @@ func TestRetrieveAll(t *testing.T) {
 				Offset: 0,
 				Limit:  3,
 				Role:   mgclients.AllRole,
+				Status: mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -484,6 +491,7 @@ func TestRetrieveAll(t *testing.T) {
 				Offset: 0,
 				Limit:  3,
 				Role:   mgclients.AllRole,
+				Status: mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -502,6 +510,7 @@ func TestRetrieveAll(t *testing.T) {
 				Offset: 0,
 				Limit:  3,
 				Role:   mgclients.AllRole,
+				Status: mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -510,24 +519,6 @@ func TestRetrieveAll(t *testing.T) {
 					Limit:  3,
 				},
 				Clients: []mgclients.Client{items[0]},
-			},
-			err: nil,
-		},
-		{
-			desc: "retrieve with enabled status",
-			page: mgclients.Page{
-				Status: mgclients.EnabledStatus,
-				Offset: 0,
-				Limit:  200,
-				Role:   mgclients.AllRole,
-			},
-			response: mgclients.ClientsPage{
-				Page: mgclients.Page{
-					Total:  200,
-					Offset: 0,
-					Limit:  200,
-				},
-				Clients: items,
 			},
 			err: nil,
 		},
@@ -541,11 +532,11 @@ func TestRetrieveAll(t *testing.T) {
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
-					Total:  0,
+					Total:  4,
 					Offset: 0,
 					Limit:  200,
 				},
-				Clients: []mgclients.Client{},
+				Clients: []mgclients.Client{items[0], items[50], items[100], items[150]},
 			},
 		},
 		{
@@ -572,6 +563,7 @@ func TestRetrieveAll(t *testing.T) {
 				Offset: 0,
 				Limit:  5,
 				Role:   mgclients.AllRole,
+				Status: mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -608,6 +600,7 @@ func TestRetrieveAll(t *testing.T) {
 				Offset: 0,
 				Limit:  200,
 				Role:   mgclients.AllRole,
+				Status: mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -626,6 +619,7 @@ func TestRetrieveAll(t *testing.T) {
 				Offset: 0,
 				Limit:  3,
 				Role:   mgclients.AllRole,
+				Status: mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -645,6 +639,7 @@ func TestRetrieveAll(t *testing.T) {
 				Offset: 0,
 				Limit:  200,
 				Role:   mgclients.AllRole,
+				Status: mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -665,6 +660,7 @@ func TestRetrieveAll(t *testing.T) {
 				Offset: 0,
 				Limit:  200,
 				Role:   mgclients.AllRole,
+				Status: mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -682,6 +678,7 @@ func TestRetrieveAll(t *testing.T) {
 				Role:   mgclients.AdminRole,
 				Offset: 0,
 				Limit:  200,
+				Status: mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -699,6 +696,7 @@ func TestRetrieveAll(t *testing.T) {
 				Role:   mgclients.AdminRole + 2,
 				Offset: 0,
 				Limit:  200,
+				Status: mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -717,6 +715,7 @@ func TestRetrieveAll(t *testing.T) {
 				Offset:   0,
 				Limit:    3,
 				Role:     mgclients.AllRole,
+				Status:   mgclients.AllStatus,
 			},
 			response: mgclients.ClientsPage{
 				Page: mgclients.Page{
