@@ -17,13 +17,6 @@ type mockWriter struct {
 	value []byte
 }
 
-// const (
-// 	LevelDebug = "debug"
-// 	LevelInfo  = "info"
-// 	LevelWarn  = "warn"
-// 	LevelError = "error"
-// )
-
 func (writer *mockWriter) Write(p []byte) (int, error) {
 	writer.value = append(writer.value, p...)
 	return len(p), nil
