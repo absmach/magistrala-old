@@ -26,18 +26,17 @@ type loggingMiddleware struct {
 // AuthConnect implements session.Handler.
 func (lm *loggingMiddleware) AuthConnect(ctx context.Context) (err error) {
 	defer func(begin time.Time) {
+		message:= "Method auth_connect completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "auth_connect"),
+				fmt.Sprintf("%s with error", message),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
 			return
 		}
 		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "auth_connect"),
+			fmt.Sprintf("%s without errors", message),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -48,18 +47,17 @@ func (lm *loggingMiddleware) AuthConnect(ctx context.Context) (err error) {
 // AuthPublish implements session.Handler.
 func (lm *loggingMiddleware) AuthPublish(ctx context.Context, topic *string, payload *[]byte) (err error) {
 	defer func(begin time.Time) {
+		message:= "Method auth_publish completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "auth_publish"),
+				fmt.Sprintf("%s with error", message),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
 			return
 		}
 		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "auth_publish"),
+			fmt.Sprintf("%s without errors", message),
 			slog.String("topic", *topic),
 			slog.String("duration", time.Since(begin).String()),
 		)
@@ -71,10 +69,10 @@ func (lm *loggingMiddleware) AuthPublish(ctx context.Context, topic *string, pay
 // AuthSubscribe implements session.Handler.
 func (lm *loggingMiddleware) AuthSubscribe(ctx context.Context, topics *[]string) (err error) {
 	defer func(begin time.Time) {
+		message:= "Method auth_subscribe completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error: %s.", message, err),
-				slog.String("method", "auth_subscribe"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -82,7 +80,6 @@ func (lm *loggingMiddleware) AuthSubscribe(ctx context.Context, topics *[]string
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "auth_subscribe"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -93,18 +90,17 @@ func (lm *loggingMiddleware) AuthSubscribe(ctx context.Context, topics *[]string
 // Connect implements session.Handler.
 func (lm *loggingMiddleware) Connect(ctx context.Context) (err error) {
 	defer func(begin time.Time) {
+		message:= "Method connect completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
-				slog.String("method", "connect"),
+				fmt.Sprintf("%s with error", message),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
 			return
 		}
 		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "connect"),
+			fmt.Sprintf("%s without errors", message),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -115,10 +111,10 @@ func (lm *loggingMiddleware) Connect(ctx context.Context) (err error) {
 // Disconnect implements session.Handler.
 func (lm *loggingMiddleware) Disconnect(ctx context.Context) (err error) {
 	defer func(begin time.Time) {
+		message:= "Method disconnect completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error: %s.", message, err),
-				slog.String("method", "disconnect"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -126,7 +122,6 @@ func (lm *loggingMiddleware) Disconnect(ctx context.Context) (err error) {
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "disconnect"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -138,18 +133,17 @@ func (lm *loggingMiddleware) Disconnect(ctx context.Context) (err error) {
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) Publish(ctx context.Context, topic *string, payload *[]byte) (err error) {
 	defer func(begin time.Time) {
+		message:= "Method publish completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
-				slog.String("method", "publish"),
+				fmt.Sprintf("%s with error", message),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
 			return
 		}
 		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "publish"),
+			fmt.Sprintf("%s without errors", message),
 			slog.String("channel_topic", *topic),
 			slog.String("duration", time.Since(begin).String()),
 		)
@@ -161,18 +155,17 @@ func (lm *loggingMiddleware) Publish(ctx context.Context, topic *string, payload
 // Subscribe implements session.Handler.
 func (lm *loggingMiddleware) Subscribe(ctx context.Context, topics *[]string) (err error) {
 	defer func(begin time.Time) {
+		message:= "Method subscribe completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
-				slog.String("method", "subscribe"),
+				fmt.Sprintf("%s with error", message),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
 			return
 		}
 		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "subscribe"),
+			fmt.Sprintf("%s without errors", message),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -183,19 +176,17 @@ func (lm *loggingMiddleware) Subscribe(ctx context.Context, topics *[]string) (e
 // Unsubscribe implements session.Handler.
 func (lm *loggingMiddleware) Unsubscribe(ctx context.Context, topics *[]string) (err error) {
 	defer func(begin time.Time) {
-		message := fmt.Sprintf("Method unsubscribe took %s to complete", time.Since(begin))
+		message := "Method unsubscribe completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
-				slog.String("method", "unsubscribe"),
+				fmt.Sprintf("%s with error", message),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
 			return
 		}
 		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "unsubscribe"),
+			fmt.Sprintf("%s without errors", message),
 			slog.String("topics", fmt.Sprintf("%v", topics)),
 			slog.String("duration", time.Since(begin).String()),
 		)

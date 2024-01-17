@@ -12,8 +12,6 @@ import (
 	"github.com/absmach/magistrala/pkg/groups"
 )
 
-const message = "Method completed"
-
 var _ groups.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
@@ -30,10 +28,10 @@ func LoggingMiddleware(svc groups.Service, logger *slog.Logger) groups.Service {
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) CreateGroup(ctx context.Context, token, kind string, group groups.Group) (g groups.Group, err error) {
 	defer func(begin time.Time) {
+		message := "Method create_group %s completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "create_group"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -41,7 +39,6 @@ func (lm *loggingMiddleware) CreateGroup(ctx context.Context, token, kind string
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "create_group"),
 			slog.String("group_name", g.Name),
 			slog.String("token", token),
 			slog.String("kind", kind),
@@ -56,10 +53,10 @@ func (lm *loggingMiddleware) CreateGroup(ctx context.Context, token, kind string
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) UpdateGroup(ctx context.Context, token string, group groups.Group) (g groups.Group, err error) {
 	defer func(begin time.Time) {
+		message := "Method update_group completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "update_group"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -67,7 +64,6 @@ func (lm *loggingMiddleware) UpdateGroup(ctx context.Context, token string, grou
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "update_group"),
 			slog.String("group_name", g.Name),
 			slog.String("group_id", g.ID),
 			slog.String("token", token),
@@ -81,10 +77,10 @@ func (lm *loggingMiddleware) UpdateGroup(ctx context.Context, token string, grou
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ViewGroup(ctx context.Context, token, id string) (g groups.Group, err error) {
 	defer func(begin time.Time) {
+		message := "Method view_group completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "view_group"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -92,7 +88,6 @@ func (lm *loggingMiddleware) ViewGroup(ctx context.Context, token, id string) (g
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "view_group"),
 			slog.String("group_name", g.Name),
 			slog.String("group_id", g.ID),
 			slog.String("token", token),
@@ -106,10 +101,10 @@ func (lm *loggingMiddleware) ViewGroup(ctx context.Context, token, id string) (g
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ViewGroupPerms(ctx context.Context, token, id string) (p []string, err error) {
 	defer func(begin time.Time) {
+		message := "Method view_group_perms completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "view_group_perms"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -117,7 +112,6 @@ func (lm *loggingMiddleware) ViewGroupPerms(ctx context.Context, token, id strin
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "view_group_perms"),
 			slog.String("group_id", id),
 			slog.String("token", token),
 			slog.String("duration", time.Since(begin).String()),
@@ -134,7 +128,6 @@ func (lm *loggingMiddleware) ListGroups(ctx context.Context, token, memberKind, 
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "list_groups"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -142,7 +135,6 @@ func (lm *loggingMiddleware) ListGroups(ctx context.Context, token, memberKind, 
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "list_groups"),
 			slog.String("token", token),
 			slog.String("duration", time.Since(begin).String()),
 		)
@@ -154,10 +146,10 @@ func (lm *loggingMiddleware) ListGroups(ctx context.Context, token, memberKind, 
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) EnableGroup(ctx context.Context, token, id string) (g groups.Group, err error) {
 	defer func(begin time.Time) {
+		message := "Method enable_group completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "enable_group"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -165,7 +157,6 @@ func (lm *loggingMiddleware) EnableGroup(ctx context.Context, token, id string) 
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "enable_group"),
 			slog.String("group_name", g.Name),
 			slog.String("group_id", g.ID),
 			slog.String("token", token),
@@ -179,10 +170,10 @@ func (lm *loggingMiddleware) EnableGroup(ctx context.Context, token, id string) 
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) DisableGroup(ctx context.Context, token, id string) (g groups.Group, err error) {
 	defer func(begin time.Time) {
+		message := "Method disable_group completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "disable_group"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -190,7 +181,6 @@ func (lm *loggingMiddleware) DisableGroup(ctx context.Context, token, id string)
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "disable_group"),
 			slog.String("group_name", g.Name),
 			slog.String("group_id", g.ID),
 			slog.String("token", token),
@@ -204,10 +194,10 @@ func (lm *loggingMiddleware) DisableGroup(ctx context.Context, token, id string)
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ListMembers(ctx context.Context, token, groupID, permission, memberKind string) (mp groups.MembersPage, err error) {
 	defer func(begin time.Time) {
+		message := "Method list_members completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "list_memberships"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -215,7 +205,6 @@ func (lm *loggingMiddleware) ListMembers(ctx context.Context, token, groupID, pe
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "list_memberships"),
 			slog.String("group_id", groupID),
 			slog.String("token", token),
 			slog.String("permission", permission),
@@ -228,10 +217,10 @@ func (lm *loggingMiddleware) ListMembers(ctx context.Context, token, groupID, pe
 
 func (lm *loggingMiddleware) Assign(ctx context.Context, token, groupID, relation, memberKind string, memberIDs ...string) (err error) {
 	defer func(begin time.Time) {
+		message := "Method assign completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "assign"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -239,7 +228,6 @@ func (lm *loggingMiddleware) Assign(ctx context.Context, token, groupID, relatio
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "assign"),
 			slog.String("member_IDS", fmt.Sprintf("%v", memberIDs)),
 			slog.String("group_id", groupID),
 			slog.String("token", token),
@@ -254,10 +242,10 @@ func (lm *loggingMiddleware) Assign(ctx context.Context, token, groupID, relatio
 
 func (lm *loggingMiddleware) Unassign(ctx context.Context, token, groupID, relation, memberKind string, memberIDs ...string) (err error) {
 	defer func(begin time.Time) {
+		message := "Method unassign completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "unassign"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -265,7 +253,6 @@ func (lm *loggingMiddleware) Unassign(ctx context.Context, token, groupID, relat
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "unassign"),
 			slog.String("member_IDS", fmt.Sprintf("%v", memberIDs)),
 			slog.String("group_id", groupID),
 			slog.String("token", token),
@@ -278,10 +265,10 @@ func (lm *loggingMiddleware) Unassign(ctx context.Context, token, groupID, relat
 
 func (lm *loggingMiddleware) DeleteGroup(ctx context.Context, token, id string) (err error) {
 	defer func(begin time.Time) {
+		message := "Method delete_group completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "delete_group"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)

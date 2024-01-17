@@ -31,7 +31,6 @@ func (lm *loggingMiddleware) Provision(token, name, externalID, externalKey stri
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "provision"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -39,7 +38,6 @@ func (lm *loggingMiddleware) Provision(token, name, externalID, externalKey stri
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors", message),
-			slog.String("method", "provision"),
 			slog.String("token", token),
 			slog.String("duration", time.Since(begin).String()),
 		)
@@ -50,11 +48,10 @@ func (lm *loggingMiddleware) Provision(token, name, externalID, externalKey stri
 
 func (lm *loggingMiddleware) Cert(token, thingID, duration string) (cert, key string, err error) {
 	defer func(begin time.Time) {
-		message := "Method completed"
+		message := "Method cert completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s", message, err),
-				slog.String("method", "cert"),
+				fmt.Sprintf("%s with error", message),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -62,7 +59,6 @@ func (lm *loggingMiddleware) Cert(token, thingID, duration string) (cert, key st
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors", message),
-			slog.String("method", "cert"),
 			slog.String("token", token),
 			slog.String("thing_id", thingID),
 			slog.String("duration", time.Since(begin).String()),
@@ -74,11 +70,10 @@ func (lm *loggingMiddleware) Cert(token, thingID, duration string) (cert, key st
 
 func (lm *loggingMiddleware) Mapping(token string) (res map[string]interface{}, err error) {
 	defer func(begin time.Time) {
-		message := "Method completed"
+		message := "Method mapping completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s", message, err),
-				slog.String("method", "mapping"),
+				fmt.Sprintf("%s with error", message),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -86,7 +81,6 @@ func (lm *loggingMiddleware) Mapping(token string) (res map[string]interface{}, 
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors", message),
-			slog.String("method", "mapping"),
 			slog.String("token", token),
 			slog.String("duration", time.Since(begin).String()),
 		)

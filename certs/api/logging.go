@@ -14,8 +14,6 @@ import (
 	"github.com/absmach/magistrala/certs"
 )
 
-const message = "Method completed"
-
 var _ certs.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
@@ -32,17 +30,16 @@ func LoggingMiddleware(svc certs.Service, logger *slog.Logger) certs.Service {
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) IssueCert(ctx context.Context, token, thingID, ttl string) (c certs.Cert, err error) {
 	defer func(begin time.Time) {
+		message:= "Method issue_cert completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "issue_cert"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
 			return
 		}
 		lm.logger.Info(fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "issue_cert"),
 			slog.String("thing_id", thingID),
 			slog.String("token", token),
 			slog.String("ttl", ttl),
@@ -56,10 +53,10 @@ func (lm *loggingMiddleware) IssueCert(ctx context.Context, token, thingID, ttl 
 // ListCerts logs the list_certs request. It logs the token, thing ID and the time it took to complete the request.
 func (lm *loggingMiddleware) ListCerts(ctx context.Context, token, thingID string, offset, limit uint64) (cp certs.Page, err error) {
 	defer func(begin time.Time) {
+		message:= "Method list_certs completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "list_certs"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -67,7 +64,6 @@ func (lm *loggingMiddleware) ListCerts(ctx context.Context, token, thingID strin
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "list_certs"),
 			slog.String("thing_id", thingID),
 			slog.String("token", token),
 			slog.Uint64("offset", offset),
@@ -83,10 +79,10 @@ func (lm *loggingMiddleware) ListCerts(ctx context.Context, token, thingID strin
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ListSerials(ctx context.Context, token, thingID string, offset, limit uint64) (cp certs.Page, err error) {
 	defer func(begin time.Time) {
+		message:= "Method list_serials completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "list_serials"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -94,7 +90,6 @@ func (lm *loggingMiddleware) ListSerials(ctx context.Context, token, thingID str
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "list_serials"),
 			slog.String("token", token),
 			slog.String("thing_id", thingID),
 			slog.Uint64("offset", offset),
@@ -110,10 +105,10 @@ func (lm *loggingMiddleware) ListSerials(ctx context.Context, token, thingID str
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ViewCert(ctx context.Context, token, serialID string) (c certs.Cert, err error) {
 	defer func(begin time.Time) {
+		message:= "Method view_cert completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "view_cert"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -121,7 +116,6 @@ func (lm *loggingMiddleware) ViewCert(ctx context.Context, token, serialID strin
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "view_cert"),
 			slog.String("token", token),
 			slog.String("serial_id", serialID),
 			slog.String("duration", time.Since(begin).String()),
@@ -135,10 +129,10 @@ func (lm *loggingMiddleware) ViewCert(ctx context.Context, token, serialID strin
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) RevokeCert(ctx context.Context, token, thingID string) (c certs.Revoke, err error) {
 	defer func(begin time.Time) {
+		message:= "Method revoke_cert completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "revoke_cert"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -146,7 +140,6 @@ func (lm *loggingMiddleware) RevokeCert(ctx context.Context, token, thingID stri
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "revoke_cert"),
 			slog.String("token", token),
 			slog.String("thing_id", thingID),
 			slog.String("duration", time.Since(begin).String()),

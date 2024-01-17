@@ -33,7 +33,7 @@ func (lm *loggingMiddleware) ReadAll(chanID string, rpm readers.PageMetadata) (p
 		message := "Method completed"
 		if err != nil {
 			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
+				fmt.Sprintf("%s with error", message),
 				slog.String("method", "read_all"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
@@ -41,7 +41,7 @@ func (lm *loggingMiddleware) ReadAll(chanID string, rpm readers.PageMetadata) (p
 			return
 		}
 		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
+			fmt.Sprintf("%s without errors", message),
 			slog.String("method", "read_all"),
 			slog.String("channel_ID", chanID),
 			slog.String("query", fmt.Sprintf("%v", rpm)),

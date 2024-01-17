@@ -14,8 +14,6 @@ import (
 	"github.com/absmach/magistrala/auth"
 )
 
-const message = "Method completed"
-
 var _ auth.Service = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
@@ -30,10 +28,10 @@ func LoggingMiddleware(svc auth.Service, logger *slog.Logger) auth.Service {
 
 func (lm *loggingMiddleware) ListObjects(ctx context.Context, pr auth.PolicyReq, nextPageToken string, limit int32) (p auth.PolicyPage, err error) {
 	defer func(begin time.Time) {
+		message := "Method list_objects completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "list_objects"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -41,7 +39,6 @@ func (lm *loggingMiddleware) ListObjects(ctx context.Context, pr auth.PolicyReq,
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "list_objects"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -51,10 +48,10 @@ func (lm *loggingMiddleware) ListObjects(ctx context.Context, pr auth.PolicyReq,
 
 func (lm *loggingMiddleware) ListAllObjects(ctx context.Context, pr auth.PolicyReq) (p auth.PolicyPage, err error) {
 	defer func(begin time.Time) {
+		message := "Method list_all_objects completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "list_all_objects"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -62,7 +59,6 @@ func (lm *loggingMiddleware) ListAllObjects(ctx context.Context, pr auth.PolicyR
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "list_all_objects"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -72,10 +68,10 @@ func (lm *loggingMiddleware) ListAllObjects(ctx context.Context, pr auth.PolicyR
 
 func (lm *loggingMiddleware) CountObjects(ctx context.Context, pr auth.PolicyReq) (count int, err error) {
 	defer func(begin time.Time) {
+		message := "Method count_objects completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "count_objects"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -83,7 +79,6 @@ func (lm *loggingMiddleware) CountObjects(ctx context.Context, pr auth.PolicyReq
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "count_objects"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -92,10 +87,10 @@ func (lm *loggingMiddleware) CountObjects(ctx context.Context, pr auth.PolicyReq
 
 func (lm *loggingMiddleware) ListSubjects(ctx context.Context, pr auth.PolicyReq, nextPageToken string, limit int32) (p auth.PolicyPage, err error) {
 	defer func(begin time.Time) {
+		message := "Method list_subjects completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "list_subjects"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -103,7 +98,6 @@ func (lm *loggingMiddleware) ListSubjects(ctx context.Context, pr auth.PolicyReq
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "list_subjects"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -113,10 +107,10 @@ func (lm *loggingMiddleware) ListSubjects(ctx context.Context, pr auth.PolicyReq
 
 func (lm *loggingMiddleware) ListAllSubjects(ctx context.Context, pr auth.PolicyReq) (p auth.PolicyPage, err error) {
 	defer func(begin time.Time) {
+		message := "Method list_all_subjects completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "list_all_subjects"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -124,7 +118,6 @@ func (lm *loggingMiddleware) ListAllSubjects(ctx context.Context, pr auth.Policy
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "list_all_subjects"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -134,10 +127,10 @@ func (lm *loggingMiddleware) ListAllSubjects(ctx context.Context, pr auth.Policy
 
 func (lm *loggingMiddleware) CountSubjects(ctx context.Context, pr auth.PolicyReq) (count int, err error) {
 	defer func(begin time.Time) {
+		message := "Method count_subjects completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "list_subjects"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -145,7 +138,6 @@ func (lm *loggingMiddleware) CountSubjects(ctx context.Context, pr auth.PolicyRe
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "list_subjects"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -154,10 +146,10 @@ func (lm *loggingMiddleware) CountSubjects(ctx context.Context, pr auth.PolicyRe
 
 func (lm *loggingMiddleware) ListPermissions(ctx context.Context, pr auth.PolicyReq, filterPermissions []string) (p auth.Permissions, err error) {
 	defer func(begin time.Time) {
+		message := "Method list_permissions completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "list_permissions"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -165,7 +157,6 @@ func (lm *loggingMiddleware) ListPermissions(ctx context.Context, pr auth.Policy
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "list_permissions"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -183,7 +174,6 @@ func (lm *loggingMiddleware) Issue(ctx context.Context, token string, key auth.K
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "issue"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -191,7 +181,6 @@ func (lm *loggingMiddleware) Issue(ctx context.Context, token string, key auth.K
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "issue"),
 			slog.String("key_type", key.Type.String()),
 			slog.String("key_id", key.ID),
 			slog.String("token", token),
@@ -204,10 +193,10 @@ func (lm *loggingMiddleware) Issue(ctx context.Context, token string, key auth.K
 
 func (lm *loggingMiddleware) Revoke(ctx context.Context, token, id string) (err error) {
 	defer func(begin time.Time) {
+		message := "Method revoke completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "revoke"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -215,7 +204,6 @@ func (lm *loggingMiddleware) Revoke(ctx context.Context, token, id string) (err 
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "revoke"),
 			slog.String("key_id", id),
 			slog.String("token", token),
 			slog.String("duration", time.Since(begin).String()),
@@ -227,10 +215,10 @@ func (lm *loggingMiddleware) Revoke(ctx context.Context, token, id string) (err 
 
 func (lm *loggingMiddleware) RetrieveKey(ctx context.Context, token, id string) (key auth.Key, err error) {
 	defer func(begin time.Time) {
+		message := "Method retrieve_key completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "retrieve_key"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -238,7 +226,6 @@ func (lm *loggingMiddleware) RetrieveKey(ctx context.Context, token, id string) 
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "retrieve_key"),
 			slog.String("key_id", id),
 			slog.String("token", token),
 			slog.String("duration", time.Since(begin).String()),
@@ -250,10 +237,10 @@ func (lm *loggingMiddleware) RetrieveKey(ctx context.Context, token, id string) 
 
 func (lm *loggingMiddleware) Identify(ctx context.Context, token string) (id auth.Key, err error) {
 	defer func(begin time.Time) {
+		message := "Method identify completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "identify"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -261,7 +248,6 @@ func (lm *loggingMiddleware) Identify(ctx context.Context, token string) (id aut
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "identify"),
 			slog.String("token", token),
 			slog.String("duration", time.Since(begin).String()),
 		)
@@ -272,10 +258,10 @@ func (lm *loggingMiddleware) Identify(ctx context.Context, token string) (id aut
 
 func (lm *loggingMiddleware) Authorize(ctx context.Context, pr auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
+		message := "Method authorize completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "authorize"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -283,7 +269,6 @@ func (lm *loggingMiddleware) Authorize(ctx context.Context, pr auth.PolicyReq) (
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "authorize"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -292,10 +277,10 @@ func (lm *loggingMiddleware) Authorize(ctx context.Context, pr auth.PolicyReq) (
 
 func (lm *loggingMiddleware) AddPolicy(ctx context.Context, pr auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
+		message := "Method add_policy completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "add_policy"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -303,7 +288,6 @@ func (lm *loggingMiddleware) AddPolicy(ctx context.Context, pr auth.PolicyReq) (
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "add_policy"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -312,10 +296,10 @@ func (lm *loggingMiddleware) AddPolicy(ctx context.Context, pr auth.PolicyReq) (
 
 func (lm *loggingMiddleware) AddPolicies(ctx context.Context, prs []auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
+		message := "Method add_policies completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "create_policy_bulk"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -323,7 +307,6 @@ func (lm *loggingMiddleware) AddPolicies(ctx context.Context, prs []auth.PolicyR
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "create_policy_bulk"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -333,10 +316,10 @@ func (lm *loggingMiddleware) AddPolicies(ctx context.Context, prs []auth.PolicyR
 
 func (lm *loggingMiddleware) DeletePolicy(ctx context.Context, pr auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
+		message := "Method delete_policy completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "delete_policy"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -344,7 +327,6 @@ func (lm *loggingMiddleware) DeletePolicy(ctx context.Context, pr auth.PolicyReq
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "delete_policy"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -353,10 +335,10 @@ func (lm *loggingMiddleware) DeletePolicy(ctx context.Context, pr auth.PolicyReq
 
 func (lm *loggingMiddleware) DeletePolicies(ctx context.Context, prs []auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
+		message := "Method delete_policies completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "delete_policies"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -364,7 +346,6 @@ func (lm *loggingMiddleware) DeletePolicies(ctx context.Context, prs []auth.Poli
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "delete_policies"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -373,10 +354,10 @@ func (lm *loggingMiddleware) DeletePolicies(ctx context.Context, prs []auth.Poli
 
 func (lm *loggingMiddleware) CreateDomain(ctx context.Context, token string, d auth.Domain) (do auth.Domain, err error) {
 	defer func(begin time.Time) {
+		message := "Method create_domain completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "create_domain"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -384,7 +365,6 @@ func (lm *loggingMiddleware) CreateDomain(ctx context.Context, token string, d a
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "create_domain"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -393,10 +373,10 @@ func (lm *loggingMiddleware) CreateDomain(ctx context.Context, token string, d a
 
 func (lm *loggingMiddleware) RetrieveDomain(ctx context.Context, token, id string) (do auth.Domain, err error) {
 	defer func(begin time.Time) {
+		message := "Method retrieve_domain completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "retrieve_domain"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -404,7 +384,6 @@ func (lm *loggingMiddleware) RetrieveDomain(ctx context.Context, token, id strin
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "retrieve_domain"),
 			slog.String("domain_id", id),
 			slog.String("token", token),
 			slog.String("duration", time.Since(begin).String()),
@@ -415,10 +394,10 @@ func (lm *loggingMiddleware) RetrieveDomain(ctx context.Context, token, id strin
 
 func (lm *loggingMiddleware) RetrieveDomainPermissions(ctx context.Context, token, id string) (permissions auth.Permissions, err error) {
 	defer func(begin time.Time) {
+		message := "Method retrieve_domain_permissions completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "retrieve_domain_permissions"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -426,7 +405,6 @@ func (lm *loggingMiddleware) RetrieveDomainPermissions(ctx context.Context, toke
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "retrieve_domain_permissions"),
 			slog.String("domain_id", id),
 			slog.String("token", token),
 			slog.String("duration", time.Since(begin).String()),
@@ -437,10 +415,10 @@ func (lm *loggingMiddleware) RetrieveDomainPermissions(ctx context.Context, toke
 
 func (lm *loggingMiddleware) UpdateDomain(ctx context.Context, token, id string, d auth.DomainReq) (do auth.Domain, err error) {
 	defer func(begin time.Time) {
+		message := "Method update_domain completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "update_domain"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -448,7 +426,6 @@ func (lm *loggingMiddleware) UpdateDomain(ctx context.Context, token, id string,
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "update_domain"),
 			slog.String("domain_id", id),
 			slog.String("duration", time.Since(begin).String()),
 		)
@@ -458,10 +435,10 @@ func (lm *loggingMiddleware) UpdateDomain(ctx context.Context, token, id string,
 
 func (lm *loggingMiddleware) ChangeDomainStatus(ctx context.Context, token, id string, d auth.DomainReq) (do auth.Domain, err error) {
 	defer func(begin time.Time) {
+		message := "Method change_domain_status completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "change_domain_status"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -469,7 +446,6 @@ func (lm *loggingMiddleware) ChangeDomainStatus(ctx context.Context, token, id s
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "change_domain_status"),
 			slog.String("domain_id", "id"),
 			slog.String("token", token),
 			slog.String("duration", time.Since(begin).String()),
@@ -480,10 +456,10 @@ func (lm *loggingMiddleware) ChangeDomainStatus(ctx context.Context, token, id s
 
 func (lm *loggingMiddleware) ListDomains(ctx context.Context, token string, page auth.Page) (do auth.DomainsPage, err error) {
 	defer func(begin time.Time) {
+		message := "Method list_domains completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "list_domains"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -491,7 +467,6 @@ func (lm *loggingMiddleware) ListDomains(ctx context.Context, token string, page
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "list_domains"),
 			slog.String("token", token),
 			slog.String("duration", time.Since(begin).String()),
 		)
@@ -501,10 +476,10 @@ func (lm *loggingMiddleware) ListDomains(ctx context.Context, token string, page
 
 func (lm *loggingMiddleware) AssignUsers(ctx context.Context, token, id string, userIds []string, relation string) (err error) {
 	defer func(begin time.Time) {
+		message := "Method assign_users completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "assign_users"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -512,7 +487,6 @@ func (lm *loggingMiddleware) AssignUsers(ctx context.Context, token, id string, 
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "assign_users"),
 			slog.String("duration", time.Since(begin).String()),
 		)
 	}(time.Now())
@@ -521,10 +495,10 @@ func (lm *loggingMiddleware) AssignUsers(ctx context.Context, token, id string, 
 
 func (lm *loggingMiddleware) UnassignUsers(ctx context.Context, token, id string, userIds []string, relation string) (err error) {
 	defer func(begin time.Time) {
+		message := "Method unassign_users completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "unassign_users"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -532,7 +506,6 @@ func (lm *loggingMiddleware) UnassignUsers(ctx context.Context, token, id string
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "unassign_users"),
 			slog.String("token", token),
 			slog.String("user_ids", fmt.Sprintf("%v", userIds)),
 			slog.String("relation", relation),
@@ -544,10 +517,10 @@ func (lm *loggingMiddleware) UnassignUsers(ctx context.Context, token, id string
 
 func (lm *loggingMiddleware) ListUserDomains(ctx context.Context, token, userID string, page auth.Page) (do auth.DomainsPage, err error) {
 	defer func(begin time.Time) {
+		message := "Method list_user_domains completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
-				slog.String("method", "list_user_domains"),
 				slog.String("error", err.Error()),
 				slog.String("duration", time.Since(begin).String()),
 			)
@@ -555,7 +528,6 @@ func (lm *loggingMiddleware) ListUserDomains(ctx context.Context, token, userID 
 		}
 		lm.logger.Info(
 			fmt.Sprintf("%s without errors.", message),
-			slog.String("method", "list_user_domains"),
 			slog.String("token", token),
 			slog.String("user_id", userID),
 			slog.String("duration", time.Since(begin).String()),
