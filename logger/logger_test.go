@@ -6,6 +6,7 @@ package logger_test
 import (
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"testing"
 
 	mglog "github.com/absmach/magistrala/logger"
@@ -16,12 +17,12 @@ type mockWriter struct {
 	value []byte
 }
 
-const (
-	LevelDebug = "debug"
-	LevelInfo  = "info"
-	LevelWarn  = "warn"
-	LevelError = "error"
-)
+// const (
+// 	LevelDebug = "debug"
+// 	LevelInfo  = "info"
+// 	LevelWarn  = "warn"
+// 	LevelError = "error"
+// )
 
 func (writer *mockWriter) Write(p []byte) (int, error) {
 	writer.value = append(writer.value, p...)
@@ -54,25 +55,25 @@ func TestDebug(t *testing.T) {
 		{
 			desc:   "debug log ordinary string",
 			input:  "input_string",
-			level:  LevelDebug,
+			level:  slog.LevelDebug.String(),
 			output: logMsg{Level: "DEBUG", Message: "input_string"},
 		},
 		{
 			desc:   "debug log empty string",
 			input:  "",
-			level:  LevelDebug,
+			level:  slog.LevelDebug.String(),
 			output: logMsg{Level: "DEBUG", Message: ""},
 		},
 		{
 			desc:   "debug ordinary string lvl not allowed",
 			input:  "input_string",
-			level:  LevelInfo,
+			level:  slog.LevelInfo.String(),
 			output: logMsg{Level: "", Message: ""},
 		},
 		{
 			desc:   "debug empty string lvl not allowed",
 			input:  "",
-			level:  LevelInfo,
+			level:  slog.LevelInfo.String(),
 			output: logMsg{Level: "", Message: ""},
 		},
 	}
@@ -87,7 +88,7 @@ func TestDebug(t *testing.T) {
 			output, err := writer.Read()
 			assert.Nil(t, err)
 
-			if tc.level != LevelDebug {
+			if tc.level != slog.LevelDebug.String() {
 				assert.Empty(t, output.Message, fmt.Sprintf("%s: expected no output got %s", tc.desc, output.Message))
 			} else {
 				assert.Equal(t, tc.output.Level, output.Level, fmt.Sprintf("%s: expected Level %v got %v", tc.desc, tc.output.Level, output.Level))
@@ -107,25 +108,25 @@ func TestInfo(t *testing.T) {
 		{
 			desc:   "info log ordinary string",
 			input:  "input_string",
-			level:  LevelInfo,
+			level:  slog.LevelInfo.String(),
 			output: logMsg{Level: "INFO", Message: "input_string"},
 		},
 		{
 			desc:   "info log empty string",
 			input:  "",
-			level:  LevelInfo,
+			level:  slog.LevelInfo.String(),
 			output: logMsg{Level: "INFO", Message: ""},
 		},
 		{
 			desc:   "info ordinary string lvl not allowed",
 			input:  "input_string",
-			level:  LevelWarn,
+			level:  slog.LevelWarn.String(),
 			output: logMsg{Level: "", Message: ""},
 		},
 		{
 			desc:   "info empty string lvl not allowed",
 			input:  "",
-			level:  LevelWarn,
+			level:  slog.LevelWarn.String(),
 			output: logMsg{Level: "", Message: ""},
 		},
 	}
@@ -140,7 +141,7 @@ func TestInfo(t *testing.T) {
 			output, err := writer.Read()
 			assert.Nil(t, err)
 
-			if tc.level != LevelInfo && tc.level != LevelDebug {
+			if tc.level != slog.LevelInfo.String() && tc.level != slog.LevelDebug.String() {
 				assert.Empty(t, output.Message, fmt.Sprintf("%s: expected no output got %s", tc.desc, output.Message))
 			} else {
 				assert.Equal(t, tc.output.Level, output.Level, fmt.Sprintf("%s: expected Level %v got %v", tc.desc, tc.output.Level, output.Level))
@@ -160,25 +161,25 @@ func TestWarn(t *testing.T) {
 		{
 			desc:   "warn log ordinary string",
 			input:  "input_string",
-			level:  LevelWarn,
+			level:  slog.LevelWarn.String(),
 			output: logMsg{Level: "WARN", Message: "input_string"},
 		},
 		{
 			desc:   "warn log empty string",
 			input:  "",
-			level:  LevelWarn,
+			level:  slog.LevelWarn.String(),
 			output: logMsg{Level: "WARN", Message: ""},
 		},
 		{
 			desc:   "warn ordinary string lvl not allowed",
 			input:  "input_string",
-			level:  LevelError,
+			level:  slog.LevelError.String(),
 			output: logMsg{Level: "", Message: ""},
 		},
 		{
 			desc:   "warn empty string lvl not allowed",
 			input:  "",
-			level:  LevelError,
+			level:  slog.LevelError.String(),
 			output: logMsg{Level: "", Message: ""},
 		},
 	}
@@ -193,7 +194,7 @@ func TestWarn(t *testing.T) {
 			output, err := writer.Read()
 			assert.Nil(t, err)
 
-			if tc.level != LevelWarn && tc.level != LevelInfo && tc.level != LevelDebug {
+			if tc.level != slog.LevelWarn.String() && tc.level != slog.LevelInfo.String() && tc.level != slog.LevelDebug.String() {
 				assert.Empty(t, output.Message, fmt.Sprintf("%s: expected no output got %s", tc.desc, output.Message))
 			} else {
 				assert.Equal(t, tc.output.Level, output.Level, fmt.Sprintf("%s: expected Level %v got %v", tc.desc, tc.output.Level, output.Level))
@@ -213,13 +214,13 @@ func TestError(t *testing.T) {
 		{
 			desc:   "error log ordinary string",
 			input:  "input_string",
-			level:  LevelError,
+			level:  slog.LevelError.String(),
 			output: logMsg{Level: "ERROR", Message: "input_string"},
 		},
 		{
 			desc:   "error log empty string",
 			input:  "",
-			level:  LevelError,
+			level:  slog.LevelError.String(),
 			output: logMsg{Level: "ERROR", Message: ""},
 		},
 	}
