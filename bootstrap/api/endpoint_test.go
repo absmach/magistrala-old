@@ -176,9 +176,9 @@ func dec(in []byte) ([]byte, error) {
 	return in, nil
 }
 
-func newService() (bootstrap.Service, *authmocks.Service, *sdkmocks.SDK) {
+func newService() (bootstrap.Service, *authmocks.AuthService, *sdkmocks.SDK) {
 	things := mocks.NewConfigsRepository()
-	auth := new(authmocks.Service)
+	auth := new(authmocks.AuthService)
 	sdk := new(sdkmocks.SDK)
 
 	return bootstrap.New(auth, things, sdk, encKey), auth, sdk

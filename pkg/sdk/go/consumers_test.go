@@ -34,9 +34,9 @@ var (
 	exampleUser1      = "email1@example.com"
 )
 
-func setupSubscriptions() (*httptest.Server, *authmocks.Service) {
+func setupSubscriptions() (*httptest.Server, *authmocks.AuthService) {
 	repo := mocks.NewRepo(make(map[string]notifiers.Subscription))
-	auth := new(authmocks.Service)
+	auth := new(authmocks.AuthService)
 	notifier := mocks.NewNotifier()
 	idp := uuid.NewMock()
 	from := "exampleFrom"

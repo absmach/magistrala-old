@@ -24,8 +24,8 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func setupMessages() (*httptest.Server, *authmocks.Service) {
-	auth := new(authmocks.Service)
+func setupMessages() (*httptest.Server, *authmocks.AuthService) {
+	auth := new(authmocks.AuthService)
 	pub := mocks.NewPublisher()
 	handler := adapter.NewHandler(pub, mglog.NewMock(), auth)
 

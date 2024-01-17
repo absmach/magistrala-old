@@ -88,10 +88,10 @@ func toJSON(data interface{}) string {
 	return string(jsonData)
 }
 
-func newDomainsServer() (*httptest.Server, *mocks.AuthService) {
+func newDomainsServer() (*httptest.Server, *mocks.Service) {
 	logger := mglog.NewMock()
 	mux := chi.NewRouter()
-	svc := new(mocks.AuthService)
+	svc := new(mocks.Service)
 	httpapi.MakeHandler(svc, mux, logger)
 	return httptest.NewServer(mux), svc
 }

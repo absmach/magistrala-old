@@ -10,10 +10,10 @@ import (
 	"github.com/absmach/magistrala/auth/mocks"
 )
 
-var svc *mocks.AuthService
+var svc *mocks.Service
 
 func TestMain(m *testing.M) {
-	svc = new(mocks.AuthService)
+	svc = new(mocks.Service)
 	startGRPCServer(svc, port)
 
 	code := m.Run()
