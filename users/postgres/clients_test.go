@@ -331,7 +331,7 @@ func TestRetrieveAll(t *testing.T) {
 	ownerID := testsutil.GenerateUUID(t)
 
 	num := 200
-	var items []mgclients.Client
+	var items, enabledClients []mgclients.Client
 	for i := 0; i < num; i++ {
 		client := mgclients.Client{
 			ID:   testsutil.GenerateUUID(t),
@@ -355,6 +355,9 @@ func TestRetrieveAll(t *testing.T) {
 		_, err := repo.Save(context.Background(), client)
 		require.Nil(t, err, fmt.Sprintf("failed to save client %s", client.ID))
 		items = append(items, client)
+		if client.Status == mgclients.EnabledStatus {
+			enabledClients = append(enabledClients, client)
+		}
 	}
 
 	cases := []struct {
@@ -519,6 +522,24 @@ func TestRetrieveAll(t *testing.T) {
 					Limit:  3,
 				},
 				Clients: []mgclients.Client{items[0]},
+			},
+			err: nil,
+		},
+		{
+			desc: "retrieve with enabled status",
+			page: mgclients.Page{
+				Status: mgclients.EnabledStatus,
+				Offset: 0,
+				Limit:  200,
+				Role:   mgclients.AllRole,
+			},
+			response: mgclients.ClientsPage{
+				Page: mgclients.Page{
+					Total:  196,
+					Offset: 0,
+					Limit:  200,
+				},
+				Clients: enabledClients,
 			},
 			err: nil,
 		},
