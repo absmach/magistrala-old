@@ -70,7 +70,7 @@ type Service interface {
 }
 
 type provisionService struct {
-	logger slog.Logger
+	logger *slog.Logger
 	sdk    sdk.SDK
 	conf   Config
 }
@@ -87,7 +87,7 @@ type Result struct {
 }
 
 // New returns new provision service.
-func New(cfg Config, mgsdk sdk.SDK, logger slog.Logger) Service {
+func New(cfg Config, mgsdk sdk.SDK, logger *slog.Logger) Service {
 	return &provisionService{
 		logger: logger,
 		conf:   cfg,

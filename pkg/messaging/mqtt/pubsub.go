@@ -51,7 +51,7 @@ type subscription struct {
 
 type pubsub struct {
 	publisher
-	logger        slog.Logger
+	logger        *slog.Logger
 	mu            sync.RWMutex
 	address       string
 	timeout       time.Duration
@@ -59,7 +59,7 @@ type pubsub struct {
 }
 
 // NewPubSub returns MQTT message publisher/subscriber.
-func NewPubSub(url string, qos uint8, timeout time.Duration, logger slog.Logger) (messaging.PubSub, error) {
+func NewPubSub(url string, qos uint8, timeout time.Duration, logger *slog.Logger) (messaging.PubSub, error) {
 	client, err := newClient(url, "mqtt-publisher", timeout)
 	if err != nil {
 		return nil, err

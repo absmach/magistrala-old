@@ -13,10 +13,10 @@ var _ Logger = (*loggerMock)(nil)
 type loggerMock struct{}
 
 // NewMock returns wrapped logger mock.
-func NewMock() slog.Logger {
+func NewMock() *slog.Logger {
 	buf := &bytes.Buffer{}
 
-	return *slog.New(slog.NewJSONHandler(buf, nil))
+	return slog.New(slog.NewJSONHandler(buf, nil))
 }
 
 // NewMock returns wrapped go kit logger mock.

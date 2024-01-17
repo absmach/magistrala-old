@@ -80,13 +80,13 @@ type twinsService struct {
 	idProvider magistrala.IDProvider
 	channelID  string
 	twinCache  TwinCache
-	logger     slog.Logger
+	logger     *slog.Logger
 }
 
 var _ Service = (*twinsService)(nil)
 
 // New instantiates the twins service implementation.
-func New(publisher messaging.Publisher, auth magistrala.AuthServiceClient, twins TwinRepository, tcache TwinCache, sr StateRepository, idp magistrala.IDProvider, chann string, logger slog.Logger) Service {
+func New(publisher messaging.Publisher, auth magistrala.AuthServiceClient, twins TwinRepository, tcache TwinCache, sr StateRepository, idp magistrala.IDProvider, chann string, logger *slog.Logger) Service {
 	return &twinsService{
 		publisher:  publisher,
 		auth:       auth,

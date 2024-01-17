@@ -45,7 +45,7 @@ type client struct {
 	thingsRM   opcua.RouteMapRepository
 	channelsRM opcua.RouteMapRepository
 	connectRM  opcua.RouteMapRepository
-	logger     slog.Logger
+	logger     *slog.Logger
 }
 
 type message struct {
@@ -58,7 +58,7 @@ type message struct {
 }
 
 // NewSubscriber returns new OPC-UA client instance.
-func NewSubscriber(ctx context.Context, publisher messaging.Publisher, thingsRM, channelsRM, connectRM opcua.RouteMapRepository, log slog.Logger) opcua.Subscriber {
+func NewSubscriber(ctx context.Context, publisher messaging.Publisher, thingsRM, channelsRM, connectRM opcua.RouteMapRepository, log *slog.Logger) opcua.Subscriber {
 	return client{
 		ctx:        ctx,
 		publisher:  publisher,

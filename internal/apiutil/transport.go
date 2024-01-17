@@ -15,7 +15,7 @@ import (
 )
 
 // LoggingErrorEncoder is a go-kit error encoder logging decorator.
-func LoggingErrorEncoder(logger slog.Logger, enc kithttp.ErrorEncoder) kithttp.ErrorEncoder {
+func LoggingErrorEncoder(logger *slog.Logger, enc kithttp.ErrorEncoder) kithttp.ErrorEncoder {
 	return func(ctx context.Context, err error, w http.ResponseWriter) {
 		if errors.Contains(err, ErrValidation) {
 			logger.Error(err.Error())

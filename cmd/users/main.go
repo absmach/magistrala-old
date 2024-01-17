@@ -163,7 +163,7 @@ func main() {
 	defer authHandler.Close()
 	logger.Info("Successfully connected to auth grpc server " + authHandler.Secure())
 
-	csvc, gsvc, err := newService(ctx, authClient, db, dbConfig, tracer, cfg, ec, *logger)
+	csvc, gsvc, err := newService(ctx, authClient, db, dbConfig, tracer, cfg, ec, logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to setup service: %s", err))
 		exitCode = 1
@@ -178,7 +178,7 @@ func main() {
 	}
 
 	mux := chi.NewRouter()
-	httpSrv := httpserver.New(ctx, cancel, svcName, httpServerConfig, capi.MakeHandler(csvc, gsvc, mux, *logger, cfg.InstanceID), *logger)
+	httpSrv := httpserver.New(ctx, cancel, svcName, httpServerConfig, capi.MakeHandler(csvc, gsvc, mux, logger, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -190,7 +190,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, *logger, svcName, httpSrv)
+		return server.StopSignalHandler(ctx, cancel, logger, svcName, httpSrv)
 	})
 
 	if err := g.Wait(); err != nil {
@@ -198,7 +198,7 @@ func main() {
 	}
 }
 
-func newService(ctx context.Context, authClient magistrala.AuthServiceClient, db *sqlx.DB, dbConfig pgclient.Config, tracer trace.Tracer, c config, ec email.Config, logger slog.Logger) (users.Service, groups.Service, error) {
+func newService(ctx context.Context, authClient magistrala.AuthServiceClient, db *sqlx.DB, dbConfig pgclient.Config, tracer trace.Tracer, c config, ec email.Config, logger *slog.Logger) (users.Service, groups.Service, error) {
 	database := postgres.NewDatabase(db, dbConfig, tracer)
 	cRepo := clientspg.NewRepository(database)
 	gRepo := gpostgres.New(database)
@@ -224,12 +224,12 @@ func newService(ctx context.Context, authClient magistrala.AuthServiceClient, db
 	}
 
 	csvc = ctracing.New(csvc, tracer)
-	csvc = capi.LoggingMiddleware(csvc, &logger)
+	csvc = capi.LoggingMiddleware(csvc, logger)
 	counter, latency := internal.MakeMetrics(svcName, "api")
 	csvc = capi.MetricsMiddleware(csvc, counter, latency)
 
 	gsvc = gtracing.New(gsvc, tracer)
-	gsvc = gapi.LoggingMiddleware(gsvc, &logger)
+	gsvc = gapi.LoggingMiddleware(gsvc, logger)
 	counter, latency = internal.MakeMetrics("groups", "api")
 	gsvc = gapi.MetricsMiddleware(gsvc, counter, latency)
 

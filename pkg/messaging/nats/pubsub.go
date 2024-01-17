@@ -42,7 +42,7 @@ var _ messaging.PubSub = (*pubsub)(nil)
 
 type pubsub struct {
 	publisher
-	logger slog.Logger
+	logger *slog.Logger
 	stream jetstream.Stream
 }
 
@@ -53,7 +53,7 @@ type pubsub struct {
 // from ordinary subscribe. For more information, please take a look
 // here: https://docs.nats.io/developing-with-nats/receiving/queues.
 // If the queue is empty, Subscribe will be used.
-func NewPubSub(ctx context.Context, url string, logger slog.Logger, opts ...messaging.Option) (messaging.PubSub, error) {
+func NewPubSub(ctx context.Context, url string, logger *slog.Logger, opts ...messaging.Option) (messaging.PubSub, error) {
 	conn, err := broker.Connect(url, broker.MaxReconnects(maxReconnects))
 	if err != nil {
 		return nil, err

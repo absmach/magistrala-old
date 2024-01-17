@@ -29,11 +29,11 @@ type broker struct {
 }
 
 // NewBroker returns new MQTT broker instance.
-func NewBroker(svc lora.Service, client mqtt.Client, t time.Duration, log slog.Logger) Subscriber {
+func NewBroker(svc lora.Service, client mqtt.Client, t time.Duration, log *slog.Logger) Subscriber {
 	return broker{
 		svc:     svc,
 		client:  client,
-		logger:  log,
+		logger:  *log,
 		timeout: t,
 	}
 }

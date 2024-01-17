@@ -15,7 +15,7 @@ import (
 )
 
 // MakeHandler returns a HTTP handler for Things and Groups API endpoints.
-func MakeHandler(tsvc things.Service, grps groups.Service, mux *chi.Mux, logger slog.Logger, instanceID string) http.Handler {
+func MakeHandler(tsvc things.Service, grps groups.Service, mux *chi.Mux, logger *slog.Logger, instanceID string) http.Handler {
 	clientsHandler(tsvc, mux, logger)
 	groupsHandler(grps, mux, logger)
 

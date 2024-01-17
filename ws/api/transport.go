@@ -32,11 +32,11 @@ var (
 		WriteBufferSize: readwriteBufferSize,
 		CheckOrigin:     func(r *http.Request) bool { return true },
 	}
-	logger slog.Logger
+	logger *slog.Logger
 )
 
 // MakeHandler returns http handler with handshake endpoint.
-func MakeHandler(ctx context.Context, svc ws.Service, l slog.Logger, instanceID string) http.Handler {
+func MakeHandler(ctx context.Context, svc ws.Service, l *slog.Logger, instanceID string) http.Handler {
 	logger = l
 
 	mux := chi.NewRouter()

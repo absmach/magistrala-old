@@ -150,7 +150,7 @@ func main() {
 		logger.Info("Successfully connected to auth grpc server " + authHandler.Secure())
 	}
 
-	pubSub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, *logger)
+	pubSub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to connect to message broker: %s", err))
 		exitCode = 1
@@ -159,14 +159,14 @@ func main() {
 	defer pubSub.Close()
 	pubSub = brokerstracing.NewPubSub(httpServerConfig, tracer, pubSub)
 
-	svc, err := newService(ctx, svcName, pubSub, cfg, authClient, tracer, db, cacheClient, *logger)
+	svc, err := newService(ctx, svcName, pubSub, cfg, authClient, tracer, db, cacheClient, logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to create %s service: %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
-	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, twapi.MakeHandler(svc, *logger, cfg.InstanceID), *logger)
+	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, twapi.MakeHandler(svc, logger, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -178,7 +178,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, *logger, svcName, hs)
+		return server.StopSignalHandler(ctx, cancel, logger, svcName, hs)
 	})
 
 	if err := g.Wait(); err != nil {
@@ -186,7 +186,7 @@ func main() {
 	}
 }
 
-func newService(ctx context.Context, id string, ps messaging.PubSub, cfg config, users magistrala.AuthServiceClient, tracer trace.Tracer, db *mongo.Database, cacheclient *redis.Client, logger slog.Logger) (twins.Service, error) {
+func newService(ctx context.Context, id string, ps messaging.PubSub, cfg config, users magistrala.AuthServiceClient, tracer trace.Tracer, db *mongo.Database, cacheclient *redis.Client, logger *slog.Logger) (twins.Service, error) {
 	twinRepo := twmongodb.NewTwinRepository(db)
 	twinRepo = tracing.TwinRepositoryMiddleware(tracer, twinRepo)
 
@@ -205,7 +205,7 @@ func newService(ctx context.Context, id string, ps messaging.PubSub, cfg config,
 		return nil, err
 	}
 
-	svc = api.LoggingMiddleware(svc, &logger)
+	svc = api.LoggingMiddleware(svc, logger)
 	counter, latency := internal.MakeMetrics(svcName, "api")
 	svc = api.MetricsMiddleware(svc, counter, latency)
 
@@ -221,7 +221,7 @@ func newService(ctx context.Context, id string, ps messaging.PubSub, cfg config,
 	return svc, nil
 }
 
-func handle(ctx context.Context, logger slog.Logger, chanID string, svc twins.Service) handlerFunc {
+func handle(ctx context.Context, logger *slog.Logger, chanID string, svc twins.Service) handlerFunc {
 	return func(msg *messaging.Message) error {
 		if msg.Channel == chanID {
 			return nil

@@ -31,7 +31,7 @@ func NewPublisher(_ context.Context, url string, opts ...messaging.Option) (mess
 	return pb, nil
 }
 
-func NewPubSub(_ context.Context, url string, logger slog.Logger, opts ...messaging.Option) (messaging.PubSub, error) {
+func NewPubSub(_ context.Context, url string, logger *slog.Logger, opts ...messaging.Option) (messaging.PubSub, error) {
 	pb, err := rabbitmq.NewPubSub(url, logger, opts...)
 	if err != nil {
 		return nil, err

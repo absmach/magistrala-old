@@ -125,7 +125,7 @@ func main() {
 	}()
 	tracer := tp.Tracer(svcName)
 
-	svc, err := newService(db, dbConfig, authClient, tracer, cfg, *logger)
+	svc, err := newService(db, dbConfig, authClient, tracer, cfg, logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to create %s service: %s", svcName, err))
 		exitCode = 1
@@ -139,7 +139,7 @@ func main() {
 		return
 	}
 
-	httpSvr := http.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(svc, *logger, cfg.InstanceID), *logger)
+	httpSvr := http.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(svc, logger, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -151,7 +151,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, *logger, svcName, httpSvr)
+		return server.StopSignalHandler(ctx, cancel, logger, svcName, httpSvr)
 	})
 
 	if err := g.Wait(); err != nil {
@@ -159,7 +159,7 @@ func main() {
 	}
 }
 
-func newService(db *sqlx.DB, dbConfig clientspg.Config, authClient magistrala.AuthServiceClient, tracer trace.Tracer, conf config, logger slog.Logger) (invitations.Service, error) {
+func newService(db *sqlx.DB, dbConfig clientspg.Config, authClient magistrala.AuthServiceClient, tracer trace.Tracer, conf config, logger *slog.Logger) (invitations.Service, error) {
 	database := postgres.NewDatabase(db, dbConfig, tracer)
 	repo := invitationspg.NewRepository(database)
 

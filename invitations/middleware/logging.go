@@ -15,11 +15,11 @@ import (
 var _ invitations.Service = (*logging)(nil)
 
 type logging struct {
-	logger slog.Logger
+	logger *slog.Logger
 	svc    invitations.Service
 }
 
-func Logging(logger slog.Logger, svc invitations.Service) invitations.Service {
+func Logging(logger *slog.Logger, svc invitations.Service) invitations.Service {
 	return &logging{logger, svc}
 }
 

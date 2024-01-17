@@ -15,7 +15,7 @@ import (
 )
 
 // MakeHandler returns a HTTP handler for Users and Groups API endpoints.
-func MakeHandler(cls users.Service, grps groups.Service, mux *chi.Mux, logger slog.Logger, instanceID string) http.Handler {
+func MakeHandler(cls users.Service, grps groups.Service, mux *chi.Mux, logger *slog.Logger, instanceID string) http.Handler {
 	clientsHandler(cls, mux, logger)
 	groupsHandler(grps, mux, logger)
 

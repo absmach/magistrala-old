@@ -34,10 +34,10 @@ type subEventStore struct {
 	pubsub   messaging.PubSub
 	stream   string
 	consumer string
-	logger   slog.Logger
+	logger   *slog.Logger
 }
 
-func NewSubscriber(url, stream, consumer string, logger slog.Logger) (events.Subscriber, error) {
+func NewSubscriber(url, stream, consumer string, logger *slog.Logger) (events.Subscriber, error) {
 	if stream == "" {
 		return nil, ErrEmptyStream
 	}
@@ -103,7 +103,7 @@ func (re event) Encode() (map[string]interface{}, error) {
 type eventHandler struct {
 	handler events.EventHandler
 	ctx     context.Context
-	logger  slog.Logger
+	logger  *slog.Logger
 }
 
 func (eh *eventHandler) Handle(msg *messaging.Message) error {

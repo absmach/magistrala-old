@@ -448,5 +448,5 @@ func newHandler() (session.Handler, *authmocks.Service) {
 	}
 	auth := new(authmocks.Service)
 	eventStore := mocks.NewEventStore()
-	return mqtt.NewHandler(mocks.NewPublisher(), eventStore, *logger, auth), auth
+	return mqtt.NewHandler(mocks.NewPublisher(), eventStore, logger, auth), auth
 }

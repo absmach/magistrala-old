@@ -40,13 +40,13 @@ type subscription struct {
 }
 type pubsub struct {
 	publisher
-	logger        slog.Logger
+	logger        *slog.Logger
 	subscriptions map[string]map[string]subscription
 	mu            sync.Mutex
 }
 
 // NewPubSub returns RabbitMQ message publisher/subscriber.
-func NewPubSub(url string, logger slog.Logger, opts ...messaging.Option) (messaging.PubSub, error) {
+func NewPubSub(url string, logger *slog.Logger, opts ...messaging.Option) (messaging.PubSub, error) {
 	conn, err := amqp.Dial(url)
 	if err != nil {
 		return nil, err

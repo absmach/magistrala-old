@@ -15,7 +15,7 @@ import (
 )
 
 // MakeHandler returns a HTTP handler for API endpoints.
-func MakeHandler(svc auth.Service, logger slog.Logger, instanceID string) http.Handler {
+func MakeHandler(svc auth.Service, logger *slog.Logger, instanceID string) http.Handler {
 	mux := chi.NewRouter()
 
 	mux = keys.MakeHandler(svc, mux, logger)

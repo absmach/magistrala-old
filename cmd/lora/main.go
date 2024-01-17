@@ -131,28 +131,28 @@ func main() {
 	defer pub.Close()
 	pub = brokerstracing.NewPublisher(httpServerConfig, tracer, pub)
 
-	svc := newService(pub, rmConn, thingsRMPrefix, channelsRMPrefix, connsRMPrefix, *logger)
+	svc := newService(pub, rmConn, thingsRMPrefix, channelsRMPrefix, connsRMPrefix, logger)
 
-	mqttConn, err := connectToMQTTBroker(cfg.LoraMsgURL, cfg.LoraMsgUser, cfg.LoraMsgPass, cfg.LoraMsgTimeout, *logger)
+	mqttConn, err := connectToMQTTBroker(cfg.LoraMsgURL, cfg.LoraMsgUser, cfg.LoraMsgPass, cfg.LoraMsgTimeout, logger)
 	if err != nil {
 		logger.Error(err.Error())
 		exitCode = 1
 		return
 	}
 
-	if err = subscribeToLoRaBroker(svc, mqttConn, cfg.LoraMsgTimeout, cfg.LoraMsgTopic, *logger); err != nil {
+	if err = subscribeToLoRaBroker(svc, mqttConn, cfg.LoraMsgTimeout, cfg.LoraMsgTopic, logger); err != nil {
 		logger.Error(fmt.Sprintf("failed to subscribe to Lora MQTT broker: %s", err))
 		exitCode = 1
 		return
 	}
 
-	if err = subscribeToThingsES(ctx, svc, cfg, *logger); err != nil {
+	if err = subscribeToThingsES(ctx, svc, cfg, logger); err != nil {
 		logger.Error(fmt.Sprintf("failed to subscribe to things event store: %s", err))
 		exitCode = 1
 		return
 	}
 
-	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(cfg.InstanceID), *logger)
+	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -164,7 +164,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, *logger, svcName, hs)
+		return server.StopSignalHandler(ctx, cancel, logger, svcName, hs)
 	})
 
 	if err := g.Wait(); err != nil {
@@ -172,7 +172,7 @@ func main() {
 	}
 }
 
-func connectToMQTTBroker(burl, user, password string, timeout time.Duration, logger slog.Logger) (mqttpaho.Client, error) {
+func connectToMQTTBroker(burl, user, password string, timeout time.Duration, logger *slog.Logger) (mqttpaho.Client, error) {
 	opts := mqttpaho.NewClientOptions()
 	opts.AddBroker(burl)
 	opts.SetUsername(user)
@@ -193,7 +193,7 @@ func connectToMQTTBroker(burl, user, password string, timeout time.Duration, log
 	return client, nil
 }
 
-func subscribeToLoRaBroker(svc lora.Service, mc mqttpaho.Client, timeout time.Duration, topic string, logger slog.Logger) error {
+func subscribeToLoRaBroker(svc lora.Service, mc mqttpaho.Client, timeout time.Duration, topic string, logger *slog.Logger) error {
 	mqttBroker := mqtt.NewBroker(svc, mc, timeout, logger)
 	logger.Info("Subscribed to Lora MQTT broker")
 	if err := mqttBroker.Subscribe(topic); err != nil {
@@ -202,7 +202,7 @@ func subscribeToLoRaBroker(svc lora.Service, mc mqttpaho.Client, timeout time.Du
 	return nil
 }
 
-func subscribeToThingsES(ctx context.Context, svc lora.Service, cfg config, logger slog.Logger) error {
+func subscribeToThingsES(ctx context.Context, svc lora.Service, cfg config, logger *slog.Logger) error {
 	subscriber, err := store.NewSubscriber(ctx, cfg.ESURL, thingsStream, cfg.ESConsumerName, logger)
 	if err != nil {
 		return err
@@ -215,18 +215,18 @@ func subscribeToThingsES(ctx context.Context, svc lora.Service, cfg config, logg
 	return subscriber.Subscribe(ctx, handler)
 }
 
-func newRouteMapRepository(client *redis.Client, prefix string, logger slog.Logger) lora.RouteMapRepository {
+func newRouteMapRepository(client *redis.Client, prefix string, logger *slog.Logger) lora.RouteMapRepository {
 	logger.Info(fmt.Sprintf("Connected to %s Redis Route-map", prefix))
 	return events.NewRouteMapRepository(client, prefix)
 }
 
-func newService(pub messaging.Publisher, rmConn *redis.Client, thingsRMPrefix, channelsRMPrefix, connsRMPrefix string, logger slog.Logger) lora.Service {
+func newService(pub messaging.Publisher, rmConn *redis.Client, thingsRMPrefix, channelsRMPrefix, connsRMPrefix string, logger *slog.Logger) lora.Service {
 	thingsRM := newRouteMapRepository(rmConn, thingsRMPrefix, logger)
 	chansRM := newRouteMapRepository(rmConn, channelsRMPrefix, logger)
 	connsRM := newRouteMapRepository(rmConn, connsRMPrefix, logger)
 
 	svc := lora.New(pub, thingsRM, chansRM, connsRM)
-	svc = api.LoggingMiddleware(svc, &logger)
+	svc = api.LoggingMiddleware(svc, logger)
 	counter, latency := internal.MakeMetrics("lora_adapter", "api")
 	svc = api.MetricsMiddleware(svc, counter, latency)
 

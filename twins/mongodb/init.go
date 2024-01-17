@@ -20,7 +20,7 @@ type Config struct {
 }
 
 // Connect creates a connection to the MongoDB instance.
-func Connect(cfg Config, logger slog.Logger) (*mongo.Database, error) {
+func Connect(cfg Config, logger *slog.Logger) (*mongo.Database, error) {
 	addr := fmt.Sprintf("mongodb://%s:%s", cfg.Host, cfg.Port)
 	client, err := mongo.Connect(context.Background(), options.Client().ApplyURI(addr))
 	if err != nil {

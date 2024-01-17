@@ -21,11 +21,11 @@ type Forwarder interface {
 
 type forwarder struct {
 	topic  string
-	logger slog.Logger
+	logger *slog.Logger
 }
 
 // NewForwarder returns new Forwarder implementation.
-func NewForwarder(topic string, logger slog.Logger) Forwarder {
+func NewForwarder(topic string, logger *slog.Logger) Forwarder {
 	return forwarder{
 		topic:  topic,
 		logger: logger,
@@ -42,7 +42,7 @@ func (f forwarder) Forward(ctx context.Context, id string, sub messaging.Subscri
 	return sub.Subscribe(ctx, subCfg)
 }
 
-func handle(ctx context.Context, pub messaging.Publisher, logger slog.Logger) handleFunc {
+func handle(ctx context.Context, pub messaging.Publisher, logger *slog.Logger) handleFunc {
 	return func(msg *messaging.Message) error {
 		if msg.Protocol == protocol {
 			return nil

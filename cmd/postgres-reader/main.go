@@ -122,7 +122,7 @@ func main() {
 
 	logger.Info("Successfully connected to things grpc server " + tcHandler.Secure())
 
-	repo := newService(db, *logger)
+	repo := newService(db, logger)
 
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
 	if err := env.ParseWithOptions(&httpServerConfig, env.Options{Prefix: envPrefixHTTP}); err != nil {
@@ -130,7 +130,7 @@ func main() {
 		exitCode = 1
 		return
 	}
-	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(repo, ac, tc, svcName, cfg.InstanceID), *logger)
+	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(repo, ac, tc, svcName, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -142,7 +142,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, *logger, svcName, hs)
+		return server.StopSignalHandler(ctx, cancel, logger, svcName, hs)
 	})
 
 	if err := g.Wait(); err != nil {
@@ -150,9 +150,9 @@ func main() {
 	}
 }
 
-func newService(db *sqlx.DB, logger slog.Logger) readers.MessageRepository {
+func newService(db *sqlx.DB, logger *slog.Logger) readers.MessageRepository {
 	svc := postgres.New(db)
-	svc = api.LoggingMiddleware(svc, &logger)
+	svc = api.LoggingMiddleware(svc, logger)
 	counter, latency := internal.MakeMetrics("postgres", "message_reader")
 	svc = api.MetricsMiddleware(svc, counter, latency)
 

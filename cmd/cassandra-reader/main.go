@@ -118,7 +118,7 @@ func main() {
 	defer csdSession.Close()
 
 	// Create new service
-	repo := newService(csdSession, *logger)
+	repo := newService(csdSession, logger)
 
 	// Create new http server
 	httpServerConfig := server.Config{Port: defSvcHTTPPort}
@@ -127,7 +127,7 @@ func main() {
 		exitCode = 1
 		return
 	}
-	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(repo, ac, tc, svcName, cfg.InstanceID), *logger)
+	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(repo, ac, tc, svcName, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -140,7 +140,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, *logger, svcName, hs)
+		return server.StopSignalHandler(ctx, cancel, logger, svcName, hs)
 	})
 
 	if err := g.Wait(); err != nil {
@@ -148,9 +148,9 @@ func main() {
 	}
 }
 
-func newService(csdSession *gocql.Session, logger slog.Logger) readers.MessageRepository {
+func newService(csdSession *gocql.Session, logger *slog.Logger) readers.MessageRepository {
 	repo := cassandra.New(csdSession)
-	repo = api.LoggingMiddleware(repo, &logger)
+	repo = api.LoggingMiddleware(repo, logger)
 	counter, latency := internal.MakeMetrics("cassandra", "message_reader")
 	repo = api.MetricsMiddleware(repo, counter, latency)
 	return repo

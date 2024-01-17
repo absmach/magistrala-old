@@ -126,7 +126,7 @@ func main() {
 	}()
 	tracer := tp.Tracer(svcName)
 
-	pubSub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, *logger)
+	pubSub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to connect to message broker: %s", err))
 		exitCode = 1
@@ -151,14 +151,14 @@ func main() {
 	defer authHandler.Close()
 	logger.Info("Successfully connected to auth grpc server " + authHandler.Secure())
 
-	svc := newService(db, tracer, authClient, cfg, smppConfig, *logger)
-	if err = consumers.Start(ctx, svcName, pubSub, svc, cfg.ConfigPath, *logger); err != nil {
+	svc := newService(db, tracer, authClient, cfg, smppConfig, logger)
+	if err = consumers.Start(ctx, svcName, pubSub, svc, cfg.ConfigPath, logger); err != nil {
 		logger.Error(fmt.Sprintf("failed to create Postgres writer: %s", err))
 		exitCode = 1
 		return
 	}
 
-	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(svc, *logger, cfg.InstanceID), *logger)
+	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(svc, logger, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -170,7 +170,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, *logger, svcName, hs)
+		return server.StopSignalHandler(ctx, cancel, logger, svcName, hs)
 	})
 
 	if err := g.Wait(); err != nil {
@@ -178,13 +178,13 @@ func main() {
 	}
 }
 
-func newService(db *sqlx.DB, tracer trace.Tracer, authClient magistrala.AuthServiceClient, c config, sc mgsmpp.Config, logger slog.Logger) notifiers.Service {
+func newService(db *sqlx.DB, tracer trace.Tracer, authClient magistrala.AuthServiceClient, c config, sc mgsmpp.Config, logger *slog.Logger) notifiers.Service {
 	database := notifierpg.NewDatabase(db, tracer)
 	repo := tracing.New(tracer, notifierpg.New(database))
 	idp := ulid.New()
 	notifier := mgsmpp.New(sc)
 	svc := notifiers.New(authClient, repo, idp, notifier, c.From)
-	svc = api.LoggingMiddleware(svc, &logger)
+	svc = api.LoggingMiddleware(svc, logger)
 	counter, latency := internal.MakeMetrics("notifier", "smpp")
 	svc = api.MetricsMiddleware(svc, counter, latency)
 

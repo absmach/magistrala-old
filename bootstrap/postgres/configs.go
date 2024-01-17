@@ -42,8 +42,8 @@ type configRepository struct {
 
 // NewConfigRepository instantiates a PostgreSQL implementation of config
 // repository.
-func NewConfigRepository(db postgres.Database, log slog.Logger) bootstrap.ConfigRepository {
-	return &configRepository{db: db, log: log}
+func NewConfigRepository(db postgres.Database, log *slog.Logger) bootstrap.ConfigRepository {
+	return &configRepository{db: db, log: *log}
 }
 
 func (cr configRepository) Save(ctx context.Context, cfg bootstrap.Config, chsConnIDs []string) (string, error) {

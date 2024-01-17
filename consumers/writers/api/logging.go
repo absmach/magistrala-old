@@ -17,12 +17,12 @@ import (
 var _ consumers.BlockingConsumer = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
-	logger   slog.Logger
+	logger   *slog.Logger
 	consumer consumers.BlockingConsumer
 }
 
 // LoggingMiddleware adds logging facilities to the adapter.
-func LoggingMiddleware(consumer consumers.BlockingConsumer, logger slog.Logger) consumers.BlockingConsumer {
+func LoggingMiddleware(consumer consumers.BlockingConsumer, logger *slog.Logger) consumers.BlockingConsumer {
 	return &loggingMiddleware{
 		logger:   logger,
 		consumer: consumer,

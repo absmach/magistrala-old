@@ -114,10 +114,10 @@ func main() {
 	}()
 	tracer := tp.Tracer(svcName)
 
-	repo := newService(db, *logger)
+	repo := newService(db, logger)
 	repo = consumertracing.NewBlocking(tracer, repo, httpServerConfig)
 
-	pubSub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, *logger)
+	pubSub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to connect to message broker: %s", err))
 		exitCode = 1
@@ -126,13 +126,13 @@ func main() {
 	defer pubSub.Close()
 	pubSub = brokerstracing.NewPubSub(httpServerConfig, tracer, pubSub)
 
-	if err = consumers.Start(ctx, svcName, pubSub, repo, cfg.ConfigPath, *logger); err != nil {
+	if err = consumers.Start(ctx, svcName, pubSub, repo, cfg.ConfigPath, logger); err != nil {
 		logger.Error(fmt.Sprintf("failed to create Timescale writer: %s", err))
 		exitCode = 1
 		return
 	}
 
-	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(svcName, cfg.InstanceID), *logger)
+	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(svcName, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -144,7 +144,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, *logger, svcName, hs)
+		return server.StopSignalHandler(ctx, cancel, logger, svcName, hs)
 	})
 
 	if err := g.Wait(); err != nil {
@@ -152,7 +152,7 @@ func main() {
 	}
 }
 
-func newService(db *sqlx.DB, logger slog.Logger) consumers.BlockingConsumer {
+func newService(db *sqlx.DB, logger *slog.Logger) consumers.BlockingConsumer {
 	svc := timescale.New(db)
 	svc = api.LoggingMiddleware(svc, logger)
 	counter, latency := internal.MakeMetrics("timescale", "message_writer")

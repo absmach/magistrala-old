@@ -44,7 +44,7 @@ var (
 )
 
 var (
-	logger  slog.Logger
+	logger  *slog.Logger
 	service coap.Service
 )
 
@@ -58,7 +58,7 @@ func MakeHandler(instanceID string) http.Handler {
 }
 
 // MakeCoAPHandler creates handler for CoAP messages.
-func MakeCoAPHandler(svc coap.Service, l slog.Logger) mux.HandlerFunc {
+func MakeCoAPHandler(svc coap.Service, l *slog.Logger) mux.HandlerFunc {
 	logger = l
 	service = svc
 

@@ -36,11 +36,11 @@ var _ opcua.Browser = (*browser)(nil)
 
 type browser struct {
 	ctx    context.Context
-	logger slog.Logger
+	logger *slog.Logger
 }
 
 // NewBrowser returns new OPC-UA browser instance.
-func NewBrowser(ctx context.Context, log slog.Logger) opcua.Browser {
+func NewBrowser(ctx context.Context, log *slog.Logger) opcua.Browser {
 	return browser{
 		ctx:    ctx,
 		logger: log,

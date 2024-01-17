@@ -108,9 +108,9 @@ func main() {
 	}
 	defer rmConn.Close()
 
-	thingRM := newRouteMapRepositoy(ctx, rmConn, thingsRMPrefix, *logger)
-	chanRM := newRouteMapRepositoy(ctx, rmConn, channelsRMPrefix, *logger)
-	connRM := newRouteMapRepositoy(ctx, rmConn, connectionRMPrefix, *logger)
+	thingRM := newRouteMapRepositoy(ctx, rmConn, thingsRMPrefix, logger)
+	chanRM := newRouteMapRepositoy(ctx, rmConn, channelsRMPrefix, logger)
+	connRM := newRouteMapRepositoy(ctx, rmConn, connectionRMPrefix, logger)
 
 	tp, err := jaegerclient.NewProvider(ctx, svcName, cfg.JaegerURL, cfg.InstanceID, cfg.TraceRatio)
 	if err != nil {
@@ -125,7 +125,7 @@ func main() {
 	}()
 	tracer := tp.Tracer(svcName)
 
-	pubSub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, *logger)
+	pubSub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to connect to message broker: %s", err))
 		exitCode = 1
@@ -134,20 +134,20 @@ func main() {
 	defer pubSub.Close()
 	pubSub = brokerstracing.NewPubSub(httpServerConfig, tracer, pubSub)
 
-	sub := gopcua.NewSubscriber(ctx, pubSub, thingRM, chanRM, connRM, *logger)
-	browser := gopcua.NewBrowser(ctx, *logger)
+	sub := gopcua.NewSubscriber(ctx, pubSub, thingRM, chanRM, connRM, logger)
+	browser := gopcua.NewBrowser(ctx, logger)
 
-	svc := newService(sub, browser, thingRM, chanRM, connRM, opcConfig, *logger)
+	svc := newService(sub, browser, thingRM, chanRM, connRM, opcConfig, logger)
 
-	go subscribeToStoredSubs(ctx, sub, opcConfig, *logger)
+	go subscribeToStoredSubs(ctx, sub, opcConfig, logger)
 
-	if err = subscribeToThingsES(ctx, svc, cfg, *logger); err != nil {
+	if err = subscribeToThingsES(ctx, svc, cfg, logger); err != nil {
 		logger.Error(fmt.Sprintf("failed to subscribe to things event store: %s", err))
 		exitCode = 1
 		return
 	}
 
-	hs := httpserver.New(ctx, httpCancel, svcName, httpServerConfig, api.MakeHandler(svc, *logger, cfg.InstanceID), *logger)
+	hs := httpserver.New(ctx, httpCancel, svcName, httpServerConfig, api.MakeHandler(svc, logger, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, httpCancel)
@@ -159,7 +159,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, httpCancel, *logger, svcName, hs)
+		return server.StopSignalHandler(ctx, httpCancel, logger, svcName, hs)
 	})
 
 	if err := g.Wait(); err != nil {
@@ -167,7 +167,7 @@ func main() {
 	}
 }
 
-func subscribeToStoredSubs(ctx context.Context, sub opcua.Subscriber, cfg opcua.Config, logger slog.Logger) {
+func subscribeToStoredSubs(ctx context.Context, sub opcua.Subscriber, cfg opcua.Config, logger *slog.Logger) {
 	// Get all stored subscriptions
 	nodes, err := db.ReadAll()
 	if err != nil {
@@ -185,7 +185,7 @@ func subscribeToStoredSubs(ctx context.Context, sub opcua.Subscriber, cfg opcua.
 	}
 }
 
-func subscribeToThingsES(ctx context.Context, svc opcua.Service, cfg config, logger slog.Logger) error {
+func subscribeToThingsES(ctx context.Context, svc opcua.Service, cfg config, logger *slog.Logger) error {
 	subscriber, err := store.NewSubscriber(ctx, cfg.ESURL, thingsStream, cfg.ESConsumerName, logger)
 	if err != nil {
 		return err
@@ -198,14 +198,14 @@ func subscribeToThingsES(ctx context.Context, svc opcua.Service, cfg config, log
 	return subscriber.Subscribe(ctx, handler)
 }
 
-func newRouteMapRepositoy(ctx context.Context, client *redis.Client, prefix string, logger slog.Logger) opcua.RouteMapRepository {
+func newRouteMapRepositoy(ctx context.Context, client *redis.Client, prefix string, logger *slog.Logger) opcua.RouteMapRepository {
 	logger.Info(fmt.Sprintf("Connected to %s Redis Route-map", prefix))
 	return events.NewRouteMapRepository(client, prefix)
 }
 
-func newService(sub opcua.Subscriber, browser opcua.Browser, thingRM, chanRM, connRM opcua.RouteMapRepository, opcuaConfig opcua.Config, logger slog.Logger) opcua.Service {
+func newService(sub opcua.Subscriber, browser opcua.Browser, thingRM, chanRM, connRM opcua.RouteMapRepository, opcuaConfig opcua.Config, logger *slog.Logger) opcua.Service {
 	svc := opcua.New(sub, browser, thingRM, chanRM, connRM, opcuaConfig, logger)
-	svc = api.LoggingMiddleware(svc, &logger)
+	svc = api.LoggingMiddleware(svc, logger)
 	counter, latency := internal.MakeMetrics("opc_ua_adapter", "api")
 	svc = api.MetricsMiddleware(svc, counter, latency)
 

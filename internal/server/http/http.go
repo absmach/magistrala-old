@@ -26,7 +26,7 @@ type Server struct {
 
 var _ server.Server = (*Server)(nil)
 
-func New(ctx context.Context, cancel context.CancelFunc, name string, config server.Config, handler http.Handler, logger slog.Logger) server.Server {
+func New(ctx context.Context, cancel context.CancelFunc, name string, config server.Config, handler http.Handler, logger *slog.Logger) server.Server {
 	listenFullAddress := fmt.Sprintf("%s:%s", config.Host, config.Port)
 	httpServer := &http.Server{Addr: listenFullAddress, Handler: handler}
 	return &Server{

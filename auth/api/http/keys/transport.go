@@ -21,7 +21,7 @@ import (
 const contentType = "application/json"
 
 // MakeHandler returns a HTTP handler for API endpoints.
-func MakeHandler(svc auth.Service, mux *chi.Mux, logger slog.Logger) *chi.Mux {
+func MakeHandler(svc auth.Service, mux *chi.Mux, logger *slog.Logger) *chi.Mux {
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(apiutil.LoggingErrorEncoder(logger, encodeError)),
 	}

@@ -29,7 +29,7 @@ const (
 	stateKey     = "state"
 )
 
-func MakeHandler(svc invitations.Service, logger slog.Logger, instanceID string) http.Handler {
+func MakeHandler(svc invitations.Service, logger *slog.Logger, instanceID string) http.Handler {
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(apiutil.LoggingErrorEncoder(logger, api.EncodeError)),
 	}

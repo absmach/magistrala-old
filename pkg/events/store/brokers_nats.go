@@ -28,7 +28,7 @@ func NewPublisher(ctx context.Context, url, stream string) (events.Publisher, er
 	return pb, nil
 }
 
-func NewSubscriber(ctx context.Context, url, stream, consumer string, logger slog.Logger) (events.Subscriber, error) {
+func NewSubscriber(ctx context.Context, url, stream, consumer string, logger *slog.Logger) (events.Subscriber, error) {
 	pb, err := nats.NewSubscriber(ctx, url, stream, consumer, logger)
 	if err != nil {
 		return nil, err

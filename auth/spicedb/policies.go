@@ -33,10 +33,10 @@ var (
 type policyAgent struct {
 	client           *authzed.ClientWithExperimental
 	permissionClient v1.PermissionsServiceClient
-	logger           slog.Logger
+	logger           *slog.Logger
 }
 
-func NewPolicyAgent(client *authzed.ClientWithExperimental, logger slog.Logger) auth.PolicyAgent {
+func NewPolicyAgent(client *authzed.ClientWithExperimental, logger *slog.Logger) auth.PolicyAgent {
 	return &policyAgent{
 		client:           client,
 		permissionClient: client.PermissionsServiceClient,

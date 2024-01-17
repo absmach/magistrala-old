@@ -134,14 +134,14 @@ func main() {
 	tracer := tp.Tracer(svcName)
 
 	// Create new service
-	svc, err := newService(ctx, authClient, db, tracer, *logger, cfg, dbConfig)
+	svc, err := newService(ctx, authClient, db, tracer, logger, cfg, dbConfig)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to create %s service: %s", svcName, err))
 		exitCode = 1
 		return
 	}
 
-	if err = subscribeToThingsES(ctx, svc, cfg, *logger); err != nil {
+	if err = subscribeToThingsES(ctx, svc, cfg, logger); err != nil {
 		logger.Error(fmt.Sprintf("failed to subscribe to things event store: %s", err))
 		exitCode = 1
 		return
@@ -153,7 +153,7 @@ func main() {
 		exitCode = 1
 		return
 	}
-	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(svc, bootstrap.NewConfigReader([]byte(cfg.EncKey)), *logger, cfg.InstanceID), *logger)
+	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(svc, bootstrap.NewConfigReader([]byte(cfg.EncKey)), logger, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -165,7 +165,7 @@ func main() {
 		return hs.Start()
 	})
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, *logger, svcName, hs)
+		return server.StopSignalHandler(ctx, cancel, logger, svcName, hs)
 	})
 
 	if err := g.Wait(); err != nil {
@@ -173,7 +173,7 @@ func main() {
 	}
 }
 
-func newService(ctx context.Context, authClient magistrala.AuthServiceClient, db *sqlx.DB, tracer trace.Tracer, logger slog.Logger, cfg config, dbConfig pgclient.Config) (bootstrap.Service, error) {
+func newService(ctx context.Context, authClient magistrala.AuthServiceClient, db *sqlx.DB, tracer trace.Tracer, logger *slog.Logger, cfg config, dbConfig pgclient.Config) (bootstrap.Service, error) {
 	database := postgres.NewDatabase(db, dbConfig, tracer)
 
 	repoConfig := bootstrappg.NewConfigRepository(database, logger)
@@ -192,7 +192,7 @@ func newService(ctx context.Context, authClient magistrala.AuthServiceClient, db
 	}
 
 	svc = producer.NewEventStoreMiddleware(svc, publisher)
-	svc = api.LoggingMiddleware(svc, &logger)
+	svc = api.LoggingMiddleware(svc, logger)
 	counter, latency := internal.MakeMetrics(svcName, "api")
 	svc = api.MetricsMiddleware(svc, counter, latency)
 	svc = tracing.New(svc, tracer)
@@ -200,7 +200,7 @@ func newService(ctx context.Context, authClient magistrala.AuthServiceClient, db
 	return svc, nil
 }
 
-func subscribeToThingsES(ctx context.Context, svc bootstrap.Service, cfg config, logger slog.Logger) error {
+func subscribeToThingsES(ctx context.Context, svc bootstrap.Service, cfg config, logger *slog.Logger) error {
 	subscriber, err := store.NewSubscriber(ctx, cfg.ESURL, thingsStream, cfg.ESConsumerName, logger)
 	if err != nil {
 		return err

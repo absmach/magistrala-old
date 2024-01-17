@@ -36,10 +36,10 @@ type subEventStore struct {
 	client   *redis.Client
 	stream   string
 	consumer string
-	logger   slog.Logger
+	logger   *slog.Logger
 }
 
-func NewSubscriber(url, stream, consumer string, logger slog.Logger) (events.Subscriber, error) {
+func NewSubscriber(url, stream, consumer string, logger *slog.Logger) (events.Subscriber, error) {
 	if stream == "" {
 		return nil, ErrEmptyStream
 	}

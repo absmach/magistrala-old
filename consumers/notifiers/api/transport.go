@@ -32,7 +32,7 @@ const (
 )
 
 // MakeHandler returns a HTTP handler for API endpoints.
-func MakeHandler(svc notifiers.Service, logger slog.Logger, instanceID string) http.Handler {
+func MakeHandler(svc notifiers.Service, logger *slog.Logger, instanceID string) http.Handler {
 	opts := []kithttp.ServerOption{
 		kithttp.ServerErrorEncoder(apiutil.LoggingErrorEncoder(logger, encodeError)),
 	}

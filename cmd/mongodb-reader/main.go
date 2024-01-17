@@ -80,7 +80,7 @@ func main() {
 		return
 	}
 
-	repo := newService(db, *logger)
+	repo := newService(db, logger)
 
 	authConfig := auth.Config{}
 	if err := env.ParseWithOptions(&authConfig, env.Options{Prefix: envPrefixAuth}); err != nil {
@@ -122,7 +122,7 @@ func main() {
 		exitCode = 1
 		return
 	}
-	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(repo, ac, tc, svcName, cfg.InstanceID), *logger)
+	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(repo, ac, tc, svcName, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -134,7 +134,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, *logger, svcName, hs)
+		return server.StopSignalHandler(ctx, cancel, logger, svcName, hs)
 	})
 
 	if err := g.Wait(); err != nil {
@@ -142,9 +142,9 @@ func main() {
 	}
 }
 
-func newService(db *mongo.Database, logger slog.Logger) readers.MessageRepository {
+func newService(db *mongo.Database, logger *slog.Logger) readers.MessageRepository {
 	repo := mongodb.New(db)
-	repo = api.LoggingMiddleware(repo, &logger)
+	repo = api.LoggingMiddleware(repo, logger)
 	counter, latency := internal.MakeMetrics("mongodb", "message_reader")
 	repo = api.MetricsMiddleware(repo, counter, latency)
 

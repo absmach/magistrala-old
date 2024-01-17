@@ -174,7 +174,7 @@ func main() {
 		logger.Info("Successfully connected to auth grpc server " + authHandler.Secure())
 	}
 
-	csvc, gsvc, err := newService(ctx, db, dbConfig, authClient, cacheclient, cfg.CacheKeyDuration, cfg.ESURL, tracer, *logger)
+	csvc, gsvc, err := newService(ctx, db, dbConfig, authClient, cacheclient, cfg.CacheKeyDuration, cfg.ESURL, tracer, logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to create services: %s", err))
 		exitCode = 1
@@ -188,7 +188,7 @@ func main() {
 		return
 	}
 	mux := chi.NewRouter()
-	httpSvc := httpserver.New(ctx, cancel, svcName, httpServerConfig, httpapi.MakeHandler(csvc, gsvc, mux, *logger, cfg.InstanceID), *logger)
+	httpSvc := httpserver.New(ctx, cancel, svcName, httpServerConfig, httpapi.MakeHandler(csvc, gsvc, mux, logger, cfg.InstanceID), logger)
 
 	grpcServerConfig := server.Config{Port: defSvcAuthGRPCPort}
 	if err := env.ParseWithOptions(&grpcServerConfig, env.Options{Prefix: envPrefixGRPC}); err != nil {
@@ -200,7 +200,7 @@ func main() {
 		reflection.Register(srv)
 		magistrala.RegisterAuthzServiceServer(srv, grpcapi.NewServer(csvc))
 	}
-	gs := grpcserver.New(ctx, cancel, svcName, grpcServerConfig, regiterAuthzServer, *logger)
+	gs := grpcserver.New(ctx, cancel, svcName, grpcServerConfig, regiterAuthzServer, logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -217,7 +217,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, *logger, svcName, httpSvc)
+		return server.StopSignalHandler(ctx, cancel, logger, svcName, httpSvc)
 	})
 
 	if err := g.Wait(); err != nil {
@@ -225,7 +225,7 @@ func main() {
 	}
 }
 
-func newService(ctx context.Context, db *sqlx.DB, dbConfig pgclient.Config, authClient magistrala.AuthServiceClient, cacheClient *redis.Client, keyDuration time.Duration, esURL string, tracer trace.Tracer, logger slog.Logger) (things.Service, groups.Service, error) {
+func newService(ctx context.Context, db *sqlx.DB, dbConfig pgclient.Config, authClient magistrala.AuthServiceClient, cacheClient *redis.Client, keyDuration time.Duration, esURL string, tracer trace.Tracer, logger *slog.Logger) (things.Service, groups.Service, error) {
 	database := postgres.NewDatabase(db, dbConfig, tracer)
 	cRepo := thingspg.NewRepository(database)
 	gRepo := gpostgres.New(database)
@@ -248,12 +248,12 @@ func newService(ctx context.Context, db *sqlx.DB, dbConfig pgclient.Config, auth
 	}
 
 	csvc = ctracing.New(csvc, tracer)
-	csvc = api.LoggingMiddleware(csvc, &logger)
+	csvc = api.LoggingMiddleware(csvc, logger)
 	counter, latency := internal.MakeMetrics(svcName, "api")
 	csvc = api.MetricsMiddleware(csvc, counter, latency)
 
 	gsvc = gtracing.New(gsvc, tracer)
-	gsvc = gapi.LoggingMiddleware(gsvc, &logger)
+	gsvc = gapi.LoggingMiddleware(gsvc, logger)
 	counter, latency = internal.MakeMetrics(fmt.Sprintf("%s_groups", svcName), "api")
 	gsvc = gapi.MetricsMiddleware(gsvc, counter, latency)
 

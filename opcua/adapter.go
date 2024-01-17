@@ -62,11 +62,11 @@ type adapterService struct {
 	channelsRM RouteMapRepository
 	connectRM  RouteMapRepository
 	cfg        Config
-	logger     slog.Logger
+	logger     *slog.Logger
 }
 
 // New instantiates the OPC-UA adapter implementation.
-func New(sub Subscriber, brow Browser, thingsRM, channelsRM, connectRM RouteMapRepository, cfg Config, log slog.Logger) Service {
+func New(sub Subscriber, brow Browser, thingsRM, channelsRM, connectRM RouteMapRepository, cfg Config, log *slog.Logger) Service {
 	return &adapterService{
 		subscriber: sub,
 		browser:    brow,

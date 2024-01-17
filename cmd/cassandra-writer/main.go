@@ -110,11 +110,11 @@ func main() {
 	tracer := tp.Tracer(svcName)
 
 	// Create new cassandra-writer repo
-	repo := newService(csdSession, *logger)
+	repo := newService(csdSession, logger)
 	repo = consumertracing.NewBlocking(tracer, repo, httpServerConfig)
 
 	// Create new pub sub broker
-	pubSub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, *logger)
+	pubSub, err := brokers.NewPubSub(ctx, cfg.BrokerURL, logger)
 	if err != nil {
 		logger.Error(fmt.Sprintf("failed to connect to message broker: %s", err))
 		exitCode = 1
@@ -124,13 +124,13 @@ func main() {
 	pubSub = brokerstracing.NewPubSub(httpServerConfig, tracer, pubSub)
 
 	// Start new consumer
-	if err := consumers.Start(ctx, svcName, pubSub, repo, cfg.ConfigPath, *logger); err != nil {
+	if err := consumers.Start(ctx, svcName, pubSub, repo, cfg.ConfigPath, logger); err != nil {
 		logger.Error(fmt.Sprintf("Failed to create Cassandra writer: %s", err))
 		exitCode = 1
 		return
 	}
 
-	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(svcName, cfg.InstanceID), *logger)
+	hs := httpserver.New(ctx, cancel, svcName, httpServerConfig, api.MakeHandler(svcName, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
 		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
@@ -143,7 +143,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return server.StopSignalHandler(ctx, cancel, *logger, svcName, hs)
+		return server.StopSignalHandler(ctx, cancel, logger, svcName, hs)
 	})
 
 	if err := g.Wait(); err != nil {
@@ -151,7 +151,7 @@ func main() {
 	}
 }
 
-func newService(session *gocql.Session, logger slog.Logger) consumers.BlockingConsumer {
+func newService(session *gocql.Session, logger *slog.Logger) consumers.BlockingConsumer {
 	repo := cassandra.New(session)
 	repo = api.LoggingMiddleware(repo, logger)
 	counter, latency := internal.MakeMetrics("cassandra", "message_writer")

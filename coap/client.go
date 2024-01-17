@@ -39,11 +39,11 @@ type client struct {
 	client  mux.Client
 	token   message.Token
 	observe uint32
-	logger  slog.Logger
+	logger  *slog.Logger
 }
 
 // NewClient instantiates a new Observer.
-func NewClient(c mux.Client, tkn message.Token, l slog.Logger) Client {
+func NewClient(c mux.Client, tkn message.Token, l *slog.Logger) Client {
 	return &client{
 		client:  c,
 		token:   tkn,

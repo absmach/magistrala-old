@@ -57,11 +57,11 @@ var channelRegExp = regexp.MustCompile(`^\/?channels\/([\w\-]+)\/messages(\/[^?]
 type handler struct {
 	pubsub messaging.PubSub
 	auth   magistrala.AuthzServiceClient
-	logger slog.Logger
+	logger *slog.Logger
 }
 
 // NewHandler creates new Handler entity.
-func NewHandler(pubsub messaging.PubSub, logger slog.Logger, authClient magistrala.AuthzServiceClient) session.Handler {
+func NewHandler(pubsub messaging.PubSub, logger *slog.Logger, authClient magistrala.AuthzServiceClient) session.Handler {
 	return &handler{
 		logger: logger,
 		pubsub: pubsub,
