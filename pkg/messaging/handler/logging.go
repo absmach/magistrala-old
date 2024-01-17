@@ -14,8 +14,6 @@ import (
 	"github.com/absmach/mproxy/pkg/session"
 )
 
-const message = "Method completed"
-
 var _ session.Handler = (*loggingMiddleware)(nil)
 
 type loggingMiddleware struct {
@@ -26,7 +24,7 @@ type loggingMiddleware struct {
 // AuthConnect implements session.Handler.
 func (lm *loggingMiddleware) AuthConnect(ctx context.Context) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method auth_connect completed"
+		message := "Method auth_connect completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error", message),
@@ -47,7 +45,7 @@ func (lm *loggingMiddleware) AuthConnect(ctx context.Context) (err error) {
 // AuthPublish implements session.Handler.
 func (lm *loggingMiddleware) AuthPublish(ctx context.Context, topic *string, payload *[]byte) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method auth_publish completed"
+		message := "Method auth_publish completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error", message),
@@ -69,7 +67,7 @@ func (lm *loggingMiddleware) AuthPublish(ctx context.Context, topic *string, pay
 // AuthSubscribe implements session.Handler.
 func (lm *loggingMiddleware) AuthSubscribe(ctx context.Context, topics *[]string) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method auth_subscribe completed"
+		message := "Method auth_subscribe completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error: %s.", message, err),
@@ -90,7 +88,7 @@ func (lm *loggingMiddleware) AuthSubscribe(ctx context.Context, topics *[]string
 // Connect implements session.Handler.
 func (lm *loggingMiddleware) Connect(ctx context.Context) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method connect completed"
+		message := "Method connect completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error", message),
@@ -111,7 +109,7 @@ func (lm *loggingMiddleware) Connect(ctx context.Context) (err error) {
 // Disconnect implements session.Handler.
 func (lm *loggingMiddleware) Disconnect(ctx context.Context) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method disconnect completed"
+		message := "Method disconnect completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error: %s.", message, err),
@@ -133,7 +131,7 @@ func (lm *loggingMiddleware) Disconnect(ctx context.Context) (err error) {
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) Publish(ctx context.Context, topic *string, payload *[]byte) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method publish completed"
+		message := "Method publish completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error", message),
@@ -155,7 +153,7 @@ func (lm *loggingMiddleware) Publish(ctx context.Context, topic *string, payload
 // Subscribe implements session.Handler.
 func (lm *loggingMiddleware) Subscribe(ctx context.Context, topics *[]string) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method subscribe completed"
+		message := "Method subscribe completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error", message),

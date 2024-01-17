@@ -30,7 +30,7 @@ func LoggingMiddleware(svc bootstrap.Service, logger *slog.Logger) bootstrap.Ser
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) Add(ctx context.Context, token string, cfg bootstrap.Config) (saved bootstrap.Config, err error) {
 	defer func(begin time.Time) {
-		message :="Method add completed"
+		message := "Method add completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -54,7 +54,7 @@ func (lm *loggingMiddleware) Add(ctx context.Context, token string, cfg bootstra
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) View(ctx context.Context, token, id string) (saved bootstrap.Config, err error) {
 	defer func(begin time.Time) {
-		message :="Method view completed"
+		message := "Method view completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -78,7 +78,7 @@ func (lm *loggingMiddleware) View(ctx context.Context, token, id string) (saved 
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) Update(ctx context.Context, token string, cfg bootstrap.Config) (err error) {
 	defer func(begin time.Time) {
-		message :="Method update completed"
+		message := "Method update completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error: %s.", message, err),
@@ -101,8 +101,8 @@ func (lm *loggingMiddleware) Update(ctx context.Context, token string, cfg boots
 // UpdateCert logs the update_cert request. It logs token, thing ID and the time it took to complete the request.
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) UpdateCert(ctx context.Context, token, thingID, clientCert, clientKey, caCert string) (cfg bootstrap.Config, err error) {
-	defer func(begin time.Time) {	
-		message:= "Method update_cert completed"
+	defer func(begin time.Time) {
+		message := "Method update_cert completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -126,7 +126,7 @@ func (lm *loggingMiddleware) UpdateCert(ctx context.Context, token, thingID, cli
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) UpdateConnections(ctx context.Context, token, id string, connections []string) (err error) {
 	defer func(begin time.Time) {
-		message :="Method update_connections completed"
+		message := "Method update_connections completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error: %s.", message, err),
@@ -150,7 +150,7 @@ func (lm *loggingMiddleware) UpdateConnections(ctx context.Context, token, id st
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) List(ctx context.Context, token string, filter bootstrap.Filter, offset, limit uint64) (res bootstrap.ConfigsPage, err error) {
 	defer func(begin time.Time) {
-		message :="Method list completed"
+		message := "Method list completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -175,7 +175,7 @@ func (lm *loggingMiddleware) List(ctx context.Context, token string, filter boot
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) Remove(ctx context.Context, token, id string) (err error) {
 	defer func(begin time.Time) {
-		message :="Method remove completed"
+		message := "Method remove completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error: %s.", message, err),
@@ -197,7 +197,7 @@ func (lm *loggingMiddleware) Remove(ctx context.Context, token, id string) (err 
 
 func (lm *loggingMiddleware) Bootstrap(ctx context.Context, externalKey, externalID string, secure bool) (cfg bootstrap.Config, err error) {
 	defer func(begin time.Time) {
-		message :="Method bootstrap completed"
+		message := "Method bootstrap completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -219,7 +219,7 @@ func (lm *loggingMiddleware) Bootstrap(ctx context.Context, externalKey, externa
 
 func (lm *loggingMiddleware) ChangeState(ctx context.Context, token, id string, state bootstrap.State) (err error) {
 	defer func(begin time.Time) {
-		message :="Method change_state completed"
+		message := "Method change_state completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -242,7 +242,7 @@ func (lm *loggingMiddleware) ChangeState(ctx context.Context, token, id string, 
 
 func (lm *loggingMiddleware) UpdateChannelHandler(ctx context.Context, channel bootstrap.Channel) (err error) {
 	defer func(begin time.Time) {
-		message :="Method update_channel_handler completed"
+		message := "Method update_channel_handler completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -263,7 +263,7 @@ func (lm *loggingMiddleware) UpdateChannelHandler(ctx context.Context, channel b
 
 func (lm *loggingMiddleware) RemoveConfigHandler(ctx context.Context, id string) (err error) {
 	defer func(begin time.Time) {
-		message :="Method remove_config_handler completed"
+		message := "Method remove_config_handler completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error: %s.", message, err),
@@ -284,7 +284,7 @@ func (lm *loggingMiddleware) RemoveConfigHandler(ctx context.Context, id string)
 
 func (lm *loggingMiddleware) RemoveChannelHandler(ctx context.Context, id string) (err error) {
 	defer func(begin time.Time) {
-		message :="Method remove_channel_handler completed"
+		message := "Method remove_channel_handler completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -305,7 +305,7 @@ func (lm *loggingMiddleware) RemoveChannelHandler(ctx context.Context, id string
 
 func (lm *loggingMiddleware) DisconnectThingHandler(ctx context.Context, channelID, thingID string) (err error) {
 	defer func(begin time.Time) {
-		message :="Method disconnect_thing_handler completed"
+		message := "Method disconnect_thing_handler completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),

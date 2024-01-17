@@ -31,7 +31,7 @@ func LoggingMiddleware(svc opcua.Service, logger *slog.Logger) opcua.Service {
 
 func (lm loggingMiddleware) CreateThing(ctx context.Context, mgxThing, opcuaNodeID string) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method create_thing completed"
+		message := "Method create_thing completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error", message),
@@ -53,7 +53,7 @@ func (lm loggingMiddleware) CreateThing(ctx context.Context, mgxThing, opcuaNode
 
 func (lm loggingMiddleware) UpdateThing(ctx context.Context, mgxThing, opcuaNodeID string) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method update_thing completed"
+		message := "Method update_thing completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error", message),
@@ -75,7 +75,7 @@ func (lm loggingMiddleware) UpdateThing(ctx context.Context, mgxThing, opcuaNode
 
 func (lm loggingMiddleware) RemoveThing(ctx context.Context, mgxThing string) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method remove_thing completed"
+		message := "Method remove_thing completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error", message),
@@ -96,7 +96,7 @@ func (lm loggingMiddleware) RemoveThing(ctx context.Context, mgxThing string) (e
 
 func (lm loggingMiddleware) CreateChannel(ctx context.Context, mgxChan, opcuaServerURI string) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method create_channel completed"
+		message := "Method create_channel completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error", message),
@@ -118,7 +118,7 @@ func (lm loggingMiddleware) CreateChannel(ctx context.Context, mgxChan, opcuaSer
 
 func (lm loggingMiddleware) UpdateChannel(ctx context.Context, mgxChanID, opcuaServerURI string) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method update_channel completed"
+		message := "Method update_channel completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error", message),
@@ -140,7 +140,7 @@ func (lm loggingMiddleware) UpdateChannel(ctx context.Context, mgxChanID, opcuaS
 
 func (lm loggingMiddleware) RemoveChannel(ctx context.Context, mgxChanID string) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method remove_channel completed"
+		message := "Method remove_channel completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error", message),
@@ -161,7 +161,7 @@ func (lm loggingMiddleware) RemoveChannel(ctx context.Context, mgxChanID string)
 
 func (lm loggingMiddleware) ConnectThing(ctx context.Context, mgxChanID, mgxThingID string) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method connect_thing completed"
+		message := "Method connect_thing completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error", message),

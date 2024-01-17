@@ -30,7 +30,7 @@ func LoggingMiddleware(svc certs.Service, logger *slog.Logger) certs.Service {
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) IssueCert(ctx context.Context, token, thingID, ttl string) (c certs.Cert, err error) {
 	defer func(begin time.Time) {
-		message:= "Method issue_cert completed"
+		message := "Method issue_cert completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -53,7 +53,7 @@ func (lm *loggingMiddleware) IssueCert(ctx context.Context, token, thingID, ttl 
 // ListCerts logs the list_certs request. It logs the token, thing ID and the time it took to complete the request.
 func (lm *loggingMiddleware) ListCerts(ctx context.Context, token, thingID string, offset, limit uint64) (cp certs.Page, err error) {
 	defer func(begin time.Time) {
-		message:= "Method list_certs completed"
+		message := "Method list_certs completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -79,7 +79,7 @@ func (lm *loggingMiddleware) ListCerts(ctx context.Context, token, thingID strin
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ListSerials(ctx context.Context, token, thingID string, offset, limit uint64) (cp certs.Page, err error) {
 	defer func(begin time.Time) {
-		message:= "Method list_serials completed"
+		message := "Method list_serials completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -105,7 +105,7 @@ func (lm *loggingMiddleware) ListSerials(ctx context.Context, token, thingID str
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ViewCert(ctx context.Context, token, serialID string) (c certs.Cert, err error) {
 	defer func(begin time.Time) {
-		message:= "Method view_cert completed"
+		message := "Method view_cert completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -129,7 +129,7 @@ func (lm *loggingMiddleware) ViewCert(ctx context.Context, token, serialID strin
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) RevokeCert(ctx context.Context, token, thingID string) (c certs.Revoke, err error) {
 	defer func(begin time.Time) {
-		message:= "Method revoke_cert completed"
+		message := "Method revoke_cert completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),

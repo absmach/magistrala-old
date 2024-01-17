@@ -31,7 +31,7 @@ func LoggingMiddleware(svc lora.Service, logger *slog.Logger) lora.Service {
 
 func (lm loggingMiddleware) CreateThing(ctx context.Context, thingID, loraDevEUI string) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method create_thing completed"
+		message := "Method create_thing completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -53,7 +53,7 @@ func (lm loggingMiddleware) CreateThing(ctx context.Context, thingID, loraDevEUI
 
 func (lm loggingMiddleware) UpdateThing(ctx context.Context, thingID, loraDevEUI string) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method update_thing completed"
+		message := "Method update_thing completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -75,7 +75,7 @@ func (lm loggingMiddleware) UpdateThing(ctx context.Context, thingID, loraDevEUI
 
 func (lm loggingMiddleware) RemoveThing(ctx context.Context, thingID string) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method remove_thing completed"
+		message := "Method remove_thing completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -96,7 +96,7 @@ func (lm loggingMiddleware) RemoveThing(ctx context.Context, thingID string) (er
 
 func (lm loggingMiddleware) CreateChannel(ctx context.Context, chanID, loraApp string) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method create_channel completed"
+		message := "Method create_channel completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -118,7 +118,7 @@ func (lm loggingMiddleware) CreateChannel(ctx context.Context, chanID, loraApp s
 
 func (lm loggingMiddleware) UpdateChannel(ctx context.Context, chanID, loraApp string) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method update_channel completed"
+		message := "Method update_channel completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -140,7 +140,7 @@ func (lm loggingMiddleware) UpdateChannel(ctx context.Context, chanID, loraApp s
 
 func (lm loggingMiddleware) RemoveChannel(ctx context.Context, chanID string) (err error) {
 	defer func(begin time.Time) {
-		message:= "Method remove_channel completed"
+		message := "Method remove_channel completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),

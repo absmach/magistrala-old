@@ -35,7 +35,7 @@ func (lm *loggingMiddleware) Publish(ctx context.Context, key string, msg *messa
 		if msg.GetSubtopic() != "" {
 			destChannel = fmt.Sprintf("%s.%s", destChannel, msg.GetSubtopic())
 		}
-		message:= "Method publish completed"
+		message := "Method publish completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -64,7 +64,7 @@ func (lm *loggingMiddleware) Subscribe(ctx context.Context, key, chanID, subtopi
 		if subtopic != "" {
 			destChannel = fmt.Sprintf("%s.%s", destChannel, subtopic)
 		}
-		message:= "Method subscribe completed"
+		message := "Method subscribe completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error.", message),
@@ -95,7 +95,7 @@ func (lm *loggingMiddleware) Unsubscribe(ctx context.Context, key, chanID, subto
 		if subtopic != "" {
 			destChannel = fmt.Sprintf("%s.%s", destChannel, subtopic)
 		}
-		message:= "Method unsubscribe completed"
+		message := "Method unsubscribe completed"
 		if err != nil {
 			lm.logger.Warn(
 				fmt.Sprintf("%s with error: %s.", message, err),

@@ -30,9 +30,9 @@ func LoggingMiddleware(svc users.Service, logger *slog.Logger) users.Service {
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) RegisterClient(ctx context.Context, token string, client mgclients.Client) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("client_name", c.Name), slog.String("client_ID", c.ID)),
+			slog.Group("user", slog.String("name", c.Name), slog.String("id", c.ID)),
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
@@ -48,9 +48,9 @@ func (lm *loggingMiddleware) RegisterClient(ctx context.Context, token string, c
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) IssueToken(ctx context.Context, identity, secret, domainID string) (t *magistrala.Token, err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("identity", identity), slog.String("domain_ID", domainID)),
+			slog.Group("user", slog.String("identity", identity), slog.String("domain_id", domainID)),
 		}
 		if t.AccessType != "" {
 			args = append(args, "access_type", t.AccessType)
@@ -69,9 +69,9 @@ func (lm *loggingMiddleware) IssueToken(ctx context.Context, identity, secret, d
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) RefreshToken(ctx context.Context, refreshToken, domainID string) (t *magistrala.Token, err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
-			slog.String("domain_ID", domainID),
+			slog.String("domain_id", domainID),
 		}
 		if t.AccessType != "" {
 			args = append(args, "access_type", t.AccessType)
@@ -90,9 +90,9 @@ func (lm *loggingMiddleware) RefreshToken(ctx context.Context, refreshToken, dom
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ViewClient(ctx context.Context, token, id string) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("client_name", c.Name), slog.String("client_ID", id)),
+			slog.Group("user", slog.String("name", c.Name), slog.String("id", id)),
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
@@ -108,9 +108,9 @@ func (lm *loggingMiddleware) ViewClient(ctx context.Context, token, id string) (
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ViewProfile(ctx context.Context, token string) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("client_name", c.Name), slog.String("client_ID", c.ID)),
+			slog.Group("user", slog.String("name", c.Name), slog.String("id", c.ID)),
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
@@ -126,7 +126,7 @@ func (lm *loggingMiddleware) ViewProfile(ctx context.Context, token string) (c m
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ListClients(ctx context.Context, token string, pm mgclients.Page) (cp mgclients.ClientsPage, err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
 			slog.Any("total", pm.Total),
 		}
@@ -144,9 +144,9 @@ func (lm *loggingMiddleware) ListClients(ctx context.Context, token string, pm m
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) UpdateClient(ctx context.Context, token string, client mgclients.Client) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("client_name", c.Name), slog.String("client_ID", c.ID)),
+			slog.Group("user", slog.String("name", c.Name), slog.String("id", c.ID)),
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
@@ -162,9 +162,9 @@ func (lm *loggingMiddleware) UpdateClient(ctx context.Context, token string, cli
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) UpdateClientTags(ctx context.Context, token string, client mgclients.Client) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("client_ID", c.ID), slog.String("tags", fmt.Sprintf("%v", c.Tags))),
+			slog.Group("user", slog.String("id", c.ID), slog.String("tags", fmt.Sprintf("%v", c.Tags))),
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
@@ -176,13 +176,13 @@ func (lm *loggingMiddleware) UpdateClientTags(ctx context.Context, token string,
 	return lm.svc.UpdateClientTags(ctx, token, client)
 }
 
-// UpdateClientIdentity logs the update_client_identity request. It logs the client id and token and the time it took to complete the request.
+// UpdateClientIdentity logs the update_identity request. It logs the client id and token and the time it took to complete the request.
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) UpdateClientIdentity(ctx context.Context, token, id, identity string) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("client_ID", c.ID), slog.String("identity", identity)),
+			slog.Group("user", slog.String("id", c.ID), slog.String("identity", identity)),
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
@@ -198,9 +198,9 @@ func (lm *loggingMiddleware) UpdateClientIdentity(ctx context.Context, token, id
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) UpdateClientSecret(ctx context.Context, token, oldSecret, newSecret string) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("client_ID", c.ID), slog.String("name", c.Name)),
+			slog.Group("user", slog.String("id", c.ID), slog.String("name", c.Name)),
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
@@ -216,7 +216,7 @@ func (lm *loggingMiddleware) UpdateClientSecret(ctx context.Context, token, oldS
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) GenerateResetToken(ctx context.Context, email, host string) (err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
 		}
 		if err != nil {
@@ -233,7 +233,7 @@ func (lm *loggingMiddleware) GenerateResetToken(ctx context.Context, email, host
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ResetSecret(ctx context.Context, token, secret string) (err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
 		}
 		if err != nil {
@@ -250,7 +250,7 @@ func (lm *loggingMiddleware) ResetSecret(ctx context.Context, token, secret stri
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) SendPasswordReset(ctx context.Context, host, email, user, token string) (err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
 		}
 		if err != nil {
@@ -267,9 +267,9 @@ func (lm *loggingMiddleware) SendPasswordReset(ctx context.Context, host, email,
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) UpdateClientRole(ctx context.Context, token string, client mgclients.Client) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("client_ID", c.ID), slog.String("role", client.Role.String())),
+			slog.Group("user", slog.String("id", c.ID), slog.String("role", client.Role.String())),
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
@@ -285,9 +285,9 @@ func (lm *loggingMiddleware) UpdateClientRole(ctx context.Context, token string,
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) EnableClient(ctx context.Context, token, id string) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("client_ID", c.ID), slog.String("name", c.Name)),
+			slog.Group("user", slog.String("id", c.ID), slog.String("name", c.Name)),
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
@@ -303,9 +303,9 @@ func (lm *loggingMiddleware) EnableClient(ctx context.Context, token, id string)
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) DisableClient(ctx context.Context, token, id string) (c mgclients.Client, err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("client_ID", c.ID), slog.String("name", c.Name)),
+			slog.Group("user", slog.String("id", c.ID), slog.String("name", c.Name)),
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
@@ -321,7 +321,7 @@ func (lm *loggingMiddleware) DisableClient(ctx context.Context, token, id string
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ListMembers(ctx context.Context, token, objectKind, objectID string, cp mgclients.Page) (mp mgclients.MembersPage, err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
 			slog.Any("total", mp.Total),
 		}
@@ -338,7 +338,7 @@ func (lm *loggingMiddleware) ListMembers(ctx context.Context, token, objectKind,
 // Identify logs the identify request. It logs the token and the time it took to complete the request.
 func (lm *loggingMiddleware) Identify(ctx context.Context, token string) (id string, err error) {
 	defer func(begin time.Time) {
-		args:= []interface{}{
+		args := []interface{}{
 			slog.Any("duration", time.Since(begin).String()),
 		}
 		if err != nil {
