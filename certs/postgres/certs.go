@@ -29,13 +29,13 @@ type Cert struct {
 
 type certsRepository struct {
 	db  postgres.Database
-	log slog.Logger
+	log *slog.Logger
 }
 
 // NewRepository instantiates a PostgreSQL implementation of certs
 // repository.
 func NewRepository(db postgres.Database, log *slog.Logger) certs.Repository {
-	return &certsRepository{db: db, log: *log}
+	return &certsRepository{db: db, log: log}
 }
 
 func (cr certsRepository) RetrieveAll(ctx context.Context, ownerID string, offset, limit uint64) (certs.Page, error) {

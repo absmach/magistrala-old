@@ -24,7 +24,7 @@ type Subscriber interface {
 type broker struct {
 	svc     lora.Service
 	client  mqtt.Client
-	logger  slog.Logger
+	logger  *slog.Logger
 	timeout time.Duration
 }
 
@@ -33,7 +33,7 @@ func NewBroker(svc lora.Service, client mqtt.Client, t time.Duration, log *slog.
 	return broker{
 		svc:     svc,
 		client:  client,
-		logger:  *log,
+		logger:  log,
 		timeout: t,
 	}
 }

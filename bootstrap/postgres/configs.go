@@ -37,13 +37,13 @@ var _ bootstrap.ConfigRepository = (*configRepository)(nil)
 
 type configRepository struct {
 	db  postgres.Database
-	log slog.Logger
+	log *slog.Logger
 }
 
 // NewConfigRepository instantiates a PostgreSQL implementation of config
 // repository.
 func NewConfigRepository(db postgres.Database, log *slog.Logger) bootstrap.ConfigRepository {
-	return &configRepository{db: db, log: *log}
+	return &configRepository{db: db, log: log}
 }
 
 func (cr configRepository) Save(ctx context.Context, cfg bootstrap.Config, chsConnIDs []string) (string, error) {

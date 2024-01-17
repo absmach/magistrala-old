@@ -20,6 +20,7 @@ const (
 	LevelDebug = "debug"
 	LevelInfo  = "info"
 	LevelWarn  = "warn"
+	LevelError = "error"
 )
 
 func (writer *mockWriter) Write(p []byte) (int, error) {
@@ -53,25 +54,25 @@ func TestDebug(t *testing.T) {
 		{
 			desc:   "debug log ordinary string",
 			input:  "input_string",
-			level:  "debug",
+			level:  LevelDebug,
 			output: logMsg{Level: "DEBUG", Message: "input_string"},
 		},
 		{
 			desc:   "debug log empty string",
 			input:  "",
-			level:  "debug",
+			level:  LevelDebug,
 			output: logMsg{Level: "DEBUG", Message: ""},
 		},
 		{
 			desc:   "debug ordinary string lvl not allowed",
 			input:  "input_string",
-			level:  "info",
+			level:  LevelInfo,
 			output: logMsg{Level: "", Message: ""},
 		},
 		{
 			desc:   "debug empty string lvl not allowed",
 			input:  "",
-			level:  "info",
+			level:  LevelInfo,
 			output: logMsg{Level: "", Message: ""},
 		},
 	}
@@ -106,25 +107,25 @@ func TestInfo(t *testing.T) {
 		{
 			desc:   "info log ordinary string",
 			input:  "input_string",
-			level:  "info",
+			level:  LevelInfo,
 			output: logMsg{Level: "INFO", Message: "input_string"},
 		},
 		{
 			desc:   "info log empty string",
 			input:  "",
-			level:  "info",
+			level:  LevelInfo,
 			output: logMsg{Level: "INFO", Message: ""},
 		},
 		{
 			desc:   "info ordinary string lvl not allowed",
 			input:  "input_string",
-			level:  "warn",
+			level:  LevelWarn,
 			output: logMsg{Level: "", Message: ""},
 		},
 		{
 			desc:   "info empty string lvl not allowed",
 			input:  "",
-			level:  "warn",
+			level:  LevelWarn,
 			output: logMsg{Level: "", Message: ""},
 		},
 	}
@@ -159,25 +160,25 @@ func TestWarn(t *testing.T) {
 		{
 			desc:   "warn log ordinary string",
 			input:  "input_string",
-			level:  "warn",
+			level:  LevelWarn,
 			output: logMsg{Level: "WARN", Message: "input_string"},
 		},
 		{
 			desc:   "warn log empty string",
 			input:  "",
-			level:  "warn",
+			level:  LevelWarn,
 			output: logMsg{Level: "WARN", Message: ""},
 		},
 		{
 			desc:   "warn ordinary string lvl not allowed",
 			input:  "input_string",
-			level:  "error",
+			level:  LevelError,
 			output: logMsg{Level: "", Message: ""},
 		},
 		{
 			desc:   "warn empty string lvl not allowed",
 			input:  "",
-			level:  "error",
+			level:  LevelError,
 			output: logMsg{Level: "", Message: ""},
 		},
 	}
@@ -212,13 +213,13 @@ func TestError(t *testing.T) {
 		{
 			desc:   "error log ordinary string",
 			input:  "input_string",
-			level:  "error",
+			level:  LevelError,
 			output: logMsg{Level: "ERROR", Message: "input_string"},
 		},
 		{
 			desc:   "error log empty string",
 			input:  "",
-			level:  "error",
+			level:  LevelError,
 			output: logMsg{Level: "ERROR", Message: ""},
 		},
 	}

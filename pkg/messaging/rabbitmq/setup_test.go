@@ -54,7 +54,7 @@ func TestMain(m *testing.M) {
 		log.Fatalf("Could not connect to docker: %s", err)
 	}
 
-	logger, err = mglog.New(os.Stdout, "info")
+	logger, err = mglog.New(os.Stdout, "debug")
 	if err != nil {
 		log.Fatalf(err.Error())
 	}
