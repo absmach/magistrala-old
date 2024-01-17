@@ -189,7 +189,6 @@ func decodeViewProfile(_ context.Context, r *http.Request) (interface{}, error) 
 }
 
 func decodeListClients(_ context.Context, r *http.Request) (interface{}, error) {
-	var ownerID string
 	s, err := apiutil.ReadStringQuery(r, api.StatusKey, api.DefClientStatus)
 	if err != nil {
 		return nil, errors.Wrap(apiutil.ErrValidation, err)
@@ -230,9 +229,6 @@ func decodeListClients(_ context.Context, r *http.Request) (interface{}, error) 
 	if err != nil {
 		return nil, errors.Wrap(apiutil.ErrValidation, err)
 	}
-	if oid != "" {
-		ownerID = oid
-	}
 	st, err := mgclients.ToStatus(s)
 	if err != nil {
 		return nil, errors.Wrap(apiutil.ErrValidation, err)
@@ -246,7 +242,7 @@ func decodeListClients(_ context.Context, r *http.Request) (interface{}, error) 
 		name:     n,
 		identity: i,
 		tag:      t,
-		owner:    ownerID,
+		owner:    oid,
 		order:    order,
 		dir:      dir,
 	}
