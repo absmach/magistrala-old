@@ -34,6 +34,7 @@ type logger struct {
 	level     Level
 }
 
+// New returns wrapped logger.
 func New(w io.Writer, levelText string) (*slog.Logger, error) {
 	var level slog.Level
 	if err := level.UnmarshalText([]byte(levelText)); err != nil {
@@ -47,7 +48,7 @@ func New(w io.Writer, levelText string) (*slog.Logger, error) {
 	return slog.New(logHandler), nil
 }
 
-// New returns wrapped go kit logger.
+// NewKitLog returns wrapped go kit logger.
 func NewKitLog(out io.Writer, levelText string) (Logger, error) {
 	var level Level
 	err := level.UnmarshalText(levelText)

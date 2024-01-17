@@ -19,7 +19,7 @@ func NewMock() *slog.Logger {
 	return slog.New(slog.NewJSONHandler(buf, nil))
 }
 
-// NewMock returns wrapped go kit logger mock.
+// NewKitMock returns wrapped go kit logger mock.
 func NewKitMock() Logger {
 	return &loggerMock{}
 }
