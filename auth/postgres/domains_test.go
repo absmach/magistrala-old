@@ -678,3 +678,142 @@ func TestUpdate(t *testing.T) {
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 	}
 }
+
+func TestDelete(t *testing.T) {
+	t.Cleanup(func() {
+		_, err := db.Exec("DELETE FROM domains")
+		require.Nil(t, err, fmt.Sprintf("clean domains unexpected error: %s", err))
+	})
+
+	repo := postgres.NewDomainRepository(database)
+
+	domain := auth.Domain{
+		ID:    domainID,
+		Name:  "test",
+		Alias: "test",
+		Tags:  []string{"test"},
+		Metadata: map[string]interface{}{
+			"test": "test",
+		},
+		CreatedBy: userID,
+		UpdatedBy: userID,
+		Status:    auth.EnabledStatus,
+	}
+
+	_, err := repo.Save(context.Background(), domain)
+	require.Nil(t, err, fmt.Sprintf("failed to save client %s", domain.ID))
+
+	cases := []struct {
+		desc     string
+		domainID string
+		err      error
+	}{
+		{
+			desc:     "delete existing domain",
+			domainID: domain.ID,
+			err:      nil,
+		},
+		{
+			desc:     "delete non-existing domain",
+			domainID: inValid,
+			err:      repoerr.ErrNotFound,
+		},
+		{
+			desc:     "delete domain with empty ID",
+			domainID: "",
+			err:      repoerr.ErrNotFound,
+		},
+	}
+
+	for _, tc := range cases {
+		err := repo.Delete(context.Background(), tc.domainID)
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
+	}
+}
+
+func TestCheckPolicy(t *testing.T) {
+	t.Cleanup(func() {
+		_, err := db.Exec("DELETE FROM domains")
+		require.Nil(t, err, fmt.Sprintf("clean domains unexpected error: %s", err))
+		_, err = db.Exec("DELETE FROM policies")
+		require.Nil(t, err, fmt.Sprintf("clean policies unexpected error: %s", err))
+	})
+
+	repo := postgres.NewDomainRepository(database)
+
+	domain := auth.Domain{
+		ID:    domainID,
+		Name:  "test",
+		Alias: "test",
+		Tags:  []string{"test"},
+		Metadata: map[string]interface{}{
+			"test": "test",
+		},
+		CreatedBy:  userID,
+		UpdatedBy:  userID,
+		Status:     auth.EnabledStatus,
+		Permission: "admin",
+	}
+
+	policy := auth.Policy{
+		SubjectType:     auth.UserType,
+		SubjectID:       userID,
+		SubjectRelation: "admin",
+		Relation:        "admin",
+		ObjectType:      auth.DomainType,
+		ObjectID:        domainID,
+	}
+
+	_, err := repo.Save(context.Background(), domain)
+	require.Nil(t, err, fmt.Sprintf("failed to save domain %s", domain.ID))
+
+	err = repo.SavePolicies(context.Background(), policy)
+	require.Nil(t, err, fmt.Sprintf("failed to save policy %s", policy.SubjectID))
+
+	cases := []struct {
+		desc     string
+		domainID string
+		userID   string
+		perm     string
+		response bool
+		err      error
+	}{
+		{
+			desc:     "check policy with valid domainID, userID and perm",
+			domainID: domain.ID,
+			userID:   userID,
+			perm:     "admin",
+			response: true,
+			err:      nil,
+		},
+		{
+			desc:     "check policy with invalid domainID",
+			domainID: inValid,
+			userID:   userID,
+			perm:     "admin",
+			response: false,
+			err:      nil,
+		},
+		{
+			desc:     "check policy with invalid userID",
+			domainID: domain.ID,
+			userID:   inValid,
+			perm:     "admin",
+			response: false,
+			err:      nil,
+		},
+		{
+			desc:     "check policy with invalid perm",
+			domainID: domain.ID,
+			userID:   userID,
+			perm:     inValid,
+			response: false,
+			err:      nil,
+		},
+	}
+	for _, tc := range cases {
+		d, err := repo.CheckPolicy(context.Background(), tc.userID, tc.domainID, tc.perm)
+		assert.Equal(t, tc.response, d, fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.response, d))
+		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %v got %v\n", tc.desc, tc.err, err))
+	}
+}

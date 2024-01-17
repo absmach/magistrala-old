@@ -74,22 +74,26 @@ func (repo domainRepo) RetrieveByID(ctx context.Context, id string) (auth.Domain
 		ID: id,
 	}
 
-	row, err := repo.db.NamedQueryContext(ctx, q, dbdp)
+	rows, err := repo.db.NamedQueryContext(ctx, q, dbdp)
 	if err != nil {
-		if err == sql.ErrNoRows {
-			return auth.Domain{}, errors.Wrap(errors.ErrNotFound, err)
-		}
-		return auth.Domain{}, errors.Wrap(errors.ErrViewEntity, err)
+		return auth.Domain{}, postgres.HandleError(repoerr.ErrViewEntity, err)
 	}
+	defer rows.Close()
 
-	defer row.Close()
-	row.Next()
 	dbd := dbDomain{}
-	if err := row.StructScan(&dbd); err != nil {
-		return auth.Domain{}, errors.Wrap(errors.ErrNotFound, err)
-	}
+	if rows.Next() {
+		if err = rows.StructScan(&dbd); err != nil {
+			return auth.Domain{}, postgres.HandleError(repoerr.ErrViewEntity, err)
+		}
 
-	return toDomain(dbd)
+		domain, err := toDomain(dbd)
+		if err != nil {
+			return auth.Domain{}, errors.Wrap(repoerr.ErrFailedOpDB, err)
+		}
+
+		return domain, nil
+	}
+	return auth.Domain{}, repoerr.ErrNotFound
 }
 
 func (repo domainRepo) RetrievePermissions(ctx context.Context, subject, id string) ([]string, error) {
@@ -295,18 +299,15 @@ func (repo domainRepo) Update(ctx context.Context, id, userID string, dr auth.Do
 
 // Delete delete domain from database.
 func (repo domainRepo) Delete(ctx context.Context, id string) error {
-	q := fmt.Sprintf(`
-		DELETE FROM
-			domains
-		WHERE
-			id = '%s'
-		;`, id)
+	q := "DELETE FROM domains WHERE id = $1 ;"
 
-	row, err := repo.db.NamedQueryContext(ctx, q, nil)
+	result, err := repo.db.ExecContext(ctx, q, id)
 	if err != nil {
 		return postgres.HandleError(repoerr.ErrRemoveEntity, err)
 	}
-	defer row.Close()
+	if rows, _ := result.RowsAffected(); rows == 0 {
+		return repoerr.ErrNotFound
+	}
 
 	return nil
 }
