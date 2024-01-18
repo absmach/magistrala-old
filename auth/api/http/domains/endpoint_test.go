@@ -47,7 +47,6 @@ var (
 
 const (
 	contentType     = "application/json"
-	loginDuration   = 30 * time.Minute
 	refreshDuration = 24 * time.Hour
 	invalidDuration = 7 * 24 * time.Hour
 )

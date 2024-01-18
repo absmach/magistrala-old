@@ -64,57 +64,69 @@ func TestIssue(t *testing.T) {
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
-		desc  string
-		id    string
-		email string
-		kind  auth.KeyType
-		err   error
-		code  codes.Code
+		desc          string
+		id            string
+		email         string
+		kind          auth.KeyType
+		issueResponse auth.Token
+		err           error
+		code          codes.Code
 	}{
 		{
 			desc:  "issue for user with valid token",
 			id:    id,
 			email: email,
 			kind:  auth.AccessKey,
-			err:   nil,
-			code:  codes.OK,
+			issueResponse: auth.Token{
+				AccessToken:  validToken,
+				RefreshToken: validToken,
+			},
+			err:  nil,
+			code: codes.OK,
 		},
 		{
 			desc:  "issue recovery key",
 			id:    id,
 			email: email,
 			kind:  auth.RecoveryKey,
-			err:   nil,
-			code:  codes.OK,
+			issueResponse: auth.Token{
+				AccessToken:  validToken,
+				RefreshToken: validToken,
+			},
+			err:  nil,
+			code: codes.OK,
 		},
 		{
-			desc:  "issue API key unauthenticated",
-			id:    id,
-			email: email,
-			kind:  auth.APIKey,
-			err:   errors.ErrAuthentication,
-			code:  codes.Unauthenticated,
+			desc:          "issue API key unauthenticated",
+			id:            id,
+			email:         email,
+			kind:          auth.APIKey,
+			issueResponse: auth.Token{},
+			err:           errors.ErrAuthentication,
+			code:          codes.Unauthenticated,
 		},
 		{
-			desc:  "issue for invalid key type",
-			id:    id,
-			email: email,
-			kind:  32,
-			err:   errors.ErrMalformedEntity,
-			code:  codes.InvalidArgument,
+			desc:          "issue for invalid key type",
+			id:            id,
+			email:         email,
+			kind:          32,
+			issueResponse: auth.Token{},
+			err:           errors.ErrMalformedEntity,
+			code:          codes.InvalidArgument,
 		},
 		{
-			desc:  "issue for user that exist",
-			id:    "",
-			email: "",
-			kind:  auth.APIKey,
-			err:   errors.ErrAuthentication,
-			code:  codes.Unauthenticated,
+			desc:          "issue for user that does notexist",
+			id:            "",
+			email:         "",
+			kind:          auth.APIKey,
+			issueResponse: auth.Token{},
+			err:           errors.ErrAuthentication,
+			code:          codes.Unauthenticated,
 		},
 	}
 
 	for _, tc := range cases {
-		repoCall := svc.On("Issue", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(auth.Token{}, tc.err)
+		repoCall := svc.On("Issue", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.issueResponse, tc.err)
 		_, err := client.Issue(context.Background(), &magistrala.IssueReq{UserId: tc.id, Type: uint32(tc.kind)})
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
@@ -127,33 +139,40 @@ func TestRefresh(t *testing.T) {
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
-		desc  string
-		token string
-		err   error
-		code  codes.Code
+		desc          string
+		token         string
+		issueResponse auth.Token
+		err           error
+		code          codes.Code
 	}{
 		{
 			desc:  "refresh token with valid token",
 			token: validToken,
-			err:   nil,
-			code:  codes.OK,
+			issueResponse: auth.Token{
+				AccessToken:  validToken,
+				RefreshToken: validToken,
+			},
+			err:  nil,
+			code: codes.OK,
 		},
 		{
-			desc:  "refresh token with invalid token",
-			token: inValidToken,
-			err:   errors.ErrAuthentication,
-			code:  codes.Unauthenticated,
+			desc:          "refresh token with invalid token",
+			token:         inValidToken,
+			issueResponse: auth.Token{},
+			err:           errors.ErrAuthentication,
+			code:          codes.Unauthenticated,
 		},
 		{
-			desc:  "refresh token with empty token",
-			token: "",
-			err:   apiutil.ErrMissingSecret,
-			code:  codes.InvalidArgument,
+			desc:          "refresh token with empty token",
+			token:         "",
+			issueResponse: auth.Token{},
+			err:           apiutil.ErrMissingSecret,
+			code:          codes.InvalidArgument,
 		},
 	}
 
 	for _, tc := range cases {
-		repoCall := svc.On("Issue", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(auth.Token{}, tc.err)
+		repoCall := svc.On("Issue", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.issueResponse, tc.err)
 		_, err := client.Refresh(context.Background(), &magistrala.RefreshReq{RefreshToken: tc.token})
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()

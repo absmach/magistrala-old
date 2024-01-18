@@ -350,7 +350,7 @@ func (repo domainRepo) CheckPolicy(ctx context.Context, pc auth.Policy) error {
 	defer row.Close()
 	row.Next()
 	if err := row.StructScan(&dbpc); err != nil {
-		return err
+		return errors.Wrap(repoerr.ErrNotFound, err)
 	}
 	return nil
 }

@@ -124,15 +124,6 @@ func TestIssue(t *testing.T) {
 			token: "",
 			err:   nil,
 		},
-		{
-			desc: "issue invitation key",
-			key: auth.Key{
-				Type:     auth.InvitationKey,
-				IssuedAt: time.Now(),
-			},
-			token: "",
-			err:   nil,
-		},
 	}
 
 	for _, tc := range cases {
@@ -275,7 +266,7 @@ func TestIssue(t *testing.T) {
 			err:                  nil,
 		},
 		{
-			desc: "issue login key with memship permission with failed  to authorize",
+			desc: "issue login key with membership permission with failed  to authorize",
 			key: auth.Key{
 				Type:     auth.AccessKey,
 				IssuedAt: time.Now(),
@@ -353,6 +344,16 @@ func TestIssue(t *testing.T) {
 			token: apiToken,
 			err:   svcerr.ErrAuthentication,
 		},
+		{
+			desc: "issue API key with failed to save",
+			key: auth.Key{
+				Type:     auth.APIKey,
+				IssuedAt: time.Now(),
+			},
+			token:   accessToken,
+			saveErr: errors.ErrNotFound,
+			err:     errors.ErrNotFound,
+		},
 	}
 	for _, tc := range cases3 {
 		repoCall := krepo.On("Save", mock.Anything, mock.Anything).Return(mock.Anything, tc.saveErr)
@@ -367,6 +368,7 @@ func TestIssue(t *testing.T) {
 		token              string
 		checkPolicyRequest auth.PolicyReq
 		checkPolicyErr     error
+		retrieveByIDErr    error
 		err                error
 	}{
 		{
@@ -388,6 +390,26 @@ func TestIssue(t *testing.T) {
 			err:   nil,
 		},
 		{
+			desc: "issue refresh token with invalid policy",
+			key: auth.Key{
+				Type:     auth.RefreshKey,
+				IssuedAt: time.Now(),
+			},
+			checkPolicyRequest: auth.PolicyReq{
+				Subject:     email,
+				SubjectType: auth.UserType,
+				SubjectKind: "",
+				Object:      auth.MagistralaObject,
+				ObjectKind:  "",
+				ObjectType:  auth.PlatformType,
+				Permission:  auth.AdminPermission,
+			},
+			token:           refreshToken,
+			checkPolicyErr:  svcerr.ErrAuthorization,
+			retrieveByIDErr: errors.ErrNotFound,
+			err:             svcerr.ErrAuthorization,
+		},
+		{
 			desc: "issue refresh key with invalid token",
 			key: auth.Key{
 				Type:     auth.RefreshKey,
@@ -405,12 +427,53 @@ func TestIssue(t *testing.T) {
 			token: "",
 			err:   errRetrieve,
 		},
+		{
+			desc: "issue invitation key",
+			key: auth.Key{
+				Type:     auth.InvitationKey,
+				IssuedAt: time.Now(),
+			},
+			checkPolicyRequest: auth.PolicyReq{
+				Subject:     email,
+				SubjectType: auth.UserType,
+				SubjectKind: "",
+				Object:      auth.MagistralaObject,
+				ObjectKind:  "",
+				ObjectType:  auth.PlatformType,
+				Permission:  auth.AdminPermission,
+			},
+			token: "",
+			err:   nil,
+		},
+		{
+			desc: "issue invitation key with invalid policy",
+			key: auth.Key{
+				Type:     auth.InvitationKey,
+				IssuedAt: time.Now(),
+				Domain:   groupName,
+			},
+			checkPolicyRequest: auth.PolicyReq{
+				Subject:     "",
+				SubjectType: auth.UserType,
+				SubjectKind: "",
+				Object:      auth.MagistralaObject,
+				ObjectKind:  "",
+				ObjectType:  auth.PlatformType,
+				Permission:  auth.AdminPermission,
+			},
+			token:           refreshToken,
+			checkPolicyErr:  svcerr.ErrAuthorization,
+			retrieveByIDErr: errors.ErrNotFound,
+			err:             svcerr.ErrNotFound,
+		},
 	}
 	for _, tc := range cases4 {
 		repoCall := prepo.On("CheckPolicy", mock.Anything, tc.checkPolicyRequest).Return(tc.checkPolicyErr)
+		repoCall1 := drepo.On("RetrieveByID", mock.Anything, mock.Anything).Return(auth.Domain{}, tc.retrieveByIDErr)
 		_, err := svc.Issue(context.Background(), tc.token, tc.key)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
+		repoCall1.Unset()
 	}
 }
 
