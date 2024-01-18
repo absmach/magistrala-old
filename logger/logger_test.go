@@ -16,7 +16,7 @@ type mockWriter struct {
 }
 
 func (writer *mockWriter) Write(p []byte) (int, error) {
-	writer.value = append(writer.value, p...)
+	writer.value = p
 	return len(p), nil
 }
 
@@ -41,14 +41,23 @@ func TestLoggerInitialization(t *testing.T) {
 			desc:  "error level",
 			level: slog.LevelError.String(),
 		},
+		{
+			desc:  "invalid level",
+			level: "invalid",
+		},
 	}
 
 	for _, tc := range cases {
 		t.Run(tc.desc, func(t *testing.T) {
 			writer := &mockWriter{}
 			logger, err := mglog.New(writer, tc.level)
-			assert.Nil(t, err, "unexpected error during logger initialization")
-			assert.NotNil(t, logger, "logger should not be nil")
+			if tc.level == "invalid" {
+				assert.NotNil(t, err, "expected error during logger initialization")
+				assert.NotNil(t, logger, "logger should not be nil when an error occurs")
+			} else {
+				assert.Nil(t, err, "unexpected error during logger initialization")
+				assert.NotNil(t, logger, "logger should not be nil")
+			}
 		})
 	}
 }
