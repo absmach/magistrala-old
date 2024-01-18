@@ -13,6 +13,7 @@ import (
 	"net/url"
 	"os"
 
+	chclient "github.com/absmach/callhome/pkg/client"
 	"github.com/absmach/magistrala"
 	adapter "github.com/absmach/magistrala/http"
 	"github.com/absmach/magistrala/http/api"
@@ -30,7 +31,6 @@ import (
 	mproxy "github.com/absmach/mproxy/pkg/http"
 	"github.com/absmach/mproxy/pkg/session"
 	"github.com/caarlos0/env/v10"
-	chclient "github.com/mainflux/callhome/pkg/client"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 )
@@ -63,11 +63,6 @@ func main() {
 	}
 
 	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
-	if err != nil {
-		log.Fatalf("failed to init logger: %s", err.Error())
-	}
-
-	chClientLogger, err := mglog.NewKitLog(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		log.Fatalf("failed to init logger: %s", err.Error())
 	}
@@ -135,7 +130,7 @@ func main() {
 	hs := httpserver.New(ctx, cancel, svcName, targetServerCfg, api.MakeHandler(cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
-		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
+		chc := chclient.New(svcName, magistrala.Version, logger, cancel)
 		go chc.CallHome(ctx)
 	}
 
@@ -144,7 +139,7 @@ func main() {
 	})
 
 	g.Go(func() error {
-		return proxyHTTP(ctx, httpServerConfig, chClientLogger, svc)
+		return proxyHTTP(ctx, httpServerConfig, logger, svc)
 	})
 
 	g.Go(func() error {
@@ -165,7 +160,7 @@ func newService(pub messaging.Publisher, tc magistrala.AuthzServiceClient, logge
 	return svc
 }
 
-func proxyHTTP(ctx context.Context, cfg server.Config, logger mglog.Logger, sessionHandler session.Handler) error {
+func proxyHTTP(ctx context.Context, cfg server.Config, logger *slog.Logger, sessionHandler session.Handler) error {
 	address := fmt.Sprintf("%s:%s", "", cfg.Port)
 	target := fmt.Sprintf("%s:%s", targetHTTPHost, targetHTTPPort)
 	mp, err := mproxy.NewProxy(address, target, sessionHandler, logger)

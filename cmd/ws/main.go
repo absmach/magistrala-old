@@ -12,6 +12,7 @@ import (
 	"net/url"
 	"os"
 
+	chclient "github.com/absmach/callhome/pkg/client"
 	"github.com/absmach/magistrala"
 	"github.com/absmach/magistrala/internal"
 	jaegerclient "github.com/absmach/magistrala/internal/clients/jaeger"
@@ -29,7 +30,6 @@ import (
 	"github.com/absmach/mproxy/pkg/session"
 	"github.com/absmach/mproxy/pkg/websockets"
 	"github.com/caarlos0/env/v10"
-	chclient "github.com/mainflux/callhome/pkg/client"
 	"go.opentelemetry.io/otel/trace"
 	"golang.org/x/sync/errgroup"
 )
@@ -62,11 +62,6 @@ func main() {
 	}
 
 	logger, err := mglog.New(os.Stdout, cfg.LogLevel)
-	if err != nil {
-		log.Fatalf("failed to init logger: %s", err.Error())
-	}
-
-	chClientLogger, err := mglog.NewKitLog(os.Stdout, cfg.LogLevel)
 	if err != nil {
 		log.Fatalf("failed to init logger: %s", err.Error())
 	}
@@ -138,7 +133,7 @@ func main() {
 	hs := httpserver.New(ctx, cancel, svcName, targetServerConfig, api.MakeHandler(ctx, svc, logger, cfg.InstanceID), logger)
 
 	if cfg.SendTelemetry {
-		chc := chclient.New(svcName, magistrala.Version, chClientLogger, cancel)
+		chc := chclient.New(svcName, magistrala.Version, logger, cancel)
 		go chc.CallHome(ctx)
 	}
 
@@ -147,7 +142,7 @@ func main() {
 			return hs.Start()
 		})
 		handler := ws.NewHandler(nps, logger, authClient)
-		return proxyWS(ctx, httpServerConfig, targetServerConfig, chClientLogger, handler)
+		return proxyWS(ctx, httpServerConfig, targetServerConfig, logger, handler)
 	})
 
 	g.Go(func() error {
@@ -168,7 +163,7 @@ func newService(tc magistrala.AuthzServiceClient, nps messaging.PubSub, logger *
 	return svc
 }
 
-func proxyWS(ctx context.Context, hostConfig, targetConfig server.Config, logger mglog.Logger, handler session.Handler) error {
+func proxyWS(ctx context.Context, hostConfig, targetConfig server.Config, logger *slog.Logger, handler session.Handler) error {
 	cfg := config{}
 	if err := env.Parse(&cfg); err != nil {
 		log.Fatalf("failed to load %s configuration : %s", svcName, err)

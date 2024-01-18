@@ -37,7 +37,7 @@ func newTargetHTTPServer() *httptest.Server {
 }
 
 func newProxyHTPPServer(svc session.Handler, targetServer *httptest.Server) (*httptest.Server, error) {
-	mp, err := mproxy.NewProxy("", targetServer.URL, svc, mglog.NewKitMock())
+	mp, err := mproxy.NewProxy("", targetServer.URL, svc, mglog.NewMock())
 	if err != nil {
 		return nil, err
 	}

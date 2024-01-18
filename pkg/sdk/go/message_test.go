@@ -32,7 +32,7 @@ func setupMessages() (*httptest.Server, *authmocks.Service) {
 	mux := api.MakeHandler("")
 	target := httptest.NewServer(mux)
 
-	mp, err := mproxy.NewProxy("", target.URL, handler, mglog.NewKitMock())
+	mp, err := mproxy.NewProxy("", target.URL, handler, mglog.NewMock())
 	if err != nil {
 		return nil, nil
 	}

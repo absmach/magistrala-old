@@ -48,7 +48,7 @@ func newHTTPServer(svc ws.Service) *httptest.Server {
 
 func newProxyHTPPServer(svc session.Handler, targetServer *httptest.Server) (*httptest.Server, error) {
 	turl := strings.ReplaceAll(targetServer.URL, "http", "ws")
-	mp, err := websockets.NewProxy("", turl, mglog.NewKitMock(), svc)
+	mp, err := websockets.NewProxy("", turl, mglog.NewMock(), svc)
 	if err != nil {
 		return nil, err
 	}
