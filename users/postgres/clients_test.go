@@ -460,7 +460,7 @@ func TestRetrieveAll(t *testing.T) {
 			pageMeta: mgclients.Page{},
 			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
-					Total:  196,
+					Total:  196, // No of enabled clients.
 					Offset: 0,
 					Limit:  0,
 				},
