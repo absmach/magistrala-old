@@ -362,19 +362,19 @@ func TestRetrieveAll(t *testing.T) {
 
 	cases := []struct {
 		desc     string
-		page     mgclients.Page
-		response mgclients.ClientsPage
+		pageMeta mgclients.Page
+		page     mgclients.ClientsPage
 		err      error
 	}{
 		{
 			desc: "retrieve first page of clients",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Offset: 0,
 				Limit:  50,
 				Role:   mgclients.AllRole,
 				Status: mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  200,
 					Offset: 0,
@@ -386,13 +386,13 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve second page of clients",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Offset: 50,
 				Limit:  200,
 				Role:   mgclients.AllRole,
 				Status: mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  200,
 					Offset: 50,
@@ -404,13 +404,13 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve clients with limit",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Offset: 0,
 				Limit:  50,
 				Role:   mgclients.AllRole,
 				Status: mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  uint64(num),
 					Offset: 0,
@@ -421,13 +421,13 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with offset out of range",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Offset: 1000,
 				Limit:  200,
 				Role:   mgclients.AllRole,
 				Status: mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  200,
 					Offset: 1000,
@@ -439,13 +439,13 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with limit out of range",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Offset: 0,
 				Limit:  1000,
 				Role:   mgclients.AllRole,
 				Status: mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  200,
 					Offset: 0,
@@ -456,9 +456,9 @@ func TestRetrieveAll(t *testing.T) {
 			err: nil,
 		},
 		{
-			desc: "retrieve with empty page",
-			page: mgclients.Page{},
-			response: mgclients.ClientsPage{
+			desc:     "retrieve with empty page",
+			pageMeta: mgclients.Page{},
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  196,
 					Offset: 0,
@@ -470,14 +470,14 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with client id",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				IDs:    []string{items[0].ID},
 				Offset: 0,
 				Limit:  3,
 				Role:   mgclients.AllRole,
 				Status: mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  1,
 					Offset: 0,
@@ -489,14 +489,14 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with invalid client id",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				IDs:    []string{invalidName},
 				Offset: 0,
 				Limit:  3,
 				Role:   mgclients.AllRole,
 				Status: mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  0,
 					Offset: 0,
@@ -508,14 +508,14 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with client name",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Name:   items[0].Name,
 				Offset: 0,
 				Limit:  3,
 				Role:   mgclients.AllRole,
 				Status: mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  1,
 					Offset: 0,
@@ -527,13 +527,13 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with enabled status",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Status: mgclients.EnabledStatus,
 				Offset: 0,
 				Limit:  200,
 				Role:   mgclients.AllRole,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  196,
 					Offset: 0,
@@ -545,13 +545,13 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with disabled status",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Status: mgclients.DisabledStatus,
 				Offset: 0,
 				Limit:  200,
 				Role:   mgclients.AllRole,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  4,
 					Offset: 0,
@@ -562,13 +562,13 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with all status",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Status: mgclients.AllStatus,
 				Offset: 0,
 				Limit:  200,
 				Role:   mgclients.AllRole,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  200,
 					Offset: 0,
@@ -579,14 +579,14 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with owner id",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Owner:  ownerID,
 				Offset: 0,
 				Limit:  5,
 				Role:   mgclients.AllRole,
 				Status: mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  4,
 					Offset: 0,
@@ -598,13 +598,13 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with invalid owner id",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Owner:  invalidName,
 				Offset: 0,
 				Limit:  200,
 				Role:   mgclients.AllRole,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  0,
 					Offset: 0,
@@ -616,14 +616,14 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve by tags",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Tag:    "tag1",
 				Offset: 0,
 				Limit:  200,
 				Role:   mgclients.AllRole,
 				Status: mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  200,
 					Offset: 0,
@@ -635,14 +635,14 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with invalid client name",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Name:   invalidName,
 				Offset: 0,
 				Limit:  3,
 				Role:   mgclients.AllRole,
 				Status: mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  0,
 					Offset: 0,
@@ -653,7 +653,7 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with metadata",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Metadata: map[string]interface{}{
 					"key": "value",
 				},
@@ -662,7 +662,7 @@ func TestRetrieveAll(t *testing.T) {
 				Role:   mgclients.AllRole,
 				Status: mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  4,
 					Offset: 0,
@@ -674,7 +674,7 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with invalid metadata",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Metadata: map[string]interface{}{
 					"key": "value1",
 				},
@@ -683,7 +683,7 @@ func TestRetrieveAll(t *testing.T) {
 				Role:   mgclients.AllRole,
 				Status: mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  0,
 					Offset: 0,
@@ -695,13 +695,13 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with role",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Role:   mgclients.AdminRole,
 				Offset: 0,
 				Limit:  200,
 				Status: mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  4,
 					Offset: 0,
@@ -713,13 +713,13 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with invalid role",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Role:   mgclients.AdminRole + 2,
 				Offset: 0,
 				Limit:  200,
 				Status: mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  0,
 					Offset: 0,
@@ -731,14 +731,14 @@ func TestRetrieveAll(t *testing.T) {
 		},
 		{
 			desc: "retrieve with identity",
-			page: mgclients.Page{
+			pageMeta: mgclients.Page{
 				Identity: items[0].Credentials.Identity,
 				Offset:   0,
 				Limit:    3,
 				Role:     mgclients.AllRole,
 				Status:   mgclients.AllStatus,
 			},
-			response: mgclients.ClientsPage{
+			page: mgclients.ClientsPage{
 				Page: mgclients.Page{
 					Total:  1,
 					Offset: 0,
@@ -751,12 +751,12 @@ func TestRetrieveAll(t *testing.T) {
 	}
 
 	for _, tc := range cases {
-		page, err := repo.RetrieveAll(context.Background(), tc.page)
-		assert.Equal(t, tc.response.Total, page.Total, fmt.Sprintf("%s: expected %d got %d\n", tc.desc, tc.response.Total, page.Total))
-		assert.Equal(t, tc.response.Offset, page.Offset, fmt.Sprintf("%s: expected %d got %d\n", tc.desc, tc.response.Offset, page.Offset))
-		assert.Equal(t, tc.response.Limit, page.Limit, fmt.Sprintf("%s: expected %d got %d\n", tc.desc, tc.response.Limit, page.Limit))
-		assert.Equal(t, tc.response.Page, page.Page, fmt.Sprintf("%s: expected  %v, got %v", tc.desc, tc.response, page))
-		assert.ElementsMatch(t, tc.response.Clients, page.Clients, fmt.Sprintf("%s: expected  %v, got %v", tc.desc, tc.response.Clients, page.Clients))
+		page, err := repo.RetrieveAll(context.Background(), tc.pageMeta)
+		assert.Equal(t, tc.page.Total, page.Total, fmt.Sprintf("%s: expected %d got %d\n", tc.desc, tc.page.Total, page.Total))
+		assert.Equal(t, tc.page.Offset, page.Offset, fmt.Sprintf("%s: expected %d got %d\n", tc.desc, tc.page.Offset, page.Offset))
+		assert.Equal(t, tc.page.Limit, page.Limit, fmt.Sprintf("%s: expected %d got %d\n", tc.desc, tc.page.Limit, page.Limit))
+		assert.Equal(t, tc.page.Page, page.Page, fmt.Sprintf("%s: expected  %v, got %v", tc.desc, tc.page, page))
+		assert.ElementsMatch(t, tc.page.Clients, page.Clients, fmt.Sprintf("%s: expected  %v, got %v", tc.desc, tc.page.Clients, page.Clients))
 		assert.Equal(t, tc.err, err, fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 	}
 }

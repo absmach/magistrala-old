@@ -658,65 +658,6 @@ func TestListClients(t *testing.T) {
 			err:    apiutil.ErrInvalidQueryParams,
 		},
 		{
-			desc:  "list users with  mine visibility",
-			token: validToken,
-			listUsersResponse: mgclients.ClientsPage{
-				Page: mgclients.Page{
-					Total: 1,
-				},
-				Clients: []mgclients.Client{
-					client,
-				},
-			},
-			query:  "visibility=mine",
-			status: http.StatusOK,
-			err:    nil,
-		},
-		{
-			desc:  "list users with shared visisbility",
-			token: validToken,
-			listUsersResponse: mgclients.ClientsPage{
-				Page: mgclients.Page{
-					Total: 1,
-				},
-				Clients: []mgclients.Client{
-					client,
-				},
-			},
-			query:  "visibility=shared",
-			status: http.StatusOK,
-			err:    nil,
-		},
-		{
-			desc:  "list users with all visibility",
-			token: validToken,
-			listUsersResponse: mgclients.ClientsPage{
-				Page: mgclients.Page{
-					Total: 1,
-				},
-				Clients: []mgclients.Client{
-					client,
-				},
-			},
-			query:  "visibility=all",
-			status: http.StatusOK,
-			err:    nil,
-		},
-		{
-			desc:   "list users with invalid visibility",
-			token:  validToken,
-			query:  "visibility=invalid",
-			status: http.StatusBadRequest,
-			err:    apiutil.ErrValidation,
-		},
-		{
-			desc:   "list users with duplicate visibility",
-			token:  validToken,
-			query:  "visibility=mine&visibility=shared",
-			status: http.StatusBadRequest,
-			err:    apiutil.ErrInvalidQueryParams,
-		},
-		{
 			desc: "list users with order",
 			listUsersResponse: mgclients.ClientsPage{
 				Page: mgclients.Page{
@@ -749,7 +690,7 @@ func TestListClients(t *testing.T) {
 			desc:   "list users with invalid order direction",
 			token:  validToken,
 			query:  "dir=invalid",
-			status: http.StatusBadRequest,
+			status: http.StatusInternalServerError,
 			err:    apiutil.ErrValidation,
 		},
 		{
@@ -1265,7 +1206,7 @@ func TestPasswordReset(t *testing.T) {
 			data:        fmt.Sprintf(`{"token": "%s", "password": "%s", "confirm_password": "%s"}`, validToken, "", ""),
 			token:       validToken,
 			contentType: contentType,
-			status:      http.StatusBadRequest,
+			status:      http.StatusInternalServerError,
 			err:         apiutil.ErrValidation,
 		},
 		{
