@@ -103,9 +103,9 @@ func main() {
 	}
 	defer rmConn.Close()
 
-	thingRM := newRouteMapRepositoy(ctx, rmConn, thingsRMPrefix, logger)
-	chanRM := newRouteMapRepositoy(ctx, rmConn, channelsRMPrefix, logger)
-	connRM := newRouteMapRepositoy(ctx, rmConn, connectionRMPrefix, logger)
+	thingRM := newRouteMapRepositoy(rmConn, thingsRMPrefix, logger)
+	chanRM := newRouteMapRepositoy(rmConn, channelsRMPrefix, logger)
+	connRM := newRouteMapRepositoy(rmConn, connectionRMPrefix, logger)
 
 	tp, err := jaegerclient.NewProvider(ctx, svcName, cfg.JaegerURL, cfg.InstanceID, cfg.TraceRatio)
 	if err != nil {
@@ -193,7 +193,7 @@ func subscribeToThingsES(ctx context.Context, svc opcua.Service, cfg config, log
 	return subscriber.Subscribe(ctx, handler)
 }
 
-func newRouteMapRepositoy(ctx context.Context, client *redis.Client, prefix string, logger *slog.Logger) opcua.RouteMapRepository {
+func newRouteMapRepositoy(client *redis.Client, prefix string, logger *slog.Logger) opcua.RouteMapRepository {
 	logger.Info(fmt.Sprintf("Connected to %s Redis Route-map", prefix))
 	return events.NewRouteMapRepository(client, prefix)
 }

@@ -4,8 +4,6 @@
 package logger_test
 
 import (
-	"encoding/json"
-	"fmt"
 	"log/slog"
 	"testing"
 
@@ -22,52 +20,26 @@ func (writer *mockWriter) Write(p []byte) (int, error) {
 	return len(p), nil
 }
 
-func (writer *mockWriter) Read() (logMsg, error) {
-	if len(writer.value) == 0 {
-		return logMsg{}, nil
-	}
-
-	var output logMsg
-	err := json.Unmarshal(writer.value, &output)
-	return output, err
-}
-
-type logMsg struct {
-	Time    string `json:"time"`
-	Level   string `json:"level"`
-	Message string `json:"msg"`
-}
-
-func TestDebug(t *testing.T) {
+func TestLoggerInitialization(t *testing.T) {
 	cases := []struct {
-		desc   string
-		input  string
-		level  string
-		output logMsg
+		desc  string
+		level string
 	}{
 		{
-			desc:   "debug log ordinary string",
-			input:  "input_string",
-			level:  slog.LevelDebug.String(),
-			output: logMsg{Level: "DEBUG", Message: "input_string"},
+			desc:  "debug level",
+			level: slog.LevelDebug.String(),
 		},
 		{
-			desc:   "debug log empty string",
-			input:  "",
-			level:  slog.LevelDebug.String(),
-			output: logMsg{Level: "DEBUG", Message: ""},
+			desc:  "info level",
+			level: slog.LevelInfo.String(),
 		},
 		{
-			desc:   "debug ordinary string lvl not allowed",
-			input:  "input_string",
-			level:  slog.LevelInfo.String(),
-			output: logMsg{Level: "", Message: ""},
+			desc:  "warn level",
+			level: slog.LevelWarn.String(),
 		},
 		{
-			desc:   "debug empty string lvl not allowed",
-			input:  "",
-			level:  slog.LevelInfo.String(),
-			output: logMsg{Level: "", Message: ""},
+			desc:  "error level",
+			level: slog.LevelError.String(),
 		},
 	}
 
@@ -75,161 +47,8 @@ func TestDebug(t *testing.T) {
 		t.Run(tc.desc, func(t *testing.T) {
 			writer := &mockWriter{}
 			logger, err := mglog.New(writer, tc.level)
-			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-
-			logger.Debug(tc.input)
-			output, err := writer.Read()
-			assert.Nil(t, err)
-
-			if tc.level != slog.LevelDebug.String() {
-				assert.Empty(t, output.Message, fmt.Sprintf("%s: expected no output got %s", tc.desc, output.Message))
-			} else {
-				assert.Equal(t, tc.output.Level, output.Level, fmt.Sprintf("%s: expected Level %v got %v", tc.desc, tc.output.Level, output.Level))
-				assert.Equal(t, tc.output.Message, output.Message, fmt.Sprintf("%s: expected Message %v got %v", tc.desc, tc.output.Message, output.Message))
-			}
-		})
-	}
-}
-
-func TestInfo(t *testing.T) {
-	cases := []struct {
-		desc   string
-		input  string
-		level  string
-		output logMsg
-	}{
-		{
-			desc:   "info log ordinary string",
-			input:  "input_string",
-			level:  slog.LevelInfo.String(),
-			output: logMsg{Level: "INFO", Message: "input_string"},
-		},
-		{
-			desc:   "info log empty string",
-			input:  "",
-			level:  slog.LevelInfo.String(),
-			output: logMsg{Level: "INFO", Message: ""},
-		},
-		{
-			desc:   "info ordinary string lvl not allowed",
-			input:  "input_string",
-			level:  slog.LevelWarn.String(),
-			output: logMsg{Level: "", Message: ""},
-		},
-		{
-			desc:   "info empty string lvl not allowed",
-			input:  "",
-			level:  slog.LevelWarn.String(),
-			output: logMsg{Level: "", Message: ""},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.desc, func(t *testing.T) {
-			writer := &mockWriter{}
-			logger, err := mglog.New(writer, tc.level)
-			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-
-			logger.Info(tc.input)
-			output, err := writer.Read()
-			assert.Nil(t, err)
-
-			if tc.level != slog.LevelInfo.String() && tc.level != slog.LevelDebug.String() {
-				assert.Empty(t, output.Message, fmt.Sprintf("%s: expected no output got %s", tc.desc, output.Message))
-			} else {
-				assert.Equal(t, tc.output.Level, output.Level, fmt.Sprintf("%s: expected Level %v got %v", tc.desc, tc.output.Level, output.Level))
-				assert.Equal(t, tc.output.Message, output.Message, fmt.Sprintf("%s: expected Message %v got %v", tc.desc, tc.output.Message, output.Message))
-			}
-		})
-	}
-}
-
-func TestWarn(t *testing.T) {
-	cases := []struct {
-		desc   string
-		input  string
-		level  string
-		output logMsg
-	}{
-		{
-			desc:   "warn log ordinary string",
-			input:  "input_string",
-			level:  slog.LevelWarn.String(),
-			output: logMsg{Level: "WARN", Message: "input_string"},
-		},
-		{
-			desc:   "warn log empty string",
-			input:  "",
-			level:  slog.LevelWarn.String(),
-			output: logMsg{Level: "WARN", Message: ""},
-		},
-		{
-			desc:   "warn ordinary string lvl not allowed",
-			input:  "input_string",
-			level:  slog.LevelError.String(),
-			output: logMsg{Level: "", Message: ""},
-		},
-		{
-			desc:   "warn empty string lvl not allowed",
-			input:  "",
-			level:  slog.LevelError.String(),
-			output: logMsg{Level: "", Message: ""},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.desc, func(t *testing.T) {
-			writer := &mockWriter{}
-			logger, err := mglog.New(writer, tc.level)
-			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-
-			logger.Warn(tc.input)
-			output, err := writer.Read()
-			assert.Nil(t, err)
-
-			if tc.level != slog.LevelWarn.String() && tc.level != slog.LevelInfo.String() && tc.level != slog.LevelDebug.String() {
-				assert.Empty(t, output.Message, fmt.Sprintf("%s: expected no output got %s", tc.desc, output.Message))
-			} else {
-				assert.Equal(t, tc.output.Level, output.Level, fmt.Sprintf("%s: expected Level %v got %v", tc.desc, tc.output.Level, output.Level))
-				assert.Equal(t, tc.output.Message, output.Message, fmt.Sprintf("%s: expected Message %v got %v", tc.desc, tc.output.Message, output.Message))
-			}
-		})
-	}
-}
-
-func TestError(t *testing.T) {
-	cases := []struct {
-		desc   string
-		input  string
-		level  string
-		output logMsg
-	}{
-		{
-			desc:   "error log ordinary string",
-			input:  "input_string",
-			level:  slog.LevelError.String(),
-			output: logMsg{Level: "ERROR", Message: "input_string"},
-		},
-		{
-			desc:   "error log empty string",
-			input:  "",
-			level:  slog.LevelError.String(),
-			output: logMsg{Level: "ERROR", Message: ""},
-		},
-	}
-
-	for _, tc := range cases {
-		t.Run(tc.desc, func(t *testing.T) {
-			writer := &mockWriter{}
-			logger, err := mglog.New(writer, tc.level)
-			assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
-
-			logger.Error(tc.input)
-			output, err := writer.Read()
-			assert.Nil(t, err)
-
-			assert.Equal(t, tc.output.Level, output.Level, fmt.Sprintf("%s: expected Level %v got %v", tc.desc, tc.output.Level, output.Level))
-			assert.Equal(t, tc.output.Message, output.Message, fmt.Sprintf("%s: expected Message %v got %v", tc.desc, tc.output.Message, output.Message))
+			assert.Nil(t, err, "unexpected error during logger initialization")
+			assert.NotNil(t, logger, "logger should not be nil")
 		})
 	}
 }

@@ -164,10 +164,6 @@ func newService(tc magistrala.AuthzServiceClient, nps messaging.PubSub, logger *
 }
 
 func proxyWS(ctx context.Context, hostConfig, targetConfig server.Config, logger *slog.Logger, handler session.Handler) error {
-	cfg := config{}
-	if err := env.Parse(&cfg); err != nil {
-		log.Fatalf("failed to load %s configuration : %s", svcName, err)
-	}
 	target := fmt.Sprintf("ws://%s:%s", targetConfig.Host, targetConfig.Port)
 	address := fmt.Sprintf("%s:%s", hostConfig.Host, hostConfig.Port)
 	wp, err := websockets.NewProxy(address, target, logger, handler)
