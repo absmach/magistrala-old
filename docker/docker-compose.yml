@@ -12,18 +12,10 @@ volumes:
   magistrala-users-db-volume:
   magistrala-things-db-volume:
   magistrala-things-redis-volume:
-  magistrala-mqtt-broker-volume:
   magistrala-broker-volume:
-  magistrala-es-volume:
   magistrala-spicedb-db-volume:
   magistrala-auth-db-volume:
   magistrala-invitations-db-volume:
-
-include:
-  - path: brokers/docker-compose.yml
-    env_file: docker/.env
-  - path: es/docker-compose.yml
-    env_file: docker/.env
 
 services:
   spicedb:
@@ -659,6 +651,24 @@ services:
         target: /things-grpc-server-ca${MG_THINGS_AUTH_GRPC_SERVER_CA_CERTS:+.crt}
         bind:
           create_host_path: true
+
+  nats:
+    image: nats:2.10.9-alpine
+    container_name: magistrala-nats
+    restart: on-failure
+    command: "--config=/etc/nats/nats.conf"
+    environment:
+      - MG_NATS_PORT=${MG_NATS_PORT}
+      - MG_NATS_HTTP_PORT=${MG_NATS_HTTP_PORT}
+      - MG_NATS_JETSTREAM_KEY=${MG_NATS_JETSTREAM_KEY}
+    ports:
+      - ${MG_NATS_PORT}:${MG_NATS_PORT}
+      - ${MG_NATS_HTTP_PORT}:${MG_NATS_HTTP_PORT}
+    volumes:
+      - magistrala-broker-volume:/data
+      - ./nats:/etc/nats
+    networks:
+      - magistrala-base-net
 
   ui:
     image: magistrala/ui:${MG_RELEASE_TAG}
