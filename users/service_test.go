@@ -50,7 +50,7 @@ var (
 	errDeletePolicies = errors.New("failed to delete policies")
 )
 
-func newService(selfRegister bool) (users.Service, *mocks.Repository, *authmocks.Service, users.Emailer) {
+func newService(selfRegister bool) (users.Service, *mocks.Repository, *authmocks.AuthService, users.Emailer) {
 	cRepo := new(mocks.Repository)
 	auth := new(authmocks.AuthService)
 	e := mocks.NewEmailer()
@@ -380,10 +380,7 @@ func TestRegisterClient(t *testing.T) {
 }
 
 func TestViewClient(t *testing.T) {
-	cRepo := new(mocks.Repository)
-	auth := new(authmocks.AuthService)
-	e := mocks.NewEmailer()
-	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
+	svc, cRepo, auth, _ := newService(true)
 
 	adminID := testsutil.GenerateUUID(t)
 	cases := []struct {
@@ -484,31 +481,7 @@ func TestViewClient(t *testing.T) {
 }
 
 func TestListClients(t *testing.T) {
-	cRepo := new(mocks.Repository)
-	auth := new(authmocks.AuthService)
-	e := mocks.NewEmailer()
-	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
-
-	nClients := uint64(200)
-	aClients := []mgclients.Client{}
-	OwnerID := testsutil.GenerateUUID(t)
-	for i := uint64(1); i < nClients; i++ {
-		identity := fmt.Sprintf("TestListClients_%d@example.com", i)
-		client := mgclients.Client{
-			Name: identity,
-			Credentials: mgclients.Credentials{
-				Identity: identity,
-				Secret:   "password",
-			},
-			Tags:     []string{"tag1", "tag2"},
-			Metadata: mgclients.Metadata{"role": "client"},
-		}
-		if i%50 == 0 {
-			client.Owner = OwnerID
-			client.Owner = testsutil.GenerateUUID(t)
-		}
-		aClients = append(aClients, client)
-	}
+	svc, cRepo, auth, _ := newService(true)
 
 	cases := []struct {
 		desc                string
@@ -646,10 +619,7 @@ func TestListClients(t *testing.T) {
 }
 
 func TestUpdateClient(t *testing.T) {
-	cRepo := new(mocks.Repository)
-	auth := new(authmocks.AuthService)
-	e := mocks.NewEmailer()
-	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
+	svc, cRepo, auth, _ := newService(true)
 
 	client1 := client
 	client2 := client
@@ -779,10 +749,7 @@ func TestUpdateClient(t *testing.T) {
 }
 
 func TestUpdateClientTags(t *testing.T) {
-	cRepo := new(mocks.Repository)
-	auth := new(authmocks.AuthService)
-	e := mocks.NewEmailer()
-	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
+	svc, cRepo, auth, _ := newService(true)
 
 	client.Tags = []string{"updated"}
 	adminID := testsutil.GenerateUUID(t)
@@ -890,10 +857,7 @@ func TestUpdateClientTags(t *testing.T) {
 }
 
 func TestUpdateClientIdentity(t *testing.T) {
-	cRepo := new(mocks.Repository)
-	auth := new(authmocks.AuthService)
-	e := mocks.NewEmailer()
-	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
+	svc, cRepo, auth, _ := newService(true)
 
 	client2 := client
 	client2.Credentials.Identity = "updated@example.com"
@@ -1011,10 +975,7 @@ func TestUpdateClientIdentity(t *testing.T) {
 }
 
 func TestUpdateClientRole(t *testing.T) {
-	cRepo := new(mocks.Repository)
-	auth := new(authmocks.AuthService)
-	e := mocks.NewEmailer()
-	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
+	svc, cRepo, auth, _ := newService(true)
 
 	client2 := client
 	client.Role = mgclients.AdminRole
@@ -1170,10 +1131,7 @@ func TestUpdateClientRole(t *testing.T) {
 }
 
 func TestUpdateClientSecret(t *testing.T) {
-	cRepo := new(mocks.Repository)
-	auth := new(authmocks.AuthService)
-	e := mocks.NewEmailer()
-	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
+	svc, cRepo, auth, _ := newService(true)
 
 	newSecret := "newstrongSecret"
 	rClient := client
@@ -1310,10 +1268,7 @@ func TestUpdateClientSecret(t *testing.T) {
 }
 
 func TestEnableClient(t *testing.T) {
-	cRepo := new(mocks.Repository)
-	auth := new(authmocks.AuthService)
-	e := mocks.NewEmailer()
-	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
+	svc, cRepo, auth, _ := newService(true)
 
 	enabledClient1 := mgclients.Client{ID: testsutil.GenerateUUID(t), Credentials: mgclients.Credentials{Identity: "client1@example.com", Secret: "password"}, Status: mgclients.EnabledStatus}
 	disabledClient1 := mgclients.Client{ID: testsutil.GenerateUUID(t), Credentials: mgclients.Credentials{Identity: "client3@example.com", Secret: "password"}, Status: mgclients.DisabledStatus}
@@ -1500,10 +1455,7 @@ func TestEnableClient(t *testing.T) {
 }
 
 func TestDisableClient(t *testing.T) {
-	cRepo := new(mocks.Repository)
-	auth := new(authmocks.AuthService)
-	e := mocks.NewEmailer()
-	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
+	svc, cRepo, auth, _ := newService(true)
 
 	enabledClient1 := mgclients.Client{ID: testsutil.GenerateUUID(t), Credentials: mgclients.Credentials{Identity: "client1@example.com", Secret: "password"}, Status: mgclients.EnabledStatus}
 	disabledClient1 := mgclients.Client{ID: testsutil.GenerateUUID(t), Credentials: mgclients.Credentials{Identity: "client3@example.com", Secret: "password"}, Status: mgclients.DisabledStatus}
@@ -1690,31 +1642,11 @@ func TestDisableClient(t *testing.T) {
 }
 
 func TestListMembers(t *testing.T) {
-	cRepo := new(mocks.Repository)
-	auth := new(authmocks.AuthService)
-	e := mocks.NewEmailer()
-	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
+	svc, cRepo, auth, _ := newService(true)
 
-	nClients := uint64(10)
-	aClients := []mgclients.Client{}
-	owner := testsutil.GenerateUUID(t)
-	for i := uint64(0); i < nClients; i++ {
-		identity := fmt.Sprintf("member_%d@example.com", i)
-		client := mgclients.Client{
-			ID:   testsutil.GenerateUUID(t),
-			Name: identity,
-			Credentials: mgclients.Credentials{
-				Identity: identity,
-				Secret:   "password",
-			},
-			Tags:     []string{"tag1", "tag2"},
-			Metadata: mgclients.Metadata{"role": "client"},
-		}
-		if i%3 == 0 {
-			client.Owner = owner
-		}
-		aClients = append(aClients, client)
-	}
+	validPolicy := fmt.Sprintf("%s_%s", validID, client.ID)
+	permissionsClient := client
+	permissionsClient.Permissions = []string{"read"}
 
 	cases := []struct {
 		desc                    string
@@ -2178,10 +2110,7 @@ func TestListMembers(t *testing.T) {
 }
 
 func TestIssueToken(t *testing.T) {
-	cRepo := new(mocks.Repository)
-	auth := new(authmocks.AuthService)
-	e := mocks.NewEmailer()
-	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
+	svc, cRepo, auth, _ := newService(true)
 
 	rClient := client
 	rClient2 := client
@@ -2247,10 +2176,7 @@ func TestIssueToken(t *testing.T) {
 }
 
 func TestRefreshToken(t *testing.T) {
-	cRepo := new(mocks.Repository)
-	auth := new(authmocks.AuthService)
-	e := mocks.NewEmailer()
-	svc := users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, true)
+	svc, _, auth, _ := newService(true)
 
 	rClient := client
 	rClient.Credentials.Secret, _ = phasher.Hash(client.Credentials.Secret)

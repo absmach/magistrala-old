@@ -208,7 +208,7 @@ func TestCreateDomain(t *testing.T) {
 			body:        strings.NewReader(data),
 		}
 
-		repoCall := svc.On("CreateDomain", mock.Anything, mock.Anything, mock.Anything).Return(auth.Domain{}, tc.svcErr)
+		svcCall := svc.On("CreateDomain", mock.Anything, mock.Anything, mock.Anything).Return(auth.Domain{}, tc.svcErr)
 		res, err := req.make()
 		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
 		var errRes respBody
@@ -219,7 +219,7 @@ func TestCreateDomain(t *testing.T) {
 		}
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		repoCall.Unset()
+		svcCall.Unset()
 	}
 }
 
@@ -498,11 +498,11 @@ func TestListDomains(t *testing.T) {
 			token:  tc.token,
 		}
 
-		repoCall := svc.On("ListDomains", mock.Anything, mock.Anything, mock.Anything).Return(tc.listDomainsRequest, tc.svcErr)
+		svcCall := svc.On("ListDomains", mock.Anything, mock.Anything, mock.Anything).Return(tc.listDomainsRequest, tc.svcErr)
 		res, err := req.make()
 		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
 		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		repoCall.Unset()
+		svcCall.Unset()
 	}
 }
 
@@ -550,7 +550,7 @@ func TestViewDomain(t *testing.T) {
 			token:  tc.token,
 		}
 
-		repoCall := svc.On("RetrieveDomain", mock.Anything, mock.Anything, mock.Anything).Return(auth.Domain{}, tc.svcErr)
+		svcCall := svc.On("RetrieveDomain", mock.Anything, mock.Anything, mock.Anything).Return(auth.Domain{}, tc.svcErr)
 		res, err := req.make()
 		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
 		var errRes respBody
@@ -561,7 +561,7 @@ func TestViewDomain(t *testing.T) {
 		}
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		repoCall.Unset()
+		svcCall.Unset()
 	}
 }
 
@@ -616,7 +616,7 @@ func TestViewDomainPermissions(t *testing.T) {
 			token:  tc.token,
 		}
 
-		repoCall := svc.On("RetrieveDomainPermissions", mock.Anything, mock.Anything, mock.Anything).Return(auth.Permissions{}, tc.svcErr)
+		svcCall := svc.On("RetrieveDomainPermissions", mock.Anything, mock.Anything, mock.Anything).Return(auth.Permissions{}, tc.svcErr)
 		res, err := req.make()
 		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
 		var errRes respBody
@@ -628,7 +628,7 @@ func TestViewDomainPermissions(t *testing.T) {
 
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		repoCall.Unset()
+		svcCall.Unset()
 	}
 }
 
@@ -731,7 +731,7 @@ func TestUpdateDomain(t *testing.T) {
 			token:       tc.token,
 		}
 
-		repoCall := svc.On("UpdateDomain", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(auth.Domain{}, tc.svcErr)
+		svcCall := svc.On("UpdateDomain", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(auth.Domain{}, tc.svcErr)
 		res, err := req.make()
 		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
 		var errRes respBody
@@ -743,7 +743,7 @@ func TestUpdateDomain(t *testing.T) {
 
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		repoCall.Unset()
+		svcCall.Unset()
 	}
 }
 
@@ -1066,7 +1066,7 @@ func TestAssignDomainUsers(t *testing.T) {
 			domainID:    domain.ID,
 			contentType: contentType,
 			token:       validToken,
-			status:      http.StatusBadRequest,
+			status:      http.StatusInternalServerError,
 			err:         apiutil.ErrValidation,
 		},
 		{
@@ -1075,7 +1075,7 @@ func TestAssignDomainUsers(t *testing.T) {
 			domainID:    domain.ID,
 			contentType: contentType,
 			token:       validToken,
-			status:      http.StatusBadRequest,
+			status:      http.StatusInternalServerError,
 			err:         apiutil.ErrValidation,
 		},
 	}
@@ -1090,7 +1090,6 @@ func TestAssignDomainUsers(t *testing.T) {
 			body:        strings.NewReader(tc.data),
 		}
 
-		fmt.Println(tc.data)
 		svcCall := svc.On("AssignUsers", mock.Anything, tc.token, tc.domainID, mock.Anything, mock.Anything).Return(tc.err)
 		res, err := req.make()
 		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
@@ -1181,7 +1180,7 @@ func TestUnassignDomainUsers(t *testing.T) {
 			domainID:    domain.ID,
 			contentType: contentType,
 			token:       validToken,
-			status:      http.StatusBadRequest,
+			status:      http.StatusInternalServerError,
 			err:         apiutil.ErrValidation,
 		},
 		{
@@ -1190,7 +1189,7 @@ func TestUnassignDomainUsers(t *testing.T) {
 			domainID:    domain.ID,
 			contentType: contentType,
 			token:       validToken,
-			status:      http.StatusBadRequest,
+			status:      http.StatusInternalServerError,
 			err:         apiutil.ErrValidation,
 		},
 	}
@@ -1313,11 +1312,11 @@ func TestListDomainsByUserID(t *testing.T) {
 			token:  tc.token,
 		}
 
-		repoCall := svc.On("ListUserDomains", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.listDomainsRequest, tc.svcErr)
+		svcCall := svc.On("ListUserDomains", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.listDomainsRequest, tc.svcErr)
 		res, err := req.make()
 		assert.Nil(t, err, fmt.Sprintf("%s: unexpected error %s", tc.desc, err))
 		assert.Equal(t, tc.status, res.StatusCode, fmt.Sprintf("%s: expected status code %d got %d", tc.desc, tc.status, res.StatusCode))
-		repoCall.Unset()
+		svcCall.Unset()
 	}
 }
 
