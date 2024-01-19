@@ -7,7 +7,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -30,21 +29,16 @@ func LoggingMiddleware(svc bootstrap.Service, logger *slog.Logger) bootstrap.Ser
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) Add(ctx context.Context, token string, cfg bootstrap.Config) (saved bootstrap.Config, err error) {
 	defer func(begin time.Time) {
-		message := "Method add completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("thing_id", saved.ThingID),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Add failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("thing_id", saved.ThingID),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Add completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Add(ctx, token, cfg)
@@ -54,142 +48,115 @@ func (lm *loggingMiddleware) Add(ctx context.Context, token string, cfg bootstra
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) View(ctx context.Context, token, id string) (saved bootstrap.Config, err error) {
 	defer func(begin time.Time) {
-		message := "Method view completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("thing_id", id),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("View failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("thing_id", saved.ThingID),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("View completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.View(ctx, token, id)
 }
 
-// Update logs the update request. It logs token, bootstrap thing ID and the time it took to complete the request.
+// Update logs the update request. It logs bootstrap thing ID and the time it took to complete the request.
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) Update(ctx context.Context, token string, cfg bootstrap.Config) (err error) {
 	defer func(begin time.Time) {
-		message := "Method update completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("thing_id", cfg.ThingID),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Update failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("thing_id", cfg.ThingID),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Update completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Update(ctx, token, cfg)
 }
 
-// UpdateCert logs the update_cert request. It logs token, thing ID and the time it took to complete the request.
+// UpdateCert logs the update_cert request. It logs thing ID and the time it took to complete the request.
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) UpdateCert(ctx context.Context, token, thingID, clientCert, clientKey, caCert string) (cfg bootstrap.Config, err error) {
 	defer func(begin time.Time) {
-		message := "Method update_cert completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("thing_id", cfg.ThingID),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Update cert failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("thing_id", thingID),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Update cert completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.UpdateCert(ctx, token, thingID, clientCert, clientKey, caCert)
 }
 
-// UpdateConnections logs the update_connections request. It logs token, bootstrap ID and the time it took to complete the request.
+// UpdateConnections logs the update_connections request. It logs bootstrap ID and the time it took to complete the request.
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) UpdateConnections(ctx context.Context, token, id string, connections []string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method update_connections completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("id", id),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Update connections failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("thing_id", id),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Update connections completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.UpdateConnections(ctx, token, id, connections)
 }
 
-// List logs the list request. It logs token, offset, limit and the time it took to complete the request.
+// List logs the list request. It logs offset, limit and the time it took to complete the request.
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) List(ctx context.Context, token string, filter bootstrap.Filter, offset, limit uint64) (res bootstrap.ConfigsPage, err error) {
 	defer func(begin time.Time) {
-		message := "Method list completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"filter",
+				slog.Uint64("offset", offset),
+				slog.Uint64("limit", limit),
+			),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("List failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("token", token),
-			slog.Uint64("offset", offset),
-			slog.Uint64("limit", limit),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("List completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.List(ctx, token, filter, offset, limit)
 }
 
-// Remove logs the remove request. It logs token, bootstrap ID and the time it took to complete the request.
+// Remove logs the remove request. It logs bootstrap ID and the time it took to complete the request.
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) Remove(ctx context.Context, token, id string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method remove completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("id", id),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Remove failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("thing_id", id),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Remove completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Remove(ctx, token, id)
@@ -197,21 +164,20 @@ func (lm *loggingMiddleware) Remove(ctx context.Context, token, id string) (err 
 
 func (lm *loggingMiddleware) Bootstrap(ctx context.Context, externalKey, externalID string, secure bool) (cfg bootstrap.Config, err error) {
 	defer func(begin time.Time) {
-		message := "Method bootstrap completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"config",
+				slog.String("external_id", externalID),
+				slog.String("external_key", externalKey),
+			),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Bootstrap failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("external_id", externalID),
-			slog.String("external_key", externalKey),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Bootstrap completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Bootstrap(ctx, externalKey, externalID, secure)
@@ -219,22 +185,17 @@ func (lm *loggingMiddleware) Bootstrap(ctx context.Context, externalKey, externa
 
 func (lm *loggingMiddleware) ChangeState(ctx context.Context, token, id string, state bootstrap.State) (err error) {
 	defer func(begin time.Time) {
-		message := "Method change_state completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("id", id),
+			slog.Any("state", state),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Change state failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("thing_id", id),
-			slog.String("token", token),
-			slog.String("state", state.String()),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Change state completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.ChangeState(ctx, token, id, state)
@@ -242,20 +203,21 @@ func (lm *loggingMiddleware) ChangeState(ctx context.Context, token, id string, 
 
 func (lm *loggingMiddleware) UpdateChannelHandler(ctx context.Context, channel bootstrap.Channel) (err error) {
 	defer func(begin time.Time) {
-		message := "Method update_channel_handler completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"channel",
+				slog.String("channel_id", channel.ID),
+				slog.String("channel_name", channel.Name),
+				slog.Any("channel_metadata", channel.Metadata),
+			),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Update channel handler failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("channel_id", channel.ID),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Update channel handler completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.UpdateChannelHandler(ctx, channel)
@@ -263,20 +225,16 @@ func (lm *loggingMiddleware) UpdateChannelHandler(ctx context.Context, channel b
 
 func (lm *loggingMiddleware) RemoveConfigHandler(ctx context.Context, id string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method remove_config_handler completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("config_id", id),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error: %s.", message, err),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Remove config handler failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("config_id", id),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Remove config handler completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.RemoveConfigHandler(ctx, id)
@@ -284,20 +242,16 @@ func (lm *loggingMiddleware) RemoveConfigHandler(ctx context.Context, id string)
 
 func (lm *loggingMiddleware) RemoveChannelHandler(ctx context.Context, id string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method remove_channel_handler completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("id", id),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Remove channel handler failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("channel_id", id),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Remove channel handler completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.RemoveChannelHandler(ctx, id)
@@ -305,21 +259,16 @@ func (lm *loggingMiddleware) RemoveChannelHandler(ctx context.Context, id string
 
 func (lm *loggingMiddleware) DisconnectThingHandler(ctx context.Context, channelID, thingID string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method disconnect_thing_handler completed"
-		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
-			return
-		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
+		args := []interface{}{
 			slog.String("channel_id", channelID),
 			slog.String("thing_id", thingID),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		}
+		if err != nil {
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Disconnect thing handler failed to complete successfully", args...)
+			return
+		}
+		lm.logger.Info("Disconnect thing handler completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.DisconnectThingHandler(ctx, channelID, thingID)

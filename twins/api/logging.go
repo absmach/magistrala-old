@@ -39,10 +39,10 @@ func (lm *loggingMiddleware) AddTwin(ctx context.Context, token string, twin twi
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Add twin failed to complete successfully.", args...)
+			lm.logger.Warn("Add twin failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Add twin completed successfully.", args...)
+		lm.logger.Info("Add twin completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.AddTwin(ctx, token, twin, def)
@@ -61,10 +61,10 @@ func (lm *loggingMiddleware) UpdateTwin(ctx context.Context, token string, twin 
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Update twin failed to complete successfully.", args...)
+			lm.logger.Warn("Update twin failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Update twin completed successfully.", args...)
+		lm.logger.Info("Update twin completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.UpdateTwin(ctx, token, twin, def)
@@ -78,10 +78,10 @@ func (lm *loggingMiddleware) ViewTwin(ctx context.Context, token, twinID string)
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("View twin failed to complete successfully.", args...)
+			lm.logger.Warn("View twin failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("View twin completed successfully.", args...)
+		lm.logger.Info("View twin completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.ViewTwin(ctx, token, twinID)
@@ -100,10 +100,10 @@ func (lm *loggingMiddleware) ListTwins(ctx context.Context, token string, offset
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("List twins failed to complete successfully.", args...)
+			lm.logger.Warn("List twins failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("List twins completed successfully.", args...)
+		lm.logger.Info("List twins completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.ListTwins(ctx, token, offset, limit, name, metadata)
@@ -122,10 +122,10 @@ func (lm *loggingMiddleware) SaveStates(ctx context.Context, msg *messaging.Mess
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Save states failed to complete successfully.", args...)
+			lm.logger.Warn("Save states failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Save states completed successfully.", args...)
+		lm.logger.Info("Save states completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.SaveStates(ctx, msg)
@@ -144,10 +144,10 @@ func (lm *loggingMiddleware) ListStates(ctx context.Context, token string, offse
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("List states failed to complete successfully.", args...)
+			lm.logger.Warn("List states failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("List states completed successfully.", args...)
+		lm.logger.Info("List states completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.ListStates(ctx, token, offset, limit, twinID)
@@ -161,10 +161,10 @@ func (lm *loggingMiddleware) RemoveTwin(ctx context.Context, token, twinID strin
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Remove twin failed to complete successfully.", args...)
+			lm.logger.Warn("Remove twin failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Remove twin completed successfully.", args...)
+		lm.logger.Info("Remove twin completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.RemoveTwin(ctx, token, twinID)

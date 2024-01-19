@@ -31,10 +31,10 @@ func (lm *loggingMiddleware) CreateThings(ctx context.Context, token string, cli
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Create thing failed to complete successfully.", args...)
+			lm.logger.Warn("Create thing failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Create thing completed successfully.", args...)
+		lm.logger.Info("Create thing completed successfully", args...)
 	}(time.Now())
 	return lm.svc.CreateThings(ctx, token, clients...)
 }
@@ -47,10 +47,10 @@ func (lm *loggingMiddleware) ViewClient(ctx context.Context, token, id string) (
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("View client failed to complete successfully.", args...)
+			lm.logger.Warn("View client failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("View client completed successfully.", args...)
+		lm.logger.Info("View client completed successfully", args...)
 	}(time.Now())
 	return lm.svc.ViewClient(ctx, token, id)
 }
@@ -63,10 +63,10 @@ func (lm *loggingMiddleware) ViewClientPerms(ctx context.Context, token, id stri
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("View client permissions failed to complete successfully.", args...)
+			lm.logger.Warn("View client permissions failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("View client permissions completed successfully.", args...)
+		lm.logger.Info("View client permissions completed successfully", args...)
 	}(time.Now())
 	return lm.svc.ViewClientPerms(ctx, token, id)
 }
@@ -84,10 +84,10 @@ func (lm *loggingMiddleware) ListClients(ctx context.Context, token, reqUserID s
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("List clients failed to complete successfully.", args...)
+			lm.logger.Warn("List clients failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("List clients completed successfully.", args...)
+		lm.logger.Info("List clients completed successfully", args...)
 	}(time.Now())
 	return lm.svc.ListClients(ctx, token, reqUserID, pm)
 }
@@ -105,10 +105,10 @@ func (lm *loggingMiddleware) UpdateClient(ctx context.Context, token string, cli
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Update client failed to complete successfully.", args...)
+			lm.logger.Warn("Update client failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Update client completed successfully.", args...)
+		lm.logger.Info("Update client completed successfully", args...)
 	}(time.Now())
 	return lm.svc.UpdateClient(ctx, token, client)
 }
@@ -125,10 +125,10 @@ func (lm *loggingMiddleware) UpdateClientTags(ctx context.Context, token string,
 		}
 		if err != nil {
 			args := append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Update client tags failed to complete successfully.", args...)
+			lm.logger.Warn("Update client tags failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Update client tags completed successfully.", args...)
+		lm.logger.Info("Update client tags completed successfully", args...)
 	}(time.Now())
 	return lm.svc.UpdateClientTags(ctx, token, client)
 }
@@ -144,10 +144,10 @@ func (lm *loggingMiddleware) UpdateClientSecret(ctx context.Context, token, oldS
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Update client secret failed to complete successfully.", args...)
+			lm.logger.Warn("Update client secret failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Update client secret completed successfully.", args...)
+		lm.logger.Info("Update client secret completed successfully", args...)
 	}(time.Now())
 	return lm.svc.UpdateClientSecret(ctx, token, oldSecret, newSecret)
 }
@@ -160,10 +160,10 @@ func (lm *loggingMiddleware) EnableClient(ctx context.Context, token, id string)
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Enable client failed to complete successfully.", args...)
+			lm.logger.Warn("Enable client failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Enable client completed successfully.", args...)
+		lm.logger.Info("Enable client completed successfully", args...)
 	}(time.Now())
 	return lm.svc.EnableClient(ctx, token, id)
 }
@@ -176,10 +176,10 @@ func (lm *loggingMiddleware) DisableClient(ctx context.Context, token, id string
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Disable client failed to complete successfully.", args...)
+			lm.logger.Warn("Disable client failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Disable client completed successfully.", args...)
+		lm.logger.Info("Disable client completed successfully", args...)
 	}(time.Now())
 	return lm.svc.DisableClient(ctx, token, id)
 }
@@ -197,10 +197,10 @@ func (lm *loggingMiddleware) ListClientsByGroup(ctx context.Context, token, chan
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("List clients by group failed to complete successfully.", args...)
+			lm.logger.Warn("List clients by group failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("List clients by group completed successfully.", args...)
+		lm.logger.Info("List clients by group completed successfully", args...)
 	}(time.Now())
 	return lm.svc.ListClientsByGroup(ctx, token, channelID, cp)
 }
@@ -217,10 +217,10 @@ func (lm *loggingMiddleware) Identify(ctx context.Context, key string) (id strin
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Identify failed to complete successfully.", args...)
+			lm.logger.Warn("Identify failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Identify completed successfully.", args...)
+		lm.logger.Info("Identify completed successfully", args...)
 	}(time.Now())
 	return lm.svc.Identify(ctx, key)
 }
@@ -234,10 +234,10 @@ func (lm *loggingMiddleware) Authorize(ctx context.Context, req *magistrala.Auth
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Authorize failed to complete successfully.", args...)
+			lm.logger.Warn("Authorize failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Authorize completed successfully.", args...)
+		lm.logger.Info("Authorize completed successfully", args...)
 	}(time.Now())
 	return lm.svc.Authorize(ctx, req)
 }
@@ -252,10 +252,10 @@ func (lm *loggingMiddleware) Share(ctx context.Context, token, id, relation stri
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Share failed to complete successfully.", args...)
+			lm.logger.Warn("Share failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Share completed successfully.", args...)
+		lm.logger.Info("Share completed successfully", args...)
 	}(time.Now())
 	return lm.svc.Share(ctx, token, id, relation, userids...)
 }
@@ -270,10 +270,10 @@ func (lm *loggingMiddleware) Unshare(ctx context.Context, token, id, relation st
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Unshare failed to complete successfully.", args...)
+			lm.logger.Warn("Unshare failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Unshare completed successfully.", args...)
+		lm.logger.Info("Unshare completed successfully", args...)
 	}(time.Now())
 	return lm.svc.Unshare(ctx, token, id, relation, userids...)
 }
@@ -286,10 +286,10 @@ func (lm *loggingMiddleware) DeleteClient(ctx context.Context, token, id string)
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Delete client failed to complete successfully.", args...)
+			lm.logger.Warn("Delete client failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Delete client completed successfully.", args...)
+		lm.logger.Info("Delete client completed successfully", args...)
 	}(time.Now())
 	return lm.svc.DeleteClient(ctx, token, id)
 }

@@ -7,7 +7,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -28,19 +27,16 @@ func LoggingMiddleware(svc auth.Service, logger *slog.Logger) auth.Service {
 
 func (lm *loggingMiddleware) ListObjects(ctx context.Context, pr auth.PolicyReq, nextPageToken string, limit int32) (p auth.PolicyPage, err error) {
 	defer func(begin time.Time) {
-		message := "Method list_objects completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.Any("limit", limit),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("List objects failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("List objects completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.ListObjects(ctx, pr, nextPageToken, limit)
@@ -48,19 +44,15 @@ func (lm *loggingMiddleware) ListObjects(ctx context.Context, pr auth.PolicyReq,
 
 func (lm *loggingMiddleware) ListAllObjects(ctx context.Context, pr auth.PolicyReq) (p auth.PolicyPage, err error) {
 	defer func(begin time.Time) {
-		message := "Method list_all_objects completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("List all objects failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("List all objects completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.ListAllObjects(ctx, pr)
@@ -68,38 +60,31 @@ func (lm *loggingMiddleware) ListAllObjects(ctx context.Context, pr auth.PolicyR
 
 func (lm *loggingMiddleware) CountObjects(ctx context.Context, pr auth.PolicyReq) (count int, err error) {
 	defer func(begin time.Time) {
-		message := "Method count_objects completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Count objects failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Count objects completed successfully", args...)
 	}(time.Now())
 	return lm.svc.CountObjects(ctx, pr)
 }
 
 func (lm *loggingMiddleware) ListSubjects(ctx context.Context, pr auth.PolicyReq, nextPageToken string, limit int32) (p auth.PolicyPage, err error) {
 	defer func(begin time.Time) {
-		message := "Method list_subjects completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.Any("limit", limit),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("List subjects failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("List subjects completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.ListSubjects(ctx, pr, nextPageToken, limit)
@@ -107,19 +92,15 @@ func (lm *loggingMiddleware) ListSubjects(ctx context.Context, pr auth.PolicyReq
 
 func (lm *loggingMiddleware) ListAllSubjects(ctx context.Context, pr auth.PolicyReq) (p auth.PolicyPage, err error) {
 	defer func(begin time.Time) {
-		message := "Method list_all_subjects completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("List all subjects failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("List all subjects completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.ListAllSubjects(ctx, pr)
@@ -127,38 +108,31 @@ func (lm *loggingMiddleware) ListAllSubjects(ctx context.Context, pr auth.Policy
 
 func (lm *loggingMiddleware) CountSubjects(ctx context.Context, pr auth.PolicyReq) (count int, err error) {
 	defer func(begin time.Time) {
-		message := "Method count_subjects completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Count subjects failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Count subjects completed successfully", args...)
 	}(time.Now())
 	return lm.svc.CountSubjects(ctx, pr)
 }
 
 func (lm *loggingMiddleware) ListPermissions(ctx context.Context, pr auth.PolicyReq, filterPermissions []string) (p auth.Permissions, err error) {
 	defer func(begin time.Time) {
-		message := "Method list_permissions completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.Any("filter_permissions", filterPermissions),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("List permissions failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("List permissions completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.ListPermissions(ctx, pr, filterPermissions)
@@ -166,26 +140,18 @@ func (lm *loggingMiddleware) ListPermissions(ctx context.Context, pr auth.Policy
 
 func (lm *loggingMiddleware) Issue(ctx context.Context, token string, key auth.Key) (tkn auth.Token, err error) {
 	defer func(begin time.Time) {
-		d := ""
-		if key.Type != auth.AccessKey && !key.ExpiresAt.IsZero() {
-			d = fmt.Sprintf("with expiration date %v", key.ExpiresAt)
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
 		}
-		message := fmt.Sprintf("Method issue for key %s completed", d)
+		if key.Type != auth.AccessKey && !key.ExpiresAt.IsZero() {
+			args = append(args, slog.Any("expiration_date", key.ExpiresAt))
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Issue failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("key_type", key.Type.String()),
-			slog.String("key_id", key.ID),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Issue completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Issue(ctx, token, key)
@@ -193,21 +159,16 @@ func (lm *loggingMiddleware) Issue(ctx context.Context, token string, key auth.K
 
 func (lm *loggingMiddleware) Revoke(ctx context.Context, token, id string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method revoke completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("id", id),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Revoke failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("key_id", id),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Revoke completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Revoke(ctx, token, id)
@@ -215,21 +176,16 @@ func (lm *loggingMiddleware) Revoke(ctx context.Context, token, id string) (err 
 
 func (lm *loggingMiddleware) RetrieveKey(ctx context.Context, token, id string) (key auth.Key, err error) {
 	defer func(begin time.Time) {
-		message := "Method retrieve_key completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("id", id),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Retrieve key failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("key_id", id),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Retrieve key completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.RetrieveKey(ctx, token, id)
@@ -237,20 +193,15 @@ func (lm *loggingMiddleware) RetrieveKey(ctx context.Context, token, id string) 
 
 func (lm *loggingMiddleware) Identify(ctx context.Context, token string) (id auth.Key, err error) {
 	defer func(begin time.Time) {
-		message := "Method identify completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Identify failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Identify completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Identify(ctx, token)
@@ -258,57 +209,45 @@ func (lm *loggingMiddleware) Identify(ctx context.Context, token string) (id aut
 
 func (lm *loggingMiddleware) Authorize(ctx context.Context, pr auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
-		message := "Method authorize completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Authorize failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Authorize completed successfully", args...)
 	}(time.Now())
 	return lm.svc.Authorize(ctx, pr)
 }
 
 func (lm *loggingMiddleware) AddPolicy(ctx context.Context, pr auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
-		message := "Method add_policy completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Add policy failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Add policy completed successfully", args...)
 	}(time.Now())
 	return lm.svc.AddPolicy(ctx, pr)
 }
 
 func (lm *loggingMiddleware) AddPolicies(ctx context.Context, prs []auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
-		message := "Method add_policies completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Add policies failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Add policies completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.AddPolicies(ctx, prs)
@@ -316,222 +255,194 @@ func (lm *loggingMiddleware) AddPolicies(ctx context.Context, prs []auth.PolicyR
 
 func (lm *loggingMiddleware) DeletePolicy(ctx context.Context, pr auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
-		message := "Method delete_policy completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Delete policy failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Delete policy completed successfully", args...)
 	}(time.Now())
 	return lm.svc.DeletePolicy(ctx, pr)
 }
 
 func (lm *loggingMiddleware) DeletePolicies(ctx context.Context, prs []auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
-		message := "Method delete_policies completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Delete policies failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Delete policies completed successfully", args...)
 	}(time.Now())
 	return lm.svc.DeletePolicies(ctx, prs)
 }
 
 func (lm *loggingMiddleware) CreateDomain(ctx context.Context, token string, d auth.Domain) (do auth.Domain, err error) {
 	defer func(begin time.Time) {
-		message := "Method create_domain completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"domain",
+				slog.String("domain_id", d.ID),
+				slog.String("name", d.Name),
+			),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args := append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Create domain failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Create domain completed successfully", args...)
 	}(time.Now())
 	return lm.svc.CreateDomain(ctx, token, d)
 }
 
 func (lm *loggingMiddleware) RetrieveDomain(ctx context.Context, token, id string) (do auth.Domain, err error) {
 	defer func(begin time.Time) {
-		message := "Method retrieve_domain completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("domain_id", id),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Retrieve domain failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("domain_id", id),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Retrieve domain completed successfully", args...)
 	}(time.Now())
 	return lm.svc.RetrieveDomain(ctx, token, id)
 }
 
 func (lm *loggingMiddleware) RetrieveDomainPermissions(ctx context.Context, token, id string) (permissions auth.Permissions, err error) {
 	defer func(begin time.Time) {
-		message := "Method retrieve_domain_permissions completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("domain_id", id),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Retrieve domain permissions failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("domain_id", id),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Retrieve domain permissions completed successfully", args...)
 	}(time.Now())
 	return lm.svc.RetrieveDomainPermissions(ctx, token, id)
 }
 
 func (lm *loggingMiddleware) UpdateDomain(ctx context.Context, token, id string, d auth.DomainReq) (do auth.Domain, err error) {
 	defer func(begin time.Time) {
-		message := "Method update_domain completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"domain",
+				slog.String("domain_id", id),
+				slog.Any("name", d.Name),
+			),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Update domain failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("domain_id", id),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Update domain completed successfully", args...)
 	}(time.Now())
 	return lm.svc.UpdateDomain(ctx, token, id, d)
 }
 
 func (lm *loggingMiddleware) ChangeDomainStatus(ctx context.Context, token, id string, d auth.DomainReq) (do auth.Domain, err error) {
 	defer func(begin time.Time) {
-		message := "Method change_domain_status completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"domain",
+				slog.String("domain_id", id),
+				slog.Any("status", d.Status),
+			),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Change domain status failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("domain_id", "id"),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Change domain status completed successfully", args...)
 	}(time.Now())
 	return lm.svc.ChangeDomainStatus(ctx, token, id, d)
 }
 
 func (lm *loggingMiddleware) ListDomains(ctx context.Context, token string, page auth.Page) (do auth.DomainsPage, err error) {
 	defer func(begin time.Time) {
-		message := "Method list_domains completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"page",
+				slog.Any("limit", page.Limit),
+				slog.Any("offset", page.Offset),
+			),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("List domains failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("List domains completed successfully", args...)
 	}(time.Now())
 	return lm.svc.ListDomains(ctx, token, page)
 }
 
 func (lm *loggingMiddleware) AssignUsers(ctx context.Context, token, id string, userIds []string, relation string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method assign_users completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("id", id),
+			slog.String("relation", relation),
+			slog.Any("user_ids", userIds),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Assign users failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Assign users completed successfully", args...)
 	}(time.Now())
 	return lm.svc.AssignUsers(ctx, token, id, userIds, relation)
 }
 
 func (lm *loggingMiddleware) UnassignUsers(ctx context.Context, token, id string, userIds []string, relation string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method unassign_users completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("id", id),
+			slog.String("relation", relation),
+			slog.Any("user_ids", userIds),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Unassign users failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("token", token),
-			slog.String("user_ids", fmt.Sprintf("%v", userIds)),
-			slog.String("relation", relation),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Unassign users completed successfully", args...)
 	}(time.Now())
 	return lm.svc.UnassignUsers(ctx, token, id, userIds, relation)
 }
 
 func (lm *loggingMiddleware) ListUserDomains(ctx context.Context, token, userID string, page auth.Page) (do auth.DomainsPage, err error) {
 	defer func(begin time.Time) {
-		message := "Method list_user_domains completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("user_id", userID),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("List user domains failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors.", message),
-			slog.String("token", token),
-			slog.String("user_id", userID),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("List user domains completed successfully", args...)
 	}(time.Now())
 	return lm.svc.ListUserDomains(ctx, token, userID, page)
 }

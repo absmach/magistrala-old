@@ -34,10 +34,10 @@ func (lm *loggingMiddleware) Provision(token, name, externalID, externalKey stri
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Provision failed to complete successfully.", args...)
+			lm.logger.Warn("Provision failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Provision completed successfully.", args...)
+		lm.logger.Info("Provision completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Provision(token, name, externalID, externalKey)
@@ -52,10 +52,10 @@ func (lm *loggingMiddleware) Cert(token, thingID, duration string) (cert, key st
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Cert failed to complete successfully.", args...)
+			lm.logger.Warn("Cert failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Cert completed successfully.", args...)
+		lm.logger.Info("Cert completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Cert(token, thingID, duration)
@@ -68,10 +68,10 @@ func (lm *loggingMiddleware) Mapping(token string) (res map[string]interface{}, 
 		}
 		if err != nil {
 			args = append(args, slog.String("error", err.Error()))
-			lm.logger.Warn("Mapping failed to complete successfully.", args...)
+			lm.logger.Warn("Mapping failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Mapping completed successfully.", args...)
+		lm.logger.Info("Mapping completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Mapping(token)
