@@ -621,8 +621,9 @@ func TestIdentify(t *testing.T) {
 	repocall3.Unset()
 
 	repocall4 := krepo.On("Save", mock.Anything, mock.Anything).Return(mock.Anything, nil)
-	exp1 := time.Now().Add(-2 * time.Second)
-	expSecret, err := svc.Issue(context.Background(), loginSecret.AccessToken, auth.Key{Type: auth.APIKey, IssuedAt: time.Now(), ExpiresAt: exp1})
+	exp0 := time.Now().UTC().Add(-10 * time.Second).Round(time.Second)
+	exp1 := time.Now().UTC().Add(-1 * time.Minute).Round(time.Second)
+	expSecret, err := svc.Issue(context.Background(), loginSecret.AccessToken, auth.Key{Type: auth.APIKey, IssuedAt: exp0, ExpiresAt: exp1})
 	assert.Nil(t, err, fmt.Sprintf("Issuing expired login key expected to succeed: %s", err))
 	repocall4.Unset()
 

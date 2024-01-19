@@ -94,17 +94,14 @@ type policyReq struct {
 }
 
 func (req policyReq) validate() error {
+	// To implement validation for policies.
 	return nil
 }
 
 type policiesReq []policyReq
 
 func (prs policiesReq) validate() error {
-	for _, pr := range prs {
-		if err := pr.validate(); err != nil {
-			return nil
-		}
-	}
+	// To implement validation for policies.
 	return nil
 }
 

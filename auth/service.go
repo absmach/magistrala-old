@@ -39,6 +39,9 @@ var (
 	// ErrFailedToRetrieveChildren failed to retrieve groups.
 	ErrFailedToRetrieveChildren = errors.New("failed to retrieve all groups")
 
+	// ErrExpiry indicates that the token is expired.
+	ErrExpiry = errors.New("token is expired")
+
 	errIssueUser          = errors.New("failed to issue new login key")
 	errIssueTmp           = errors.New("failed to issue new temporary key")
 	errRevoke             = errors.New("failed to remove key")

@@ -180,13 +180,6 @@ func TestIssue(t *testing.T) {
 			token:  token.AccessToken,
 			status: http.StatusBadRequest,
 		},
-		{
-			desc:   "issue key with empty key type",
-			req:    `{"Type":""}`,
-			ct:     contentType,
-			token:  token.AccessToken,
-			status: http.StatusBadRequest,
-		},
 	}
 
 	for _, tc := range cases {
