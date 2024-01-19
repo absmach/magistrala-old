@@ -28,7 +28,7 @@ func LoggingMiddleware(svc ws.Service, logger *slog.Logger) ws.Service {
 func (lm *loggingMiddleware) Subscribe(ctx context.Context, thingKey, chanID, subtopic string, c *ws.Client) (err error) {
 	defer func(begin time.Time) {
 		args := []interface{}{
-			slog.Any("duration", time.Since(begin)),
+			slog.String("duration", time.Since(begin).String()),
 			slog.String("thing_key", thingKey),
 			slog.String("channel_id", chanID),
 		}

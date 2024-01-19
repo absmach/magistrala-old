@@ -6,7 +6,6 @@
 package api
 
 import (
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -27,20 +26,18 @@ func NewLoggingMiddleware(svc provision.Service, logger *slog.Logger) provision.
 
 func (lm *loggingMiddleware) Provision(token, name, externalID, externalKey string) (res provision.Result, err error) {
 	defer func(begin time.Time) {
-		message := fmt.Sprintf("Method provision for things: %v took completed", res.Things)
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("name", name),
+			slog.String("external_id", externalID),
+			slog.String("external_key", externalKey),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error.", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Provision failed to complete successfully.", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors", message),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Provision completed successfully.", args...)
 	}(time.Now())
 
 	return lm.svc.Provision(token, name, externalID, externalKey)
@@ -48,21 +45,17 @@ func (lm *loggingMiddleware) Provision(token, name, externalID, externalKey stri
 
 func (lm *loggingMiddleware) Cert(token, thingID, duration string) (cert, key string, err error) {
 	defer func(begin time.Time) {
-		message := "Method cert completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.String("thing_id", thingID),
+			slog.String("duration", duration),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Cert failed to complete successfully.", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors", message),
-			slog.String("token", token),
-			slog.String("thing_id", thingID),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Cert completed successfully.", args...)
 	}(time.Now())
 
 	return lm.svc.Cert(token, thingID, duration)
@@ -70,20 +63,15 @@ func (lm *loggingMiddleware) Cert(token, thingID, duration string) (cert, key st
 
 func (lm *loggingMiddleware) Mapping(token string) (res map[string]interface{}, err error) {
 	defer func(begin time.Time) {
-		message := "Method mapping completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Mapping failed to complete successfully.", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors", message),
-			slog.String("token", token),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Mapping completed successfully.", args...)
 	}(time.Now())
 
 	return lm.svc.Mapping(token)

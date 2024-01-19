@@ -31,21 +31,20 @@ func LoggingMiddleware(svc opcua.Service, logger *slog.Logger) opcua.Service {
 
 func (lm loggingMiddleware) CreateThing(ctx context.Context, mgxThing, opcuaNodeID string) (err error) {
 	defer func(begin time.Time) {
-		message := "Method create_thing completed"
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"thing",
+				slog.String("thing_id", mgxThing),
+				slog.String("opcua_node_id", opcuaNodeID),
+			),
+		}
 		if err != nil {
-			lm.logger.Warn(
-				fmt.Sprintf("%s with error", message),
-				slog.String("error", err.Error()),
-				slog.String("duration", time.Since(begin).String()),
-			)
+			args = append(args, slog.String("error", err.Error()))
+			lm.logger.Warn("Create thing failed to complete successfully.", args...)
 			return
 		}
-		lm.logger.Info(
-			fmt.Sprintf("%s without errors", message),
-			slog.String("thing_id", mgxThing),
-			slog.String("opcua_node_id", opcuaNodeID),
-			slog.String("duration", time.Since(begin).String()),
-		)
+		lm.logger.Info("Create thing completed successfully.", args...)
 	}(time.Now())
 
 	return lm.svc.CreateThing(ctx, mgxThing, opcuaNodeID)
