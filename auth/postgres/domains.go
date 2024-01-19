@@ -40,7 +40,7 @@ func (repo domainRepo) Save(ctx context.Context, d auth.Domain) (ad auth.Domain,
 	VALUES (:id, :name, :tags, :alias, :metadata, :created_at, :updated_at, :updated_by, :created_by, :status)
 	RETURNING id, name, tags, alias, metadata, created_at, updated_at, updated_by, created_by, status;`
 
-	dbd, err := toDBDomains(d)
+	dbd, err := toDBDomain(d)
 	if err != nil {
 		return auth.Domain{}, errors.Wrap(repoerr.ErrCreateEntity, repoerr.ErrRollbackTx)
 	}
@@ -134,9 +134,6 @@ func (repo domainRepo) RetrieveAllByIDs(ctx context.Context, pm auth.Page) (auth
 	query, err := buildPageQuery(pm)
 	if err != nil {
 		return auth.DomainsPage{}, errors.Wrap(repoerr.ErrFailedOpDB, err)
-	}
-	if query == "" {
-		return auth.DomainsPage{}, nil
 	}
 
 	q = `SELECT d.id as id, d.name as name, d.tags as tags, d.alias as alias, d.metadata as metadata, d.created_at as created_at, d.updated_at as updated_at, d.updated_by as updated_by, d.created_by as created_by, d.status as status
@@ -273,7 +270,7 @@ func (repo domainRepo) Update(ctx context.Context, id, userID string, dr auth.Do
         RETURNING id, name, tags, alias, metadata, created_at, updated_at, updated_by, created_by, status;`,
 		upq, ws)
 
-	dbd, err := toDBDomains(d)
+	dbd, err := toDBDomain(d)
 	if err != nil {
 		return auth.Domain{}, errors.Wrap(errors.ErrUpdateEntity, err)
 	}
@@ -422,7 +419,7 @@ type dbDomain struct {
 	UpdatedAt  sql.NullTime     `db:"updated_at,omitempty"`
 }
 
-func toDBDomains(d auth.Domain) (dbDomain, error) {
+func toDBDomain(d auth.Domain) (dbDomain, error) {
 	data := []byte("{}")
 	if len(d.Metadata) > 0 {
 		b, err := json.Marshal(d.Metadata)

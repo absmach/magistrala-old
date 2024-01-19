@@ -158,6 +158,24 @@ func TestSave(t *testing.T) {
 			},
 			err: nil,
 		},
+		{
+			desc: "add domain with malformed metadata",
+			domain: auth.Domain{
+				ID:    domainID,
+				Name:  "test1",
+				Alias: "test1",
+				Tags:  []string{"test"},
+				Metadata: map[string]interface{}{
+					"key": make(chan int),
+				},
+				CreatedAt: time.Now(),
+				UpdatedAt: time.Now(),
+				CreatedBy: userID,
+				UpdatedBy: userID,
+				Status:    auth.EnabledStatus,
+			},
+			err: errors.ErrCreateEntity,
+		},
 	}
 
 	for _, tc := range cases {
@@ -417,14 +435,14 @@ func TestRetrieveAllByIDs(t *testing.T) {
 				Offset: 0,
 				Limit:  10,
 				IDs:    []string{items[0].ID, items[1].ID},
-				Status: 4,
+				Status: 5,
 			},
 			response: auth.DomainsPage{
 				Page: auth.Page{
 					Total:  2,
 					Offset: 0,
 					Limit:  10,
-					Status: 4,
+					Status: 5,
 					IDs:    []string{items[0].ID, items[1].ID},
 				},
 				Domains: []auth.Domain{items[0], items[1]},
@@ -448,6 +466,132 @@ func TestRetrieveAllByIDs(t *testing.T) {
 				},
 				Domains: []auth.Domain{items[1]},
 			},
+		},
+		{
+			desc: " retrieve by ids and metadata",
+			pm: auth.Page{
+				Offset: 0,
+				Limit:  10,
+				IDs:    []string{items[1].ID, items[2].ID},
+				Metadata: map[string]interface{}{
+					"test": "test",
+				},
+				Status: auth.EnabledStatus,
+			},
+			response: auth.DomainsPage{
+				Page: auth.Page{
+					Total:  2,
+					Offset: 0,
+					Limit:  10,
+					IDs:    []string{items[1].ID, items[2].ID},
+					Metadata: map[string]interface{}{
+						"test": "test",
+					},
+					Status: auth.EnabledStatus,
+				},
+				Domains: items[1:3],
+			},
+		},
+		{
+			desc: "retrieve by ids and metadata with invalid metadata",
+			pm: auth.Page{
+				Offset: 0,
+				Limit:  10,
+				IDs:    []string{items[1].ID, items[2].ID},
+				Metadata: map[string]interface{}{
+					"test1": "test1",
+				},
+				Status: auth.EnabledStatus,
+			},
+			response: auth.DomainsPage{
+				Page: auth.Page{
+					Total:  0,
+					Offset: 0,
+					Limit:  10,
+					IDs:    []string{items[1].ID, items[2].ID},
+					Metadata: map[string]interface{}{
+						"test1": "test1",
+					},
+					Status: auth.EnabledStatus,
+				},
+			},
+		},
+		{
+			desc: "retrieve by ids and malfomed metadata",
+			pm: auth.Page{
+				Offset: 0,
+				Limit:  10,
+				IDs:    []string{items[1].ID, items[2].ID},
+				Metadata: map[string]interface{}{
+					"key": make(chan int),
+				},
+				Status: auth.EnabledStatus,
+			},
+			response: auth.DomainsPage{
+				Page: auth.Page{},
+			},
+			err: errors.ErrViewEntity,
+		},
+		{
+			desc: "retrieve all by ids and id",
+			pm: auth.Page{
+				Offset: 0,
+				Limit:  10,
+				ID:     items[1].ID,
+				IDs:    []string{items[1].ID, items[2].ID},
+			},
+			response: auth.DomainsPage{
+				Page: auth.Page{
+					Total:  1,
+					Offset: 0,
+					Limit:  10,
+					ID:     items[1].ID,
+					IDs:    []string{items[1].ID, items[2].ID},
+				},
+				Domains: []auth.Domain{items[1]},
+			},
+		},
+		{
+			desc: "retrieve all by ids and id with invalid id",
+			pm: auth.Page{
+				Offset: 0,
+				Limit:  10,
+				ID:     inValid,
+				IDs:    []string{items[1].ID, items[2].ID},
+			},
+			response: auth.DomainsPage{
+				Page: auth.Page{
+					Total:  0,
+					Offset: 0,
+					Limit:  10,
+					ID:     inValid,
+					IDs:    []string{items[1].ID, items[2].ID},
+				},
+			},
+		},
+		{
+			desc: "retrieve all by ids and name",
+			pm: auth.Page{
+				Offset: 0,
+				Limit:  10,
+				Name:   items[1].Name,
+				IDs:    []string{items[1].ID, items[2].ID},
+			},
+			response: auth.DomainsPage{
+				Page: auth.Page{
+					Total:  1,
+					Offset: 0,
+					Limit:  10,
+					Name:   items[1].Name,
+					IDs:    []string{items[1].ID, items[2].ID},
+				},
+				Domains: []auth.Domain{items[1]},
+			},
+		},
+		{
+			desc:     "retrieve all by ids with empty page",
+			pm:       auth.Page{},
+			response: auth.DomainsPage{},
 		},
 	}
 
@@ -668,6 +812,47 @@ func TestListDomains(t *testing.T) {
 			},
 			err: nil,
 		},
+		{
+			desc: "list domains with subject id and metadata",
+			pm: auth.Page{
+				Offset:    0,
+				Limit:     10,
+				SubjectID: userID,
+				Metadata: map[string]interface{}{
+					"test": "test",
+				},
+				Status: auth.AllStatus,
+			},
+			response: auth.DomainsPage{
+				Page: auth.Page{
+					Total:     8,
+					Offset:    0,
+					Limit:     10,
+					Status:    auth.AllStatus,
+					SubjectID: userID,
+					Metadata: map[string]interface{}{
+						"test": "test",
+					},
+				},
+				Domains: []auth.Domain{rDomains[1], rDomains[2], rDomains[3], rDomains[4], rDomains[6], rDomains[7], rDomains[8], rDomains[9]},
+			},
+		},
+		{
+			desc: "list domains with subject id and metadata with malforned metadata",
+			pm: auth.Page{
+				Offset:    0,
+				Limit:     10,
+				SubjectID: userID,
+				Metadata: map[string]interface{}{
+					"key": make(chan int),
+				},
+				Status: auth.AllStatus,
+			},
+			response: auth.DomainsPage{
+				Page: auth.Page{},
+			},
+			err: errors.ErrViewEntity,
+		},
 	}
 
 	for _, tc := range cases {
@@ -782,6 +967,16 @@ func TestUpdate(t *testing.T) {
 			},
 			response: auth.Domain{},
 			err:      repoerr.ErrFailedOpDB,
+		},
+		{
+			desc:     "update domain with malformed metadata",
+			domainID: domainID,
+			d: auth.DomainReq{
+				Name:     &updatedName,
+				Metadata: &clients.Metadata{"key": make(chan int)},
+			},
+			response: auth.Domain{},
+			err:      errors.ErrUpdateEntity,
 		},
 	}
 
