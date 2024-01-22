@@ -169,7 +169,6 @@ func (lm *loggingMiddleware) Bootstrap(ctx context.Context, externalKey, externa
 			slog.Group(
 				"config",
 				slog.String("external_id", externalID),
-				slog.String("external_key", externalKey),
 			),
 		}
 		if err != nil {
@@ -260,6 +259,7 @@ func (lm *loggingMiddleware) RemoveChannelHandler(ctx context.Context, id string
 func (lm *loggingMiddleware) DisconnectThingHandler(ctx context.Context, channelID, thingID string) (err error) {
 	defer func(begin time.Time) {
 		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
 			slog.String("channel_id", channelID),
 			slog.String("thing_id", thingID),
 		}

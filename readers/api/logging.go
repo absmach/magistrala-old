@@ -37,9 +37,13 @@ func (lm *loggingMiddleware) ReadAll(chanID string, rpm readers.PageMetadata) (p
 				slog.Uint64("offset", rpm.Offset),
 				slog.Uint64("limit", rpm.Limit),
 				slog.Uint64("total", page.Total),
-				slog.String("subtopic", rpm.Subtopic),
-				slog.String("publisher", rpm.Publisher),
 			),
+		}
+		if rpm.Subtopic != "" {
+			args = append(args, slog.String("subtopic", rpm.Subtopic))
+		}
+		if rpm.Publisher != "" {
+			args = append(args, slog.String("publisher", rpm.Publisher))
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))

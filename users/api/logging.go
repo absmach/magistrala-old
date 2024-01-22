@@ -92,7 +92,7 @@ func (lm *loggingMiddleware) ViewClient(ctx context.Context, token, id string) (
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("id", id), slog.String("name", c.Name),),
+			slog.Group("user", slog.String("id", id), slog.String("name", c.Name)),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -258,6 +258,7 @@ func (lm *loggingMiddleware) SendPasswordReset(ctx context.Context, host, email,
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
+			slog.String("host", host),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))

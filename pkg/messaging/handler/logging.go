@@ -32,7 +32,7 @@ func (lm *loggingMiddleware) AuthPublish(ctx context.Context, topic *string, pay
 
 // AuthSubscribe implements session.Handler.
 func (lm *loggingMiddleware) AuthSubscribe(ctx context.Context, topics *[]string) (err error) {
-	return lm.logAction(ctx,"AuthSubscribe", topics, nil)
+	return lm.logAction(ctx, "AuthSubscribe", topics, nil)
 }
 
 // Connect implements session.Handler.
