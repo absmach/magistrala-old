@@ -231,8 +231,8 @@ func (lm *loggingMiddleware) Authorize(ctx context.Context, req *magistrala.Auth
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("thing_key", req.Subject),
-			slog.String("channel_id", req.Object),
+			slog.String("thing_key", req.GetSubject()),
+			slog.String("channel_id", req.GetObject()),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
