@@ -381,8 +381,9 @@ func (lm *loggingMiddleware) ListDomains(ctx context.Context, token string, page
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"page",
-				slog.Any("limit", page.Limit),
-				slog.Any("offset", page.Offset),
+				slog.Uint64("limit", page.Limit),
+				slog.Uint64("offset", page.Offset),
+				slog.Uint64("total", page.Total),
 			),
 		}
 		if err != nil {

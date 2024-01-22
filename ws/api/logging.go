@@ -29,12 +29,10 @@ func (lm *loggingMiddleware) Subscribe(ctx context.Context, thingKey, chanID, su
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("thing_key", thingKey),
 			slog.String("channel_id", chanID),
 		}
-		destChannel := chanID
 		if subtopic != "" {
-			args = append(args, "subtopic", subtopic, "channel", destChannel)
+			args = append(args, "subtopic", subtopic)
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))

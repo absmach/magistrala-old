@@ -28,9 +28,6 @@ func (lm *loggingMiddleware) Provision(token, name, externalID, externalKey stri
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("name", name),
-			slog.String("external_id", externalID),
-			slog.String("external_key", externalKey),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -48,14 +45,13 @@ func (lm *loggingMiddleware) Cert(token, thingID, duration string) (cert, key st
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("thing_id", thingID),
-			slog.String("duration", duration),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Cert failed to complete successfully", args...)
+			lm.logger.Warn("Thing certificate failed to create successfully", args...)
 			return
 		}
-		lm.logger.Info("Cert completed successfully", args...)
+		lm.logger.Info("Thing certificate completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Cert(token, thingID, duration)

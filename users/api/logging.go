@@ -32,7 +32,7 @@ func (lm *loggingMiddleware) RegisterClient(ctx context.Context, token string, c
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("name", c.Name), slog.String("id", c.ID)),
+			slog.Group("user", slog.String("id", c.ID), slog.String("name", c.Name)),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -92,7 +92,7 @@ func (lm *loggingMiddleware) ViewClient(ctx context.Context, token, id string) (
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("name", c.Name), slog.String("id", id)),
+			slog.Group("user", slog.String("id", id), slog.String("name", c.Name),),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -110,7 +110,7 @@ func (lm *loggingMiddleware) ViewProfile(ctx context.Context, token string) (c m
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("name", c.Name), slog.String("id", c.ID)),
+			slog.Group("user", slog.String("id", c.ID), slog.String("name", c.Name)),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -130,8 +130,9 @@ func (lm *loggingMiddleware) ListClients(ctx context.Context, token string, pm m
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"page",
-				slog.Any("limit", pm.Limit),
-				slog.Any("offset", pm.Offset),
+				slog.Uint64("limit", pm.Limit),
+				slog.Uint64("offset", pm.Offset),
+				slog.Uint64("total", cp.Total),
 			),
 		}
 		if err != nil {
@@ -150,7 +151,7 @@ func (lm *loggingMiddleware) UpdateClient(ctx context.Context, token string, cli
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("name", c.Name), slog.String("id", c.ID)), slog.Any("metadata", c.Metadata),
+			slog.Group("user", slog.String("id", c.ID)), slog.String("name", c.Name), slog.Any("metadata", c.Metadata),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -168,7 +169,7 @@ func (lm *loggingMiddleware) UpdateClientTags(ctx context.Context, token string,
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("id", c.ID), slog.String("tags", fmt.Sprintf("%v", c.Tags))),
+			slog.Group("user", slog.String("id", c.ID), slog.Any("tags", fmt.Sprintf("%v", c.Tags))),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -186,7 +187,7 @@ func (lm *loggingMiddleware) UpdateClientIdentity(ctx context.Context, token, id
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("id", c.ID), slog.String("identity", identity)),
+			slog.Group("user", slog.String("id", c.ID)),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -222,6 +223,7 @@ func (lm *loggingMiddleware) GenerateResetToken(ctx context.Context, email, host
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
+			slog.String("host", host),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -327,12 +329,12 @@ func (lm *loggingMiddleware) ListMembers(ctx context.Context, token, objectKind,
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("object_kind", objectKind),
-			slog.String("object_id", objectID),
+			slog.Group("object", slog.String("kind", objectKind), slog.String("id", objectID)),
 			slog.Group(
 				"page",
 				slog.Any("limit", cp.Limit),
-				slog.Any("offset", cp.Offset),
+				slog.Uint64("offset", cp.Offset),
+				slog.Uint64("total", mp.Total),
 			),
 		}
 		if err != nil {

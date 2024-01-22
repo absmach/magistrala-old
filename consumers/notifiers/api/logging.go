@@ -80,7 +80,7 @@ func (lm *loggingMiddleware) ListSubscriptions(ctx context.Context, token string
 			slog.Group(
 				"page_metadata",
 				slog.String("topic", pm.Topic),
-				slog.Any("limit", pm.Limit),
+				slog.Int("limit", pm.Limit),
 				slog.Any("offset", pm.Offset),
 			),
 		}

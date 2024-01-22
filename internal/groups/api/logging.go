@@ -121,8 +121,8 @@ func (lm *loggingMiddleware) ListGroups(ctx context.Context, token, memberKind, 
 				slog.String("member_id", memberID),
 				slog.Group(
 					"page",
-					slog.Any("limit", gp.Limit),
-					slog.Any("offset", gp.Offset)),
+					slog.Uint64("limit", gp.Limit),
+					slog.Uint64("offset", gp.Offset)),
 			),
 		}
 		if err != nil {

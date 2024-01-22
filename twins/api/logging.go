@@ -32,8 +32,8 @@ func (lm *loggingMiddleware) AddTwin(ctx context.Context, token string, twin twi
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"twin",
-				slog.String("id", twin.ID),
-				slog.String("name", twin.Name),
+				slog.String("id", tw.ID),
+				slog.String("name", tw.Name),
 				slog.Group("definition", slog.Any("def_id", def.ID)),
 			),
 		}
@@ -114,7 +114,7 @@ func (lm *loggingMiddleware) SaveStates(ctx context.Context, msg *messaging.Mess
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
-				"payload",
+				"message",
 				slog.String("subtopic", msg.Subtopic),
 				slog.String("channel", msg.Channel),
 				slog.String("publisher", msg.Publisher),

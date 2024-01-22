@@ -32,7 +32,6 @@ func (lm *loggingMiddleware) Publish(ctx context.Context, key string, msg *messa
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("key", key),
 		}
 		destChannel := msg.GetChannel()
 		if msg.GetSubtopic() != "" {
@@ -55,11 +54,10 @@ func (lm *loggingMiddleware) Subscribe(ctx context.Context, key, chanID, subtopi
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("key", key),
+			slog.String("channel_id", chanID),
 		}
-		destChannel := chanID
 		if subtopic != "" {
-			args = append(args, slog.String("subtopic", subtopic), slog.String("channel", destChannel))
+			args = append(args, slog.String("subtopic", subtopic))
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -78,11 +76,10 @@ func (lm *loggingMiddleware) Unsubscribe(ctx context.Context, key, chanID, subto
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("key", key),
+			slog.String("channel_id", chanID),
 		}
-		destChannel := chanID
 		if subtopic != "" {
-			args = append(args, slog.String("subtopic", subtopic), slog.String("channel", destChannel))
+			args = append(args, slog.String("subtopic", subtopic))
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))

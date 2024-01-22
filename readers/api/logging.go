@@ -31,11 +31,12 @@ func (lm *loggingMiddleware) ReadAll(chanID string, rpm readers.PageMetadata) (p
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("channel_ID", chanID),
+			slog.String("channel_id", chanID),
 			slog.Group(
 				"page_metadata",
-				slog.Any("offset", rpm.Offset),
-				slog.Any("limit", rpm.Limit),
+				slog.Uint64("offset", rpm.Offset),
+				slog.Uint64("limit", rpm.Limit),
+				slog.Uint64("total", page.Total),
 				slog.String("subtopic", rpm.Subtopic),
 				slog.String("publisher", rpm.Publisher),
 			),
