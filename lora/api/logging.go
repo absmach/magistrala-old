@@ -39,7 +39,7 @@ func (lm loggingMiddleware) CreateThing(ctx context.Context, thingID, loraDevEUI
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Create thing failed to complete successfully", args...)
 			return
 		}
@@ -60,7 +60,7 @@ func (lm loggingMiddleware) UpdateThing(ctx context.Context, thingID, loraDevEUI
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update thing failed to complete successfully", args...)
 			return
 		}
@@ -77,7 +77,7 @@ func (lm loggingMiddleware) RemoveThing(ctx context.Context, thingID string) (er
 			slog.String("thing_id", thingID),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Remove thing failed to complete successfully", args...)
 			return
 		}
@@ -98,7 +98,7 @@ func (lm loggingMiddleware) CreateChannel(ctx context.Context, chanID, loraApp s
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Create channel failed to complete successfully", args...)
 			return
 		}
@@ -191,7 +191,7 @@ func (lm loggingMiddleware) Publish(ctx context.Context, msg *lora.Message) (err
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Publish failed to complete successfully", args...)
 			return
 		}

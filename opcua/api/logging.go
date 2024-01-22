@@ -39,7 +39,7 @@ func (lm loggingMiddleware) CreateThing(ctx context.Context, mgxThing, opcuaNode
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Create thing failed to complete successfully", args...)
 			return
 		}
@@ -60,7 +60,7 @@ func (lm loggingMiddleware) UpdateThing(ctx context.Context, mgxThing, opcuaNode
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update thing failed to complete successfully", args...)
 			return
 		}
@@ -77,7 +77,7 @@ func (lm loggingMiddleware) RemoveThing(ctx context.Context, mgxThing string) (e
 			slog.String("thing_id", mgxThing),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Remove thing failed to complete successfully", args...)
 			return
 		}
@@ -98,7 +98,7 @@ func (lm loggingMiddleware) CreateChannel(ctx context.Context, mgxChan, opcuaSer
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Create channel failed to complete successfully", args...)
 			return
 		}
@@ -119,7 +119,7 @@ func (lm loggingMiddleware) UpdateChannel(ctx context.Context, mgxChanID, opcuaS
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update channel failed to complete successfully", args...)
 			return
 		}
@@ -136,7 +136,7 @@ func (lm loggingMiddleware) RemoveChannel(ctx context.Context, mgxChanID string)
 			slog.String("channel_id", mgxChanID),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Remove channel failed to complete successfully", args...)
 			return
 		}
@@ -154,7 +154,7 @@ func (lm loggingMiddleware) ConnectThing(ctx context.Context, mgxChanID, mgxThin
 			slog.String("thing_id", mgxThingID),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Connect thing failed to complete successfully", args...)
 			return
 		}
@@ -172,7 +172,7 @@ func (lm loggingMiddleware) DisconnectThing(ctx context.Context, mgxChanID, mgxT
 			slog.String("thing_id", mgxThingID),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Disconnect thing failed to complete successfully", args...)
 			return
 		}
@@ -191,7 +191,7 @@ func (lm loggingMiddleware) Browse(ctx context.Context, serverURI, namespace, id
 			slog.String("identifier", identifier),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Browse failed to complete successfully", args...)
 			return
 		}

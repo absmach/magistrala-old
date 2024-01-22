@@ -35,7 +35,7 @@ func (lm *loggingMiddleware) RegisterClient(ctx context.Context, token string, c
 			slog.Group("user", slog.String("name", c.Name), slog.String("id", c.ID)),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Register client failed to complete successfully", args...)
 			return
 		}
@@ -56,7 +56,7 @@ func (lm *loggingMiddleware) IssueToken(ctx context.Context, identity, secret, d
 			args = append(args, "access_type", t.AccessType)
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Issue token failed to complete successfully", args...)
 			return
 		}
@@ -77,7 +77,7 @@ func (lm *loggingMiddleware) RefreshToken(ctx context.Context, refreshToken, dom
 			args = append(args, "access_type", t.AccessType)
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Refresh token failed to complete successfully", args...)
 			return
 		}
@@ -95,7 +95,7 @@ func (lm *loggingMiddleware) ViewClient(ctx context.Context, token, id string) (
 			slog.Group("user", slog.String("name", c.Name), slog.String("id", id)),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("View client failed to complete successfully", args...)
 			return
 		}
@@ -113,7 +113,7 @@ func (lm *loggingMiddleware) ViewProfile(ctx context.Context, token string) (c m
 			slog.Group("user", slog.String("name", c.Name), slog.String("id", c.ID)),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("View profile failed to complete successfully", args...)
 			return
 		}
@@ -135,7 +135,7 @@ func (lm *loggingMiddleware) ListClients(ctx context.Context, token string, pm m
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List clients failed to complete successfully", args...)
 			return
 		}
@@ -153,7 +153,7 @@ func (lm *loggingMiddleware) UpdateClient(ctx context.Context, token string, cli
 			slog.Group("user", slog.String("name", c.Name), slog.String("id", c.ID)), slog.Any("metadata", c.Metadata),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update client failed to complete successfully", args...)
 			return
 		}
@@ -171,7 +171,7 @@ func (lm *loggingMiddleware) UpdateClientTags(ctx context.Context, token string,
 			slog.Group("user", slog.String("id", c.ID), slog.String("tags", fmt.Sprintf("%v", c.Tags))),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update client tags failed to complete successfully", args...)
 			return
 		}
@@ -189,7 +189,7 @@ func (lm *loggingMiddleware) UpdateClientIdentity(ctx context.Context, token, id
 			slog.Group("user", slog.String("id", c.ID), slog.String("identity", identity)),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update client identity failed to complete successfully", args...)
 			return
 		}
@@ -207,7 +207,7 @@ func (lm *loggingMiddleware) UpdateClientSecret(ctx context.Context, token, oldS
 			slog.Group("user", slog.String("id", c.ID), slog.String("name", c.Name)),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update client secret failed to complete successfully", args...)
 			return
 		}
@@ -224,7 +224,7 @@ func (lm *loggingMiddleware) GenerateResetToken(ctx context.Context, email, host
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Generate reset token failed to complete successfully", args...)
 			return
 		}
@@ -241,7 +241,7 @@ func (lm *loggingMiddleware) ResetSecret(ctx context.Context, token, secret stri
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Reset secret failed to complete successfully", args...)
 			return
 		}
@@ -258,7 +258,7 @@ func (lm *loggingMiddleware) SendPasswordReset(ctx context.Context, host, email,
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Send password reset failed to complete successfully", args...)
 			return
 		}
@@ -276,7 +276,7 @@ func (lm *loggingMiddleware) UpdateClientRole(ctx context.Context, token string,
 			slog.Group("user", slog.String("id", c.ID), slog.String("role", client.Role.String())),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update client role failed to complete successfully", args...)
 			return
 		}
@@ -294,7 +294,7 @@ func (lm *loggingMiddleware) EnableClient(ctx context.Context, token, id string)
 			slog.String("id", c.ID),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Enable client failed to complete successfully", args...)
 			return
 		}
@@ -312,7 +312,7 @@ func (lm *loggingMiddleware) DisableClient(ctx context.Context, token, id string
 			slog.String("id", c.ID),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Disable client failed to complete successfully", args...)
 			return
 		}
@@ -336,7 +336,7 @@ func (lm *loggingMiddleware) ListMembers(ctx context.Context, token, objectKind,
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List members failed to complete successfully", args...)
 			return
 		}
@@ -352,7 +352,7 @@ func (lm *loggingMiddleware) Identify(ctx context.Context, token string) (id str
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Identify failed to complete successfully", args...)
 			return
 		}

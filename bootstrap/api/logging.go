@@ -34,7 +34,7 @@ func (lm *loggingMiddleware) Add(ctx context.Context, token string, cfg bootstra
 			slog.String("thing_id", saved.ThingID),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Add failed to complete successfully", args...)
 			return
 		}
@@ -53,7 +53,7 @@ func (lm *loggingMiddleware) View(ctx context.Context, token, id string) (saved 
 			slog.String("thing_id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("View failed to complete successfully", args...)
 			return
 		}
@@ -72,7 +72,7 @@ func (lm *loggingMiddleware) Update(ctx context.Context, token string, cfg boots
 			slog.String("thing_id", cfg.ThingID),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update failed to complete successfully", args...)
 			return
 		}
@@ -91,7 +91,7 @@ func (lm *loggingMiddleware) UpdateCert(ctx context.Context, token, thingID, cli
 			slog.String("thing_id", cfg.ThingID),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update cert failed to complete successfully", args...)
 			return
 		}
@@ -110,7 +110,7 @@ func (lm *loggingMiddleware) UpdateConnections(ctx context.Context, token, id st
 			slog.String("id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update connections failed to complete successfully", args...)
 			return
 		}
@@ -133,7 +133,7 @@ func (lm *loggingMiddleware) List(ctx context.Context, token string, filter boot
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List failed to complete successfully", args...)
 			return
 		}
@@ -152,7 +152,7 @@ func (lm *loggingMiddleware) Remove(ctx context.Context, token, id string) (err 
 			slog.String("id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Remove failed to complete successfully", args...)
 			return
 		}
@@ -173,7 +173,7 @@ func (lm *loggingMiddleware) Bootstrap(ctx context.Context, externalKey, externa
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Bootstrap failed to complete successfully", args...)
 			return
 		}
@@ -191,7 +191,7 @@ func (lm *loggingMiddleware) ChangeState(ctx context.Context, token, id string, 
 			slog.Any("state", state),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Change state failed to complete successfully", args...)
 			return
 		}
@@ -213,7 +213,7 @@ func (lm *loggingMiddleware) UpdateChannelHandler(ctx context.Context, channel b
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update channel handler failed to complete successfully", args...)
 			return
 		}
@@ -230,7 +230,7 @@ func (lm *loggingMiddleware) RemoveConfigHandler(ctx context.Context, id string)
 			slog.String("config_id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Remove config handler failed to complete successfully", args...)
 			return
 		}
@@ -247,7 +247,7 @@ func (lm *loggingMiddleware) RemoveChannelHandler(ctx context.Context, id string
 			slog.String("id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Remove channel handler failed to complete successfully", args...)
 			return
 		}
@@ -264,7 +264,7 @@ func (lm *loggingMiddleware) DisconnectThingHandler(ctx context.Context, channel
 			slog.String("thing_id", thingID),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Disconnect thing handler failed to complete successfully", args...)
 			return
 		}

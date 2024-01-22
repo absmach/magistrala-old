@@ -37,7 +37,7 @@ func (lm *loggingMiddleware) CreateGroup(ctx context.Context, token, kind string
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Create group failed to complete successfully", args...)
 			return
 		}
@@ -60,7 +60,7 @@ func (lm *loggingMiddleware) UpdateGroup(ctx context.Context, token string, grou
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update group failed to complete successfully", args...)
 			return
 		}
@@ -82,7 +82,7 @@ func (lm *loggingMiddleware) ViewGroup(ctx context.Context, token, id string) (g
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("View group failed to complete successfully", args...)
 			return
 		}
@@ -100,7 +100,7 @@ func (lm *loggingMiddleware) ViewGroupPerms(ctx context.Context, token, id strin
 			slog.String("group_id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("View group permissions failed to complete successfully", args...)
 			return
 		}
@@ -126,7 +126,7 @@ func (lm *loggingMiddleware) ListGroups(ctx context.Context, token, memberKind, 
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List groups failed to complete successfully", args...)
 			return
 		}
@@ -148,7 +148,7 @@ func (lm *loggingMiddleware) EnableGroup(ctx context.Context, token, id string) 
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Enable group failed to complete successfully", args...)
 			return
 		}
@@ -166,7 +166,7 @@ func (lm *loggingMiddleware) DisableGroup(ctx context.Context, token, id string)
 			slog.String("group_id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Disable group failed to complete successfully", args...)
 			return
 		}
@@ -189,7 +189,7 @@ func (lm *loggingMiddleware) ListMembers(ctx context.Context, token, groupID, pe
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List members failed to complete successfully", args...)
 			return
 		}
@@ -208,7 +208,7 @@ func (lm *loggingMiddleware) Assign(ctx context.Context, token, groupID, relatio
 			slog.Any("member_ids", memberIDs),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Assign failed to complete successfully", args...)
 			return
 		}
@@ -228,7 +228,7 @@ func (lm *loggingMiddleware) Unassign(ctx context.Context, token, groupID, relat
 			slog.Any("member_ids", memberIDs),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Unassign failed to complete successfully", args...)
 			return
 		}
@@ -245,7 +245,7 @@ func (lm *loggingMiddleware) DeleteGroup(ctx context.Context, token, id string) 
 			slog.String("group_id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Delete group failed to complete successfully", args...)
 			return
 		}

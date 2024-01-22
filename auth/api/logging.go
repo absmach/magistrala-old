@@ -32,7 +32,7 @@ func (lm *loggingMiddleware) ListObjects(ctx context.Context, pr auth.PolicyReq,
 			slog.Any("limit", limit),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List objects failed to complete successfully", args...)
 			return
 		}
@@ -48,7 +48,7 @@ func (lm *loggingMiddleware) ListAllObjects(ctx context.Context, pr auth.PolicyR
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List all objects failed to complete successfully", args...)
 			return
 		}
@@ -64,7 +64,7 @@ func (lm *loggingMiddleware) CountObjects(ctx context.Context, pr auth.PolicyReq
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Count objects failed to complete successfully", args...)
 			return
 		}
@@ -80,7 +80,7 @@ func (lm *loggingMiddleware) ListSubjects(ctx context.Context, pr auth.PolicyReq
 			slog.Any("limit", limit),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List subjects failed to complete successfully", args...)
 			return
 		}
@@ -96,7 +96,7 @@ func (lm *loggingMiddleware) ListAllSubjects(ctx context.Context, pr auth.Policy
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List all subjects failed to complete successfully", args...)
 			return
 		}
@@ -112,7 +112,7 @@ func (lm *loggingMiddleware) CountSubjects(ctx context.Context, pr auth.PolicyRe
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Count subjects failed to complete successfully", args...)
 			return
 		}
@@ -128,7 +128,7 @@ func (lm *loggingMiddleware) ListPermissions(ctx context.Context, pr auth.Policy
 			slog.Any("filter_permissions", filterPermissions),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List permissions failed to complete successfully", args...)
 			return
 		}
@@ -147,7 +147,7 @@ func (lm *loggingMiddleware) Issue(ctx context.Context, token string, key auth.K
 			args = append(args, slog.Any("expiration_date", key.ExpiresAt))
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Issue failed to complete successfully", args...)
 			return
 		}
@@ -164,7 +164,7 @@ func (lm *loggingMiddleware) Revoke(ctx context.Context, token, id string) (err 
 			slog.String("id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Revoke failed to complete successfully", args...)
 			return
 		}
@@ -181,7 +181,7 @@ func (lm *loggingMiddleware) RetrieveKey(ctx context.Context, token, id string) 
 			slog.String("id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Retrieve key failed to complete successfully", args...)
 			return
 		}
@@ -197,7 +197,7 @@ func (lm *loggingMiddleware) Identify(ctx context.Context, token string) (id aut
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Identify failed to complete successfully", args...)
 			return
 		}
@@ -213,7 +213,7 @@ func (lm *loggingMiddleware) Authorize(ctx context.Context, pr auth.PolicyReq) (
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Authorize failed to complete successfully", args...)
 			return
 		}
@@ -228,7 +228,7 @@ func (lm *loggingMiddleware) AddPolicy(ctx context.Context, pr auth.PolicyReq) (
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Add policy failed to complete successfully", args...)
 			return
 		}
@@ -243,7 +243,7 @@ func (lm *loggingMiddleware) AddPolicies(ctx context.Context, prs []auth.PolicyR
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Add policies failed to complete successfully", args...)
 			return
 		}
@@ -259,7 +259,7 @@ func (lm *loggingMiddleware) DeletePolicy(ctx context.Context, pr auth.PolicyReq
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Delete policy failed to complete successfully", args...)
 			return
 		}
@@ -274,7 +274,7 @@ func (lm *loggingMiddleware) DeletePolicies(ctx context.Context, prs []auth.Poli
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Delete policies failed to complete successfully", args...)
 			return
 		}
@@ -310,7 +310,7 @@ func (lm *loggingMiddleware) RetrieveDomain(ctx context.Context, token, id strin
 			slog.String("domain_id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Retrieve domain failed to complete successfully", args...)
 			return
 		}
@@ -326,7 +326,7 @@ func (lm *loggingMiddleware) RetrieveDomainPermissions(ctx context.Context, toke
 			slog.String("domain_id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Retrieve domain permissions failed to complete successfully", args...)
 			return
 		}
@@ -346,7 +346,7 @@ func (lm *loggingMiddleware) UpdateDomain(ctx context.Context, token, id string,
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update domain failed to complete successfully", args...)
 			return
 		}
@@ -366,7 +366,7 @@ func (lm *loggingMiddleware) ChangeDomainStatus(ctx context.Context, token, id s
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Change domain status failed to complete successfully", args...)
 			return
 		}
@@ -386,7 +386,7 @@ func (lm *loggingMiddleware) ListDomains(ctx context.Context, token string, page
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List domains failed to complete successfully", args...)
 			return
 		}
@@ -404,7 +404,7 @@ func (lm *loggingMiddleware) AssignUsers(ctx context.Context, token, id string, 
 			slog.Any("user_ids", userIds),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Assign users failed to complete successfully", args...)
 			return
 		}
@@ -422,7 +422,7 @@ func (lm *loggingMiddleware) UnassignUsers(ctx context.Context, token, id string
 			slog.Any("user_ids", userIds),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Unassign users failed to complete successfully", args...)
 			return
 		}
@@ -438,7 +438,7 @@ func (lm *loggingMiddleware) ListUserDomains(ctx context.Context, token, userID 
 			slog.String("user_id", userID),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List user domains failed to complete successfully", args...)
 			return
 		}

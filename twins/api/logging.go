@@ -38,7 +38,7 @@ func (lm *loggingMiddleware) AddTwin(ctx context.Context, token string, twin twi
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Add twin failed to complete successfully", args...)
 			return
 		}
@@ -60,7 +60,7 @@ func (lm *loggingMiddleware) UpdateTwin(ctx context.Context, token string, twin 
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update twin failed to complete successfully", args...)
 			return
 		}
@@ -77,7 +77,7 @@ func (lm *loggingMiddleware) ViewTwin(ctx context.Context, token, twinID string)
 			slog.String("twin_id", twinID),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("View twin failed to complete successfully", args...)
 			return
 		}
@@ -99,7 +99,7 @@ func (lm *loggingMiddleware) ListTwins(ctx context.Context, token string, offset
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List twins failed to complete successfully", args...)
 			return
 		}
@@ -121,7 +121,7 @@ func (lm *loggingMiddleware) SaveStates(ctx context.Context, msg *messaging.Mess
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Save states failed to complete successfully", args...)
 			return
 		}
@@ -143,7 +143,7 @@ func (lm *loggingMiddleware) ListStates(ctx context.Context, token string, offse
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List states failed to complete successfully", args...)
 			return
 		}
@@ -160,7 +160,7 @@ func (lm *loggingMiddleware) RemoveTwin(ctx context.Context, token, twinID strin
 			slog.String("twin_id", twinID),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Remove twin failed to complete successfully", args...)
 			return
 		}

@@ -38,7 +38,7 @@ func (lm *loggingMiddleware) CreateSubscription(ctx context.Context, token strin
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Create subscription failed to complete successfully", args...)
 			return
 		}
@@ -61,7 +61,7 @@ func (lm *loggingMiddleware) ViewSubscription(ctx context.Context, token, topic 
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("View subscription failed to complete successfully", args...)
 			return
 		}
@@ -85,7 +85,7 @@ func (lm *loggingMiddleware) ListSubscriptions(ctx context.Context, token string
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List subscriptions failed to complete successfully", args...)
 			return
 		}
@@ -104,7 +104,7 @@ func (lm *loggingMiddleware) RemoveSubscription(ctx context.Context, token, id s
 			slog.String("id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Remove subscription failed to complete successfully", args...)
 			return
 		}
@@ -122,7 +122,7 @@ func (lm *loggingMiddleware) ConsumeBlocking(ctx context.Context, msg interface{
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Consume blocking failed to complete successfully", args...)
 			return
 		}

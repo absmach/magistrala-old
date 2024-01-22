@@ -27,7 +27,7 @@ func (lm *loggingMiddleware) AuthConnect(ctx context.Context) (err error) {
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("AuthConnect failed to complete successfully", args...)
 			return
 		}
@@ -46,7 +46,7 @@ func (lm *loggingMiddleware) AuthPublish(ctx context.Context, topic *string, pay
 			slog.Any("payload", payload),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("AuthPublish failed to complete successfully", args...)
 			return
 		}
@@ -64,7 +64,7 @@ func (lm *loggingMiddleware) AuthSubscribe(ctx context.Context, topics *[]string
 			slog.Any("topics", topics),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("AuthSubscribe failed to complete successfully", args...)
 			return
 		}
@@ -81,7 +81,7 @@ func (lm *loggingMiddleware) Connect(ctx context.Context) (err error) {
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Connect failed to complete successfully", args...)
 			return
 		}
@@ -98,7 +98,7 @@ func (lm *loggingMiddleware) Disconnect(ctx context.Context) (err error) {
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Disconnect failed to complete successfully", args...)
 			return
 		}
@@ -118,7 +118,7 @@ func (lm *loggingMiddleware) Publish(ctx context.Context, topic *string, payload
 			slog.Any("payload", payload),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Publish failed to complete successfully", args...)
 			return
 		}
@@ -136,7 +136,7 @@ func (lm *loggingMiddleware) Subscribe(ctx context.Context, topics *[]string) (e
 			slog.Any("topics", topics),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Subscribe failed to complete successfully", args...)
 			return
 		}
@@ -154,7 +154,7 @@ func (lm *loggingMiddleware) Unsubscribe(ctx context.Context, topics *[]string) 
 			slog.Any("topics", topics),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Unsubscribe failed to complete successfully", args...)
 			return
 		}

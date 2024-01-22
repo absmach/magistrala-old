@@ -30,7 +30,7 @@ func (lm *loggingMiddleware) CreateThings(ctx context.Context, token string, cli
 			slog.String("duration", time.Since(begin).String()), slog.Any("no_of_things", len(clients)),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Create thing failed to complete successfully", args...)
 			return
 		}
@@ -46,7 +46,7 @@ func (lm *loggingMiddleware) ViewClient(ctx context.Context, token, id string) (
 			slog.String("id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("View client failed to complete successfully", args...)
 			return
 		}
@@ -62,7 +62,7 @@ func (lm *loggingMiddleware) ViewClientPerms(ctx context.Context, token, id stri
 			slog.String("id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("View client permissions failed to complete successfully", args...)
 			return
 		}
@@ -83,7 +83,7 @@ func (lm *loggingMiddleware) ListClients(ctx context.Context, token, reqUserID s
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List clients failed to complete successfully", args...)
 			return
 		}
@@ -104,7 +104,7 @@ func (lm *loggingMiddleware) UpdateClient(ctx context.Context, token string, cli
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update client failed to complete successfully", args...)
 			return
 		}
@@ -143,7 +143,7 @@ func (lm *loggingMiddleware) UpdateClientSecret(ctx context.Context, token, oldS
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Update client secret failed to complete successfully", args...)
 			return
 		}
@@ -159,7 +159,7 @@ func (lm *loggingMiddleware) EnableClient(ctx context.Context, token, id string)
 			slog.String("id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Enable client failed to complete successfully", args...)
 			return
 		}
@@ -175,7 +175,7 @@ func (lm *loggingMiddleware) DisableClient(ctx context.Context, token, id string
 			slog.String("id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Disable client failed to complete successfully", args...)
 			return
 		}
@@ -196,7 +196,7 @@ func (lm *loggingMiddleware) ListClientsByGroup(ctx context.Context, token, chan
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("List clients by group failed to complete successfully", args...)
 			return
 		}
@@ -216,7 +216,7 @@ func (lm *loggingMiddleware) Identify(ctx context.Context, key string) (id strin
 			),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Identify failed to complete successfully", args...)
 			return
 		}
@@ -233,7 +233,7 @@ func (lm *loggingMiddleware) Authorize(ctx context.Context, req *magistrala.Auth
 			slog.String("channel_id", req.Object),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Authorize failed to complete successfully", args...)
 			return
 		}
@@ -251,7 +251,7 @@ func (lm *loggingMiddleware) Share(ctx context.Context, token, id, relation stri
 			slog.String("relation", relation),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Share failed to complete successfully", args...)
 			return
 		}
@@ -269,7 +269,7 @@ func (lm *loggingMiddleware) Unshare(ctx context.Context, token, id, relation st
 			slog.String("relation", relation),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Unshare failed to complete successfully", args...)
 			return
 		}
@@ -285,7 +285,7 @@ func (lm *loggingMiddleware) DeleteClient(ctx context.Context, token, id string)
 			slog.String("thing_id", id),
 		}
 		if err != nil {
-			args = append(args, slog.String("error", err.Error()))
+			args = append(args, slog.Any("error", err))
 			lm.logger.Warn("Delete client failed to complete successfully", args...)
 			return
 		}
