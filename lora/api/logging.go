@@ -34,8 +34,8 @@ func (lm loggingMiddleware) CreateThing(ctx context.Context, thingID, loraDevEUI
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"thing",
-				slog.String("thing_id", thingID),
-				slog.String("lora_dev_eui", loraDevEUI),
+				slog.String("id", thingID),
+				slog.String("dev_eui", loraDevEUI),
 			),
 		}
 		if err != nil {
@@ -55,8 +55,8 @@ func (lm loggingMiddleware) UpdateThing(ctx context.Context, thingID, loraDevEUI
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"thing",
-				slog.String("thing_id", thingID),
-				slog.String("lora_dev_eui", loraDevEUI),
+				slog.String("id", thingID),
+				slog.String("dev_eui", loraDevEUI),
 			),
 		}
 		if err != nil {
@@ -93,7 +93,7 @@ func (lm loggingMiddleware) CreateChannel(ctx context.Context, chanID, loraApp s
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"channel",
-				slog.String("channel_id", chanID),
+				slog.String("id", chanID),
 				slog.String("lora_app", loraApp),
 			),
 		}
@@ -114,7 +114,7 @@ func (lm loggingMiddleware) UpdateChannel(ctx context.Context, chanID, loraApp s
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"channel",
-				slog.String("channel_id", chanID),
+				slog.String("id", chanID),
 				slog.String("lora_app", loraApp),
 			),
 		}

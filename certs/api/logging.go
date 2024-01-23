@@ -83,10 +83,10 @@ func (lm *loggingMiddleware) ListSerials(ctx context.Context, token, thingID str
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("List serials failed to complete successfully", args...)
+			lm.logger.Warn("List certifcates failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("List serials completed successfully", args...)
+		lm.logger.Info("List certificates completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.ListSerials(ctx, token, thingID, offset, limit)

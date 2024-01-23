@@ -32,10 +32,10 @@ func (lm *loggingMiddleware) Publish(ctx context.Context, key string, msg *messa
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
+			slog.String("channel_id", msg.GetChannel()),
 		}
-		destChannel := msg.GetChannel()
 		if msg.GetSubtopic() != "" {
-			args = append(args, slog.String("channel", destChannel), slog.String("subtopic", msg.GetSubtopic()))
+			args = append(args, slog.String("subtopic", msg.GetSubtopic()))
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))

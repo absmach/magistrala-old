@@ -29,7 +29,7 @@ func (lm *loggingMiddleware) ListObjects(ctx context.Context, pr auth.PolicyReq,
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Any("limit", limit),
+			slog.Int64("limit", int64(limit)),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -46,6 +46,13 @@ func (lm *loggingMiddleware) ListAllObjects(ctx context.Context, pr auth.PolicyR
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"object",
+				slog.String("id", pr.Object),
+				slog.String("kind", pr.ObjectKind),
+				slog.String("type", pr.ObjectType),
+			),
+			slog.String("relation", pr.Relation),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -62,6 +69,13 @@ func (lm *loggingMiddleware) CountObjects(ctx context.Context, pr auth.PolicyReq
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"object",
+				slog.String("id", pr.Object),
+				slog.String("kind", pr.ObjectKind),
+				slog.String("type", pr.ObjectType),
+			),
+			slog.String("relation", pr.Relation),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -77,7 +91,14 @@ func (lm *loggingMiddleware) ListSubjects(ctx context.Context, pr auth.PolicyReq
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Any("limit", limit),
+			slog.Int64("limit", int64(limit)),
+			slog.Group(
+				"subject",
+				slog.String("id", pr.Subject),
+				slog.String("kind", pr.SubjectKind),
+				slog.String("type", pr.SubjectType),
+			),
+			slog.String("relation", pr.Relation),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -94,6 +115,12 @@ func (lm *loggingMiddleware) ListAllSubjects(ctx context.Context, pr auth.Policy
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"subject",
+				slog.String("id", pr.Subject),
+				slog.String("kind", pr.SubjectKind),
+				slog.String("type", pr.SubjectType),
+			),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -110,6 +137,12 @@ func (lm *loggingMiddleware) CountSubjects(ctx context.Context, pr auth.PolicyRe
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"subject",
+				slog.String("id", pr.Subject),
+				slog.String("kind", pr.SubjectKind),
+				slog.String("type", pr.SubjectType),
+			),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -142,16 +175,21 @@ func (lm *loggingMiddleware) Issue(ctx context.Context, token string, key auth.K
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"key",
+				slog.String("id", key.ID),
+				slog.Any("type", key.Type),
+			),
 		}
 		if key.Type != auth.AccessKey && !key.ExpiresAt.IsZero() {
 			args = append(args, slog.Any("expiration_date", key.ExpiresAt))
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Issue failed to complete successfully", args...)
+			lm.logger.Warn("Issue key failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Issue completed successfully", args...)
+		lm.logger.Info("Issue key completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Issue(ctx, token, key)
@@ -165,10 +203,10 @@ func (lm *loggingMiddleware) Revoke(ctx context.Context, token, id string) (err 
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Revoke failed to complete successfully", args...)
+			lm.logger.Warn("Revoke key failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Revoke completed successfully", args...)
+		lm.logger.Info("Revoke key completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Revoke(ctx, token, id)
@@ -198,10 +236,10 @@ func (lm *loggingMiddleware) Identify(ctx context.Context, token string) (id aut
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Identify failed to complete successfully", args...)
+			lm.logger.Warn("Identify key failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Identify completed successfully", args...)
+		lm.logger.Info("Identify key completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Identify(ctx, token)
@@ -211,6 +249,19 @@ func (lm *loggingMiddleware) Authorize(ctx context.Context, pr auth.PolicyReq) (
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"object",
+				slog.String("id", pr.Object),
+				slog.String("kind", pr.ObjectKind),
+				slog.String("type", pr.ObjectType),
+			),
+			slog.Group(
+				"subject",
+				slog.String("id", pr.Subject),
+				slog.String("kind", pr.SubjectKind),
+				slog.String("type", pr.SubjectType),
+			),
+			slog.String("relation", pr.Relation),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -226,6 +277,19 @@ func (lm *loggingMiddleware) AddPolicy(ctx context.Context, pr auth.PolicyReq) (
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"object",
+				slog.String("id", pr.Object),
+				slog.String("kind", pr.ObjectKind),
+				slog.String("type", pr.ObjectType),
+			),
+			slog.Group(
+				"subject",
+				slog.String("id", pr.Subject),
+				slog.String("kind", pr.SubjectKind),
+				slog.String("type", pr.SubjectType),
+			),
+			slog.String("relation", pr.Relation),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -241,6 +305,19 @@ func (lm *loggingMiddleware) AddPolicies(ctx context.Context, prs []auth.PolicyR
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"subject",
+				slog.String("id", prs[0].Subject),
+				slog.String("kind", prs[0].SubjectKind),
+				slog.String("type", prs[0].SubjectType),
+			),
+			slog.Group(
+				"object",
+				slog.String("id", prs[0].Object),
+				slog.String("kind", prs[0].ObjectKind),
+				slog.String("type", prs[0].ObjectType),
+			),
+			slog.String("relation", prs[0].Relation),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -257,6 +334,19 @@ func (lm *loggingMiddleware) DeletePolicy(ctx context.Context, pr auth.PolicyReq
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"object",
+				slog.String("id", pr.Object),
+				slog.String("kind", pr.ObjectKind),
+				slog.String("type", pr.ObjectType),
+			),
+			slog.Group(
+				"subject",
+				slog.String("id", pr.Subject),
+				slog.String("kind", pr.SubjectKind),
+				slog.String("type", pr.SubjectType),
+			),
+			slog.String("relation", pr.Relation),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -272,6 +362,19 @@ func (lm *loggingMiddleware) DeletePolicies(ctx context.Context, prs []auth.Poli
 	defer func(begin time.Time) {
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
+			slog.Group(
+				"subject",
+				slog.String("id", prs[0].Subject),
+				slog.String("kind", prs[0].SubjectKind),
+				slog.String("type", prs[0].SubjectType),
+			),
+			slog.Group(
+				"object",
+				slog.String("id", prs[0].Object),
+				slog.String("kind", prs[0].ObjectKind),
+				slog.String("type", prs[0].ObjectType),
+			),
+			slog.String("relation", prs[0].Relation),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -341,7 +444,7 @@ func (lm *loggingMiddleware) UpdateDomain(ctx context.Context, token, id string,
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"domain",
-				slog.String("domain_id", id),
+				slog.String("id", id),
 				slog.Any("name", d.Name),
 			),
 		}
@@ -361,7 +464,7 @@ func (lm *loggingMiddleware) ChangeDomainStatus(ctx context.Context, token, id s
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"domain",
-				slog.String("domain_id", id),
+				slog.String("id", id),
 				slog.Any("status", d.Status),
 			),
 		}

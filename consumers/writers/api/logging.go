@@ -7,7 +7,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -33,12 +32,15 @@ func LoggingMiddleware(consumer consumers.BlockingConsumer, logger *slog.Logger)
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ConsumeBlocking(ctx context.Context, msgs interface{}) (err error) {
 	defer func(begin time.Time) {
-		message := fmt.Sprintf("Method consume took %s to complete", time.Since(begin))
+		args := []interface{}{
+			slog.String("duration", time.Since(begin).String()),
+		}
 		if err != nil {
-			lm.logger.Warn(fmt.Sprintf("%s with error: %s.", message, err))
+			args = append(args, slog.Any("error", err))
+			lm.logger.Warn("Consume blocking failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info(fmt.Sprintf("%s without errors.", message))
+		lm.logger.Info("Consume blocking completed successfully", args...)
 	}(time.Now())
 
 	return lm.consumer.ConsumeBlocking(ctx, msgs)

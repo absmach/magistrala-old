@@ -35,10 +35,10 @@ func (lm *loggingMiddleware) Add(ctx context.Context, token string, cfg bootstra
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Add failed to complete successfully", args...)
+			lm.logger.Warn("Add new Thing config failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Add completed successfully", args...)
+		lm.logger.Info("Add new Thing config completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Add(ctx, token, cfg)
@@ -54,10 +54,10 @@ func (lm *loggingMiddleware) View(ctx context.Context, token, id string) (saved 
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("View failed to complete successfully", args...)
+			lm.logger.Warn("View thing config failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("View completed successfully", args...)
+		lm.logger.Info("View thing config completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.View(ctx, token, id)
@@ -73,10 +73,10 @@ func (lm *loggingMiddleware) Update(ctx context.Context, token string, cfg boots
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Update failed to complete successfully", args...)
+			lm.logger.Warn("Update config failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Update completed successfully", args...)
+		lm.logger.Info("Update config completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Update(ctx, token, cfg)
@@ -134,10 +134,10 @@ func (lm *loggingMiddleware) List(ctx context.Context, token string, filter boot
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("List failed to complete successfully", args...)
+			lm.logger.Warn("List configs failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("List completed successfully", args...)
+		lm.logger.Info("List configs completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.List(ctx, token, filter, offset, limit)
@@ -153,10 +153,10 @@ func (lm *loggingMiddleware) Remove(ctx context.Context, token, id string) (err 
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Remove failed to complete successfully", args...)
+			lm.logger.Warn("Remove config failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Remove completed successfully", args...)
+		lm.logger.Info("Remove config completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Remove(ctx, token, id)
@@ -206,9 +206,9 @@ func (lm *loggingMiddleware) UpdateChannelHandler(ctx context.Context, channel b
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"channel",
-				slog.String("channel_id", channel.ID),
-				slog.String("channel_name", channel.Name),
-				slog.Any("channel_metadata", channel.Metadata),
+				slog.String("id", channel.ID),
+				slog.String("name", channel.Name),
+				slog.Any("metadata", channel.Metadata),
 			),
 		}
 		if err != nil {

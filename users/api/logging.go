@@ -333,7 +333,7 @@ func (lm *loggingMiddleware) ListMembers(ctx context.Context, token, objectKind,
 			slog.Group("object", slog.String("kind", objectKind), slog.String("id", objectID)),
 			slog.Group(
 				"page",
-				slog.Any("limit", cp.Limit),
+				slog.Uint64("limit", cp.Limit),
 				slog.Uint64("offset", cp.Offset),
 				slog.Uint64("total", mp.Total),
 			),

@@ -78,10 +78,10 @@ func (lm *loggingMiddleware) ListSubscriptions(ctx context.Context, token string
 		args := []interface{}{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
-				"page_metadata",
+				"page",
 				slog.String("topic", pm.Topic),
 				slog.Int("limit", pm.Limit),
-				slog.Any("offset", pm.Offset),
+				slog.Uint64("offset", uint64(pm.Offset)),
 			),
 		}
 		if err != nil {

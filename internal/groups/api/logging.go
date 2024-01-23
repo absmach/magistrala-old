@@ -31,9 +31,9 @@ func (lm *loggingMiddleware) CreateGroup(ctx context.Context, token, kind string
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"group",
-				slog.String("group_name", g.Name),
+				slog.String("name", g.Name),
 				slog.String("kind", kind),
-				slog.String("group_id", g.ID),
+				slog.String("id", g.ID),
 			),
 		}
 		if err != nil {
@@ -54,8 +54,8 @@ func (lm *loggingMiddleware) UpdateGroup(ctx context.Context, token string, grou
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"group",
-				slog.String("group_name", g.Name),
-				slog.String("group_id", g.ID),
+				slog.String("name", g.Name),
+				slog.String("id", g.ID),
 				slog.Any("metadata", g.Metadata),
 			),
 		}
@@ -77,8 +77,8 @@ func (lm *loggingMiddleware) ViewGroup(ctx context.Context, token, id string) (g
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"group",
-				slog.String("group_id", g.ID),
-				slog.String("group_name", g.Name),
+				slog.String("id", g.ID),
+				slog.String("name", g.Name),
 			),
 		}
 		if err != nil {
@@ -143,8 +143,8 @@ func (lm *loggingMiddleware) EnableGroup(ctx context.Context, token, id string) 
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"group",
-				slog.String("group_id", id),
-				slog.String("group_name", g.Name),
+				slog.String("id", id),
+				slog.String("name", g.Name),
 			),
 		}
 		if err != nil {
@@ -183,7 +183,7 @@ func (lm *loggingMiddleware) ListMembers(ctx context.Context, token, groupID, pe
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"group",
-				slog.String("group_id", groupID),
+				slog.String("id", groupID),
 				slog.String("permission", permission),
 				slog.String("member_kind", memberKind),
 			),

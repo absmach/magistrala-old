@@ -34,7 +34,7 @@ func (lm loggingMiddleware) CreateThing(ctx context.Context, mgxThing, opcuaNode
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"thing",
-				slog.String("thing_id", mgxThing),
+				slog.String("id", mgxThing),
 				slog.String("opcua_node_id", opcuaNodeID),
 			),
 		}
@@ -55,7 +55,7 @@ func (lm loggingMiddleware) UpdateThing(ctx context.Context, mgxThing, opcuaNode
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"thing",
-				slog.String("thing_id", mgxThing),
+				slog.String("id", mgxThing),
 				slog.String("opcua_node_id", opcuaNodeID),
 			),
 		}
@@ -93,8 +93,8 @@ func (lm loggingMiddleware) CreateChannel(ctx context.Context, mgxChan, opcuaSer
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"channel",
-				slog.String("channel_id", mgxChan),
-				slog.String("opcua_server_uri", opcuaServerURI),
+				slog.String("id", mgxChan),
+				slog.String("server_uri", opcuaServerURI),
 			),
 		}
 		if err != nil {
@@ -114,8 +114,8 @@ func (lm loggingMiddleware) UpdateChannel(ctx context.Context, mgxChanID, opcuaS
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"channel",
-				slog.String("channel_id", mgxChanID),
-				slog.String("opcua_server_uri", opcuaServerURI),
+				slog.String("id", mgxChanID),
+				slog.String("server_uri", opcuaServerURI),
 			),
 		}
 		if err != nil {
