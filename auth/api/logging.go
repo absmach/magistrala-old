@@ -121,10 +121,14 @@ func (lm *loggingMiddleware) ListAllSubjects(ctx context.Context, pr auth.Policy
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"subject",
-				slog.String("id", pr.Subject),
-				slog.String("kind", pr.SubjectKind),
 				slog.String("type", pr.SubjectType),
 			),
+			slog.Group(
+				"object",
+				slog.String("id", pr.Object),
+				slog.String("type", pr.ObjectType),
+			),
+			slog.String("permission", pr.Permission),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
