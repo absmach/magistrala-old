@@ -32,7 +32,6 @@ func (lm *loggingMiddleware) CreateGroup(ctx context.Context, token, kind string
 			slog.Group(
 				"group",
 				slog.String("name", g.Name),
-				slog.String("kind", kind),
 				slog.String("id", g.ID),
 			),
 		}
