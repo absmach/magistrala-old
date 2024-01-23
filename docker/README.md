@@ -29,11 +29,11 @@ Magistrala supports configurable MQTT broker and Message broker, which also acts
 1. MQTT_BROKER: Handles MQTT communication between MQTT adapters and message broker. This can either be 'vernemq' or 'nats'.
 2. MESSAGE_BROKER: Manages communication between adapters and Magistrala writer services. This can either be 'nats' or 'rabbitmq' or 'redis'. This is used to store messages for distributed processing.
 
-Events store: This is the same as MESSAGE_BROKER. This can either be 'nats' or 'rabbitmq' or 'redis'. This is used by Magistrala services to store events for distributed processing. If redis is used as an events store, then rabbitmq or nats is used as a message broker.
+Events store: This is the same as MESSAGE_BROKER. This can either be 'nats' or 'rabbitmq' or 'redis'. This is used by Magistrala services to store events for distributed processing. If redis is used as an events store, then rabbitmq or nats is used as a message broker since redis cannot be used as a message broker.
 
-Since nats is used as both MQTT_BROKER and MESSAGE_BROKER, it is not possible to run nats as an MQTT_BROKER and nats as a MESSAGE_BROKER at the same time, this is the current depolyment strategy for Magistrala in `docker/docker-compose.yml`.
+Since nats is used as both MQTT_BROKER and MESSAGE_BROKER, it is possible to run nats as an MQTT_BROKER and nats as a MESSAGE_BROKER at the same time, this is the current depolyment strategy for Magistrala in `docker/docker-compose.yml`.
 
-. Therefore, the following combinations are possible:
+Therefore, the following combinations are possible:
 
 - MQTT_BROKER: vernemq, MESSAGE_BROKER: nats, EVENTS_STORE: nats
 - MQTT_BROKER: vernemq, MESSAGE_BROKER: nats, EVENTS_STORE: redis
@@ -44,7 +44,11 @@ Since nats is used as both MQTT_BROKER and MESSAGE_BROKER, it is not possible to
 - MQTT_BROKER: nats, MESSAGE_BROKER: nats, EVENTS_STORE: nats
 - MQTT_BROKER: nats, MESSAGE_BROKER: nats, EVENTS_STORE: redis
 
-For Message brokers other than nats, you would need to change the `docker/.env`. For example, to use rabbitmq as a message broker:
+For Message brokers other than nats, you would need to build the docker images with rabbtitmq as the build tag and change the `docker/.env`. For example, to use rabbitmq as a message broker:
+
+```env
+MG_MESSAGE_BROKER_TYPE=rabbitmq make dockers
+```
 
 ```env
 MG_MESSAGE_BROKER_TYPE=rabbitmq
@@ -54,13 +58,17 @@ MG_MESSAGE_BROKER_URL=${MG_RABBITMQ_URL}
 For redis as an events store, you would need to run rabbitmq or nats as a message broker. For example, to use redis as an events store with rabbitmq as a message broker:
 
 ```env
+MG_ES_TYPE=redis MG_MESSAGE_BROKER_TYPE=rabbitmq make dockers
+```
+
+```env
 MG_MESSAGE_BROKER_TYPE=rabbitmq
 MG_MESSAGE_BROKER_URL=${MG_RABBITMQ_URL}
 MG_ES_TYPE=redis
 MG_ES_URL=${MG_REDIS_URL}
 ```
 
-For MQTT brokers other than nats, you would need to change the `docker/.env`. For example, to use vernemq as a MQTT broker:
+For MQTT broker other than nats, you would need to change the `docker/.env`. For example, to use vernemq as a MQTT broker:
 
 ```env
 MG_MQTT_BROKER_TYPE=vernemq
