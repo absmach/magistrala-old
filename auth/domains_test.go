@@ -28,6 +28,11 @@ func TestStatusString(t *testing.T) {
 			expected: "disabled",
 		},
 		{
+			desc:     "Freezed",
+			status:   auth.FreezeStatus,
+			expected: "freezed",
+		},
+		{
 			desc:     "All",
 			status:   auth.AllStatus,
 			expected: "all",
@@ -64,6 +69,12 @@ func TestToStatus(t *testing.T) {
 			desc:      "Disabled",
 			status:    "disabled",
 			expetcted: auth.DisabledStatus,
+			err:       nil,
+		},
+		{
+			desc:      "Freezed",
+			status:    "freezed",
+			expetcted: auth.FreezeStatus,
 			err:       nil,
 		},
 		{

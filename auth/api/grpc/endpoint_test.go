@@ -14,6 +14,7 @@ import (
 	"github.com/absmach/magistrala/auth"
 	grpcapi "github.com/absmach/magistrala/auth/api/grpc"
 	"github.com/absmach/magistrala/internal/apiutil"
+	"github.com/absmach/magistrala/internal/testsutil"
 	"github.com/absmach/magistrala/pkg/errors"
 	svcerr "github.com/absmach/magistrala/pkg/errors/service"
 	"github.com/stretchr/testify/assert"
@@ -43,8 +44,12 @@ const (
 	validToken      = "valid"
 	inValidToken    = "invalid"
 	validPolicy     = "valid"
-	validID         = "d4ebb847-5d0e-4e46-bdd9-b6aceaaa3a22"
-	domainID        = "d4ebb847-5d0e-4e46-bdd9-b6aceaaa3a22"
+)
+
+var (
+	validID  = testsutil.GenerateUUID(&testing.T{})
+	domainID = testsutil.GenerateUUID(&testing.T{})
+	authAddr = fmt.Sprintf("localhost:%d", port)
 )
 
 func startGRPCServer(svc auth.Service, port int) {
@@ -52,136 +57,129 @@ func startGRPCServer(svc auth.Service, port int) {
 	server := grpc.NewServer()
 	magistrala.RegisterAuthServiceServer(server, grpcapi.NewServer(svc))
 	go func() {
-		if err := server.Serve(listener); err != nil {
-			panic(fmt.Sprintf("failed to serve: %s", err))
-		}
+		err := server.Serve(listener)
+		assert.Nil(&testing.T{}, err, fmt.Sprintf(`"Unexpected error creating server %s"`, err))
 	}()
 }
 
 func TestIssue(t *testing.T) {
-	authAddr := fmt.Sprintf("localhost:%d", port)
-	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
 		desc          string
-		id            string
-		email         string
+		userId        string
+		domainId      string
 		kind          auth.KeyType
 		issueResponse auth.Token
 		err           error
-		code          codes.Code
 	}{
 		{
-			desc:  "issue for user with valid token",
-			id:    id,
-			email: email,
-			kind:  auth.AccessKey,
+			desc:     "issue for user with valid token",
+			userId:   validID,
+			domainId: domainID,
+			kind:     auth.AccessKey,
 			issueResponse: auth.Token{
 				AccessToken:  validToken,
 				RefreshToken: validToken,
 			},
-			err:  nil,
-			code: codes.OK,
+			err: nil,
 		},
 		{
-			desc:  "issue recovery key",
-			id:    id,
-			email: email,
-			kind:  auth.RecoveryKey,
+			desc:     "issue recovery key",
+			userId:   validID,
+			domainId: domainID,
+			kind:     auth.RecoveryKey,
 			issueResponse: auth.Token{
 				AccessToken:  validToken,
 				RefreshToken: validToken,
 			},
-			err:  nil,
-			code: codes.OK,
+			err: nil,
 		},
 		{
 			desc:          "issue API key unauthenticated",
-			id:            id,
-			email:         email,
+			userId:        validID,
+			domainId:      domainID,
 			kind:          auth.APIKey,
 			issueResponse: auth.Token{},
 			err:           errors.ErrAuthentication,
-			code:          codes.Unauthenticated,
 		},
 		{
 			desc:          "issue for invalid key type",
-			id:            id,
-			email:         email,
+			userId:        validID,
+			domainId:      domainID,
 			kind:          32,
 			issueResponse: auth.Token{},
 			err:           errors.ErrMalformedEntity,
-			code:          codes.InvalidArgument,
 		},
 		{
 			desc:          "issue for user that does notexist",
-			id:            "",
-			email:         "",
+			userId:        "",
+			domainId:      "",
 			kind:          auth.APIKey,
 			issueResponse: auth.Token{},
 			err:           errors.ErrAuthentication,
-			code:          codes.Unauthenticated,
 		},
 	}
 
 	for _, tc := range cases {
 		repoCall := svc.On("Issue", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.issueResponse, tc.err)
-		_, err := client.Issue(context.Background(), &magistrala.IssueReq{UserId: tc.id, Type: uint32(tc.kind)})
+		_, err := client.Issue(context.Background(), &magistrala.IssueReq{UserId: tc.userId, DomainId: &tc.domainId, Type: uint32(tc.kind)})
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
 	}
 }
 
 func TestRefresh(t *testing.T) {
-	authAddr := fmt.Sprintf("localhost:%d", port)
-	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
 		desc          string
 		token         string
+		domainId      string
 		issueResponse auth.Token
 		err           error
-		code          codes.Code
 	}{
 		{
-			desc:  "refresh token with valid token",
-			token: validToken,
+			desc:     "refresh token with valid token",
+			token:    validToken,
+			domainId: domainID,
 			issueResponse: auth.Token{
 				AccessToken:  validToken,
 				RefreshToken: validToken,
 			},
-			err:  nil,
-			code: codes.OK,
+			err: nil,
 		},
 		{
 			desc:          "refresh token with invalid token",
 			token:         inValidToken,
+			domainId:      domainID,
 			issueResponse: auth.Token{},
 			err:           errors.ErrAuthentication,
-			code:          codes.Unauthenticated,
 		},
 		{
 			desc:          "refresh token with empty token",
 			token:         "",
+			domainId:      domainID,
 			issueResponse: auth.Token{},
 			err:           apiutil.ErrMissingSecret,
-			code:          codes.InvalidArgument,
 		},
 	}
 
 	for _, tc := range cases {
 		repoCall := svc.On("Issue", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.issueResponse, tc.err)
-		_, err := client.Refresh(context.Background(), &magistrala.RefreshReq{RefreshToken: tc.token})
+		_, err := client.Refresh(context.Background(), &magistrala.RefreshReq{DomainId: &tc.domainId, RefreshToken: tc.token})
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
 	}
 }
 
 func TestIdentify(t *testing.T) {
-	authAddr := fmt.Sprintf("localhost:%d", port)
-	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
@@ -190,14 +188,12 @@ func TestIdentify(t *testing.T) {
 		idt    *magistrala.IdentityRes
 		svcErr error
 		err    error
-		code   codes.Code
 	}{
 		{
 			desc:  "identify user with valid user token",
 			token: validToken,
 			idt:   &magistrala.IdentityRes{Id: id, UserId: email, DomainId: domainID},
 			err:   nil,
-			code:  codes.OK,
 		},
 		{
 			desc:   "identify user with invalid user token",
@@ -205,14 +201,12 @@ func TestIdentify(t *testing.T) {
 			idt:    &magistrala.IdentityRes{},
 			svcErr: svcerr.ErrAuthentication,
 			err:    svcerr.ErrAuthentication,
-			code:   codes.Unauthenticated,
 		},
 		{
 			desc:  "identify user with empty token",
 			token: "",
 			idt:   &magistrala.IdentityRes{},
 			err:   apiutil.ErrBearerToken,
-			code:  codes.Unauthenticated,
 		},
 	}
 
@@ -228,113 +222,121 @@ func TestIdentify(t *testing.T) {
 }
 
 func TestAuthorize(t *testing.T) {
-	authAddr := fmt.Sprintf("localhost:%d", port)
-	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
-		desc        string
-		token       string
-		subject     string
-		subjecttype string
-		object      string
-		objecttype  string
-		relation    string
-		permission  string
-		ar          *magistrala.AuthorizeRes
-		err         error
-		code        codes.Code
+		desc         string
+		token        string
+		authRequest  *magistrala.AuthorizeReq
+		authResponse *magistrala.AuthorizeRes
+		err          error
 	}{
 		{
-			desc:        "authorize user with authorized token",
-			token:       validToken,
-			subject:     id,
-			subjecttype: usersType,
-			object:      authoritiesObj,
-			objecttype:  usersType,
-			relation:    memberRelation,
-			permission:  adminpermission,
-			ar:          &magistrala.AuthorizeRes{Authorized: true},
-			err:         nil,
+			desc:  "authorize user with authorized token",
+			token: validToken,
+			authRequest: &magistrala.AuthorizeReq{
+				Subject:     id,
+				SubjectType: usersType,
+				Object:      authoritiesObj,
+				ObjectType:  usersType,
+				Relation:    memberRelation,
+				Permission:  adminpermission,
+			},
+			authResponse: &magistrala.AuthorizeRes{Authorized: true},
+			err:          nil,
 		},
 		{
-			desc:        "authorize user with unauthorized token",
-			token:       inValidToken,
-			subject:     id,
-			subjecttype: usersType,
-			object:      authoritiesObj,
-			objecttype:  usersType,
-			relation:    memberRelation,
-			permission:  adminpermission,
-			ar:          &magistrala.AuthorizeRes{Authorized: false},
-			err:         svcerr.ErrAuthorization,
+			desc:  "authorize user with unauthorized token",
+			token: inValidToken,
+			authRequest: &magistrala.AuthorizeReq{
+				Subject:     id,
+				SubjectType: usersType,
+				Object:      authoritiesObj,
+				ObjectType:  usersType,
+				Relation:    memberRelation,
+				Permission:  adminpermission,
+			},
+			authResponse: &magistrala.AuthorizeRes{Authorized: false},
+			err:          svcerr.ErrAuthorization,
 		},
 		{
-			desc:        "authorize user with empty subject",
-			token:       validToken,
-			subject:     "",
-			subjecttype: usersType,
-			object:      authoritiesObj,
-			objecttype:  usersType,
-			relation:    memberRelation,
-			permission:  adminpermission,
-			ar:          &magistrala.AuthorizeRes{Authorized: false},
-			err:         apiutil.ErrMissingPolicySub,
+			desc:  "authorize user with empty subject",
+			token: validToken,
+			authRequest: &magistrala.AuthorizeReq{
+				Subject:     "",
+				SubjectType: usersType,
+				Object:      authoritiesObj,
+				ObjectType:  usersType,
+				Relation:    memberRelation,
+				Permission:  adminpermission,
+			},
+			authResponse: &magistrala.AuthorizeRes{Authorized: false},
+			err:          apiutil.ErrMissingPolicySub,
 		},
 		{
-			desc:        "authorize user with empty subject type",
-			token:       validToken,
-			subject:     id,
-			subjecttype: "",
-			object:      authoritiesObj,
-			objecttype:  usersType,
-			relation:    memberRelation,
-			permission:  adminpermission,
-			ar:          &magistrala.AuthorizeRes{Authorized: false},
-			err:         apiutil.ErrMissingPolicySub,
+			desc:  "authorize user with empty subject type",
+			token: validToken,
+			authRequest: &magistrala.AuthorizeReq{
+				Subject:     id,
+				SubjectType: "",
+				Object:      authoritiesObj,
+				ObjectType:  usersType,
+				Relation:    memberRelation,
+				Permission:  adminpermission,
+			},
+			authResponse: &magistrala.AuthorizeRes{Authorized: false},
+			err:          apiutil.ErrMissingPolicySub,
 		},
 		{
-			desc:        "authorize user with empty object",
-			token:       validToken,
-			subject:     id,
-			subjecttype: usersType,
-			object:      "",
-			objecttype:  usersType,
-			relation:    memberRelation,
-			permission:  adminpermission,
-			ar:          &magistrala.AuthorizeRes{Authorized: false},
-			err:         apiutil.ErrMissingPolicyObj,
+			desc:  "authorize user with empty object",
+			token: validToken,
+			authRequest: &magistrala.AuthorizeReq{
+				Subject:     id,
+				SubjectType: usersType,
+				Object:      "",
+				ObjectType:  usersType,
+				Relation:    memberRelation,
+				Permission:  adminpermission,
+			},
+			authResponse: &magistrala.AuthorizeRes{Authorized: false},
+			err:          apiutil.ErrMissingPolicyObj,
 		},
 		{
-			desc:        "authorize user with empty object type",
-			token:       validToken,
-			subject:     id,
-			subjecttype: usersType,
-			object:      authoritiesObj,
-			objecttype:  "",
-			relation:    memberRelation,
-			permission:  adminpermission,
-			ar:          &magistrala.AuthorizeRes{Authorized: false},
-			err:         apiutil.ErrMissingPolicyObj,
+			desc:  "authorize user with empty object type",
+			token: validToken,
+			authRequest: &magistrala.AuthorizeReq{
+				Subject:     id,
+				SubjectType: usersType,
+				Object:      authoritiesObj,
+				ObjectType:  "",
+				Relation:    memberRelation,
+				Permission:  adminpermission,
+			},
+			authResponse: &magistrala.AuthorizeRes{Authorized: false},
+			err:          apiutil.ErrMissingPolicyObj,
 		},
 		{
-			desc:        "authorize user with empty permission",
-			token:       validToken,
-			subject:     id,
-			subjecttype: usersType,
-			object:      authoritiesObj,
-			objecttype:  usersType,
-			relation:    memberRelation,
-			permission:  "",
-			ar:          &magistrala.AuthorizeRes{Authorized: false},
-			err:         apiutil.ErrMalformedPolicyPer,
+			desc:  "authorize user with empty permission",
+			token: validToken,
+			authRequest: &magistrala.AuthorizeReq{
+				Subject:     id,
+				SubjectType: usersType,
+				Object:      authoritiesObj,
+				ObjectType:  usersType,
+				Relation:    memberRelation,
+				Permission:  "",
+			},
+			authResponse: &magistrala.AuthorizeRes{Authorized: false},
+			err:          apiutil.ErrMalformedPolicyPer,
 		},
 	}
 	for _, tc := range cases {
 		repocall := svc.On("Authorize", mock.Anything, mock.Anything).Return(tc.err)
-		ar, err := client.Authorize(context.Background(), &magistrala.AuthorizeReq{Subject: tc.subject, SubjectType: tc.subjecttype, Object: tc.object, ObjectType: tc.objecttype, Relation: tc.relation, Permission: tc.permission})
+		ar, err := client.Authorize(context.Background(), tc.authRequest)
 		if ar != nil {
-			assert.Equal(t, tc.ar, ar, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.ar, ar))
+			assert.Equal(t, tc.authResponse, ar, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.authResponse, ar))
 		}
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repocall.Unset()
@@ -342,55 +344,53 @@ func TestAuthorize(t *testing.T) {
 }
 
 func TestAddPolicy(t *testing.T) {
-	authAddr := fmt.Sprintf("localhost:%d", port)
-	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	groupAdminObj := "groupadmin"
 
 	cases := []struct {
-		desc        string
-		token       string
-		subject     string
-		subjecttype string
-		object      string
-		objecttype  string
-		relation    string
-		permission  string
-		ar          *magistrala.AddPolicyRes
-		err         error
-		code        codes.Code
+		desc         string
+		token        string
+		addPolicyReq *magistrala.AddPolicyReq
+		addPolicyRes *magistrala.AddPolicyRes
+		err          error
 	}{
 		{
-			desc:        "add groupadmin policy to user",
-			token:       validToken,
-			subject:     id,
-			subjecttype: usersType,
-			object:      groupAdminObj,
-			objecttype:  usersType,
-			relation:    memberRelation,
-			permission:  adminpermission,
-			ar:          &magistrala.AddPolicyRes{Authorized: true},
-			err:         nil,
+			desc:  "add groupadmin policy to user",
+			token: validToken,
+			addPolicyReq: &magistrala.AddPolicyReq{
+				Subject:     id,
+				SubjectType: usersType,
+				Object:      groupAdminObj,
+				ObjectType:  usersType,
+				Relation:    memberRelation,
+				Permission:  adminpermission,
+			},
+			addPolicyRes: &magistrala.AddPolicyRes{Authorized: true},
+			err:          nil,
 		},
 		{
-			desc:        "add groupadmin policy to user with invalid token",
-			token:       inValidToken,
-			subject:     id,
-			subjecttype: usersType,
-			object:      groupAdminObj,
-			objecttype:  usersType,
-			relation:    memberRelation,
-			permission:  adminpermission,
-			ar:          &magistrala.AddPolicyRes{Authorized: false},
-			err:         svcerr.ErrAuthorization,
+			desc:  "add groupadmin policy to user with invalid token",
+			token: inValidToken,
+			addPolicyReq: &magistrala.AddPolicyReq{
+				Subject:     id,
+				SubjectType: usersType,
+				Object:      groupAdminObj,
+				ObjectType:  usersType,
+				Relation:    memberRelation,
+				Permission:  adminpermission,
+			},
+			addPolicyRes: &magistrala.AddPolicyRes{Authorized: false},
+			err:          svcerr.ErrAuthorization,
 		},
 	}
 	for _, tc := range cases {
 		repoCall := svc.On("AddPolicy", mock.Anything, mock.Anything).Return(tc.err)
-		apr, err := client.AddPolicy(context.Background(), &magistrala.AddPolicyReq{Subject: tc.subject, SubjectType: tc.subjecttype, Object: tc.object, ObjectType: tc.objecttype, Relation: tc.relation, Permission: tc.permission})
+		apr, err := client.AddPolicy(context.Background(), tc.addPolicyReq)
 		if apr != nil {
-			assert.Equal(t, tc.ar, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.ar, apr))
+			assert.Equal(t, tc.addPolicyRes, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.addPolicyRes, apr))
 		}
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
@@ -398,8 +398,8 @@ func TestAddPolicy(t *testing.T) {
 }
 
 func TestAddPolicies(t *testing.T) {
-	authAddr := fmt.Sprintf("localhost:%d", port)
-	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	groupAdminObj := "groupadmin"
@@ -410,7 +410,6 @@ func TestAddPolicies(t *testing.T) {
 		pr    *magistrala.AddPoliciesReq
 		ar    *magistrala.AddPoliciesRes
 		err   error
-		code  codes.Code
 	}{
 		{
 			desc:  "add groupadmin policy to user",
@@ -461,79 +460,77 @@ func TestAddPolicies(t *testing.T) {
 }
 
 func TestDeletePolicy(t *testing.T) {
-	authAddr := fmt.Sprintf("localhost:%d", port)
-	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	readRelation := "read"
 	thingID := "thing"
 
 	cases := []struct {
-		desc        string
-		token       string
-		subject     string
-		subjecttype string
-		object      string
-		objecttype  string
-		relation    string
-		permission  string
-		dpr         *magistrala.DeletePolicyRes
-		err         error
+		desc            string
+		token           string
+		deletePolicyReq *magistrala.DeletePolicyReq
+		deletePolicyRes *magistrala.DeletePolicyRes
+		err             error
 	}{
 		{
-			desc:        "delete valid policy",
-			token:       validToken,
-			subject:     id,
-			subjecttype: usersType,
-			object:      thingID,
-			objecttype:  thingsType,
-			relation:    readRelation,
-			permission:  readRelation,
-			dpr:         &magistrala.DeletePolicyRes{Deleted: true},
-			err:         nil,
+			desc:  "delete valid policy",
+			token: validToken,
+			deletePolicyReq: &magistrala.DeletePolicyReq{
+				Subject:     id,
+				SubjectType: usersType,
+				Object:      thingID,
+				ObjectType:  thingsType,
+				Relation:    readRelation,
+				Permission:  readRelation,
+			},
+			deletePolicyRes: &magistrala.DeletePolicyRes{Deleted: true},
+			err:             nil,
 		},
 		{
-			desc:        "delete invalid policy with invalid token",
-			token:       inValidToken,
-			subject:     id,
-			subjecttype: usersType,
-			object:      thingID,
-			objecttype:  thingsType,
-			relation:    readRelation,
-			permission:  readRelation,
-			dpr:         &magistrala.DeletePolicyRes{Deleted: false},
-			err:         svcerr.ErrAuthorization,
+			desc:  "delete invalid policy with invalid token",
+			token: inValidToken,
+			deletePolicyReq: &magistrala.DeletePolicyReq{
+				Subject:     id,
+				SubjectType: usersType,
+				Object:      thingID,
+				ObjectType:  thingsType,
+				Relation:    readRelation,
+				Permission:  readRelation,
+			},
+			deletePolicyRes: &magistrala.DeletePolicyRes{Deleted: false},
+			err:             svcerr.ErrAuthorization,
 		},
 	}
 	for _, tc := range cases {
 		repoCall := svc.On("DeletePolicy", mock.Anything, mock.Anything).Return(tc.err)
-		dpr, err := client.DeletePolicy(context.Background(), &magistrala.DeletePolicyReq{Subject: tc.subject, SubjectType: tc.subjecttype, Object: tc.object, ObjectType: tc.objecttype, Relation: tc.relation})
-		assert.Equal(t, tc.dpr.GetDeleted(), dpr.GetDeleted(), fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.dpr.GetDeleted(), dpr.GetDeleted()))
+		dpr, err := client.DeletePolicy(context.Background(), tc.deletePolicyReq)
+		assert.Equal(t, tc.deletePolicyRes.GetDeleted(), dpr.GetDeleted(), fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.deletePolicyRes.GetDeleted(), dpr.GetDeleted()))
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
 	}
 }
 
 func TestDeletePolicies(t *testing.T) {
-	authAddr := fmt.Sprintf("localhost:%d", port)
-	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	readRelation := "read"
 	thingID := "thing"
 
 	cases := []struct {
-		desc  string
-		token string
-		pr    *magistrala.DeletePoliciesReq
-		ar    *magistrala.DeletePoliciesRes
-		err   error
-		code  codes.Code
+		desc              string
+		token             string
+		deletePoliciesReq *magistrala.DeletePoliciesReq
+		deletePoliciesRes *magistrala.DeletePoliciesRes
+		err               error
 	}{
 		{
 			desc:  "delete policies with valid token",
 			token: validToken,
-			pr: &magistrala.DeletePoliciesReq{
+			deletePoliciesReq: &magistrala.DeletePoliciesReq{
 				DeletePoliciesReq: []*magistrala.DeletePolicyReq{
 					{
 						Subject:     id,
@@ -545,13 +542,13 @@ func TestDeletePolicies(t *testing.T) {
 					},
 				},
 			},
-			ar:  &magistrala.DeletePoliciesRes{Deleted: true},
-			err: nil,
+			deletePoliciesRes: &magistrala.DeletePoliciesRes{Deleted: true},
+			err:               nil,
 		},
 		{
 			desc:  "delete policies with invalid token",
 			token: inValidToken,
-			pr: &magistrala.DeletePoliciesReq{
+			deletePoliciesReq: &magistrala.DeletePoliciesReq{
 				DeletePoliciesReq: []*magistrala.DeletePolicyReq{
 					{
 						Subject:     id,
@@ -563,15 +560,15 @@ func TestDeletePolicies(t *testing.T) {
 					},
 				},
 			},
-			ar:  &magistrala.DeletePoliciesRes{Deleted: false},
-			err: svcerr.ErrAuthorization,
+			deletePoliciesRes: &magistrala.DeletePoliciesRes{Deleted: false},
+			err:               svcerr.ErrAuthorization,
 		},
 	}
 	for _, tc := range cases {
 		repoCall := svc.On("DeletePolicies", mock.Anything, mock.Anything).Return(tc.err)
-		apr, err := client.DeletePolicies(context.Background(), tc.pr)
+		apr, err := client.DeletePolicies(context.Background(), tc.deletePoliciesReq)
 		if apr != nil {
-			assert.Equal(t, tc.ar, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.ar, apr))
+			assert.Equal(t, tc.deletePoliciesRes, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.deletePoliciesRes, apr))
 		}
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
@@ -579,28 +576,27 @@ func TestDeletePolicies(t *testing.T) {
 }
 
 func TestListObjects(t *testing.T) {
-	authAddr := fmt.Sprintf("localhost:%d", port)
-	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
-		desc  string
-		token string
-		pr    *magistrala.ListObjectsReq
-		ar    *magistrala.ListObjectsRes
-		err   error
-		code  codes.Code
+		desc           string
+		token          string
+		listObjectsReq *magistrala.ListObjectsReq
+		listObjectsRes *magistrala.ListObjectsRes
+		err            error
 	}{
 		{
 			desc:  "list objects with valid token",
 			token: validToken,
-			pr: &magistrala.ListObjectsReq{
+			listObjectsReq: &magistrala.ListObjectsReq{
 				Domain:     domainID,
 				ObjectType: thingsType,
 				Relation:   memberRelation,
 				Permission: adminpermission,
 			},
-			ar: &magistrala.ListObjectsRes{
+			listObjectsRes: &magistrala.ListObjectsRes{
 				Policies: []string{validPolicy},
 			},
 			err: nil,
@@ -608,21 +604,21 @@ func TestListObjects(t *testing.T) {
 		{
 			desc:  "list objects with invalid token",
 			token: inValidToken,
-			pr: &magistrala.ListObjectsReq{
+			listObjectsReq: &magistrala.ListObjectsReq{
 				Domain:     domainID,
 				ObjectType: thingsType,
 				Relation:   memberRelation,
 				Permission: adminpermission,
 			},
-			ar:  &magistrala.ListObjectsRes{},
-			err: svcerr.ErrAuthorization,
+			listObjectsRes: &magistrala.ListObjectsRes{},
+			err:            svcerr.ErrAuthorization,
 		},
 	}
 	for _, tc := range cases {
-		repoCall := svc.On("ListObjects", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(auth.PolicyPage{Policies: tc.ar.Policies}, tc.err)
-		apr, err := client.ListObjects(context.Background(), tc.pr)
+		repoCall := svc.On("ListObjects", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(auth.PolicyPage{Policies: tc.listObjectsRes.Policies}, tc.err)
+		apr, err := client.ListObjects(context.Background(), tc.listObjectsReq)
 		if apr != nil {
-			assert.Equal(t, tc.ar, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.ar, apr))
+			assert.Equal(t, tc.listObjectsRes, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.listObjectsRes, apr))
 		}
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
@@ -630,27 +626,27 @@ func TestListObjects(t *testing.T) {
 }
 
 func TestListAllObjects(t *testing.T) {
-	authAddr := fmt.Sprintf("localhost:%d", port)
-	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
 	client := grpcapi.NewClient(conn, time.Second)
+
 	cases := []struct {
-		desc  string
-		token string
-		pr    *magistrala.ListObjectsReq
-		ar    *magistrala.ListObjectsRes
-		err   error
-		code  codes.Code
+		desc              string
+		token             string
+		listAllObjectsReq *magistrala.ListObjectsReq
+		listAllObjectsRes *magistrala.ListObjectsRes
+		err               error
 	}{
 		{
 			desc:  "list all objects with valid token",
 			token: validToken,
-			pr: &magistrala.ListObjectsReq{
+			listAllObjectsReq: &magistrala.ListObjectsReq{
 				Domain:     domainID,
 				ObjectType: thingsType,
 				Relation:   memberRelation,
 				Permission: adminpermission,
 			},
-			ar: &magistrala.ListObjectsRes{
+			listAllObjectsRes: &magistrala.ListObjectsRes{
 				Policies: []string{validPolicy},
 			},
 			err: nil,
@@ -658,21 +654,21 @@ func TestListAllObjects(t *testing.T) {
 		{
 			desc:  "list all objects with invalid token",
 			token: inValidToken,
-			pr: &magistrala.ListObjectsReq{
+			listAllObjectsReq: &magistrala.ListObjectsReq{
 				Domain:     domainID,
 				ObjectType: thingsType,
 				Relation:   memberRelation,
 				Permission: adminpermission,
 			},
-			ar:  &magistrala.ListObjectsRes{},
-			err: svcerr.ErrAuthorization,
+			listAllObjectsRes: &magistrala.ListObjectsRes{},
+			err:               svcerr.ErrAuthorization,
 		},
 	}
 	for _, tc := range cases {
-		repoCall := svc.On("ListAllObjects", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(auth.PolicyPage{Policies: tc.ar.Policies}, tc.err)
-		apr, err := client.ListAllObjects(context.Background(), tc.pr)
+		repoCall := svc.On("ListAllObjects", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(auth.PolicyPage{Policies: tc.listAllObjectsRes.Policies}, tc.err)
+		apr, err := client.ListAllObjects(context.Background(), tc.listAllObjectsReq)
 		if apr != nil {
-			assert.Equal(t, tc.ar, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.ar, apr))
+			assert.Equal(t, tc.listAllObjectsRes, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.listAllObjectsRes, apr))
 		}
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
@@ -680,27 +676,27 @@ func TestListAllObjects(t *testing.T) {
 }
 
 func TestCountObects(t *testing.T) {
-	authAddr := fmt.Sprintf("localhost:%d", port)
-	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
 	client := grpcapi.NewClient(conn, time.Second)
+
 	cases := []struct {
-		desc  string
-		token string
-		pr    *magistrala.CountObjectsReq
-		ar    *magistrala.CountObjectsRes
-		err   error
-		code  codes.Code
+		desc            string
+		token           string
+		countObjectsReq *magistrala.CountObjectsReq
+		countObjectsRes *magistrala.CountObjectsRes
+		err             error
 	}{
 		{
 			desc:  "count objects with valid token",
 			token: validToken,
-			pr: &magistrala.CountObjectsReq{
+			countObjectsReq: &magistrala.CountObjectsReq{
 				Domain:     domainID,
 				ObjectType: thingsType,
 				Relation:   memberRelation,
 				Permission: adminpermission,
 			},
-			ar: &magistrala.CountObjectsRes{
+			countObjectsRes: &magistrala.CountObjectsRes{
 				Count: 1,
 			},
 			err: nil,
@@ -708,21 +704,21 @@ func TestCountObects(t *testing.T) {
 		{
 			desc:  "count objects with invalid token",
 			token: inValidToken,
-			pr: &magistrala.CountObjectsReq{
+			countObjectsReq: &magistrala.CountObjectsReq{
 				Domain:     domainID,
 				ObjectType: thingsType,
 				Relation:   memberRelation,
 				Permission: adminpermission,
 			},
-			ar:  &magistrala.CountObjectsRes{},
-			err: svcerr.ErrAuthorization,
+			countObjectsRes: &magistrala.CountObjectsRes{},
+			err:             svcerr.ErrAuthorization,
 		},
 	}
 	for _, tc := range cases {
-		repoCall := svc.On("CountObjects", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(int(tc.ar.Count), tc.err)
-		apr, err := client.CountObjects(context.Background(), tc.pr)
+		repoCall := svc.On("CountObjects", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(int(tc.countObjectsRes.Count), tc.err)
+		apr, err := client.CountObjects(context.Background(), tc.countObjectsReq)
 		if apr != nil {
-			assert.Equal(t, tc.ar, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.ar, apr))
+			assert.Equal(t, tc.countObjectsRes, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.countObjectsRes, apr))
 		}
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
@@ -730,28 +726,27 @@ func TestCountObects(t *testing.T) {
 }
 
 func TestListSubjects(t *testing.T) {
-	authAddr := fmt.Sprintf("localhost:%d", port)
-	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-
+	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
 	client := grpcapi.NewClient(conn, time.Second)
+
 	cases := []struct {
-		desc  string
-		token string
-		pr    *magistrala.ListSubjectsReq
-		ar    *magistrala.ListSubjectsRes
-		err   error
-		code  codes.Code
+		desc            string
+		token           string
+		listSubjectsReq *magistrala.ListSubjectsReq
+		listSubjectsRes *magistrala.ListSubjectsRes
+		err             error
 	}{
 		{
 			desc:  "list subjects with valid token",
 			token: validToken,
-			pr: &magistrala.ListSubjectsReq{
+			listSubjectsReq: &magistrala.ListSubjectsReq{
 				Domain:      domainID,
 				SubjectType: usersType,
 				Relation:    memberRelation,
 				Permission:  adminpermission,
 			},
-			ar: &magistrala.ListSubjectsRes{
+			listSubjectsRes: &magistrala.ListSubjectsRes{
 				Policies: []string{validPolicy},
 			},
 			err: nil,
@@ -759,21 +754,21 @@ func TestListSubjects(t *testing.T) {
 		{
 			desc:  "list subjects with invalid token",
 			token: inValidToken,
-			pr: &magistrala.ListSubjectsReq{
+			listSubjectsReq: &magistrala.ListSubjectsReq{
 				Domain:      domainID,
 				SubjectType: usersType,
 				Relation:    memberRelation,
 				Permission:  adminpermission,
 			},
-			ar:  &magistrala.ListSubjectsRes{},
-			err: svcerr.ErrAuthorization,
+			listSubjectsRes: &magistrala.ListSubjectsRes{},
+			err:             svcerr.ErrAuthorization,
 		},
 	}
 	for _, tc := range cases {
-		repoCall := svc.On("ListSubjects", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(auth.PolicyPage{Policies: tc.ar.Policies}, tc.err)
-		apr, err := client.ListSubjects(context.Background(), tc.pr)
+		repoCall := svc.On("ListSubjects", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(auth.PolicyPage{Policies: tc.listSubjectsRes.Policies}, tc.err)
+		apr, err := client.ListSubjects(context.Background(), tc.listSubjectsReq)
 		if apr != nil {
-			assert.Equal(t, tc.ar, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.ar, apr))
+			assert.Equal(t, tc.listSubjectsRes, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.listSubjectsRes, apr))
 		}
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
@@ -781,28 +776,27 @@ func TestListSubjects(t *testing.T) {
 }
 
 func TestListAllSubjects(t *testing.T) {
-	authAddr := fmt.Sprintf("localhost:%d", port)
-	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-
+	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
 	client := grpcapi.NewClient(conn, time.Second)
+
 	cases := []struct {
-		desc  string
-		token string
-		pr    *magistrala.ListSubjectsReq
-		ar    *magistrala.ListSubjectsRes
-		err   error
-		code  codes.Code
+		desc            string
+		token           string
+		listSubjectsReq *magistrala.ListSubjectsReq
+		listSubjectsRes *magistrala.ListSubjectsRes
+		err             error
 	}{
 		{
 			desc:  "list all subjects with valid token",
 			token: validToken,
-			pr: &magistrala.ListSubjectsReq{
+			listSubjectsReq: &magistrala.ListSubjectsReq{
 				Domain:      domainID,
 				SubjectType: auth.UserType,
 				Relation:    memberRelation,
 				Permission:  adminpermission,
 			},
-			ar: &magistrala.ListSubjectsRes{
+			listSubjectsRes: &magistrala.ListSubjectsRes{
 				Policies: []string{validPolicy},
 			},
 			err: nil,
@@ -810,21 +804,21 @@ func TestListAllSubjects(t *testing.T) {
 		{
 			desc:  "list all subjects with invalid token",
 			token: inValidToken,
-			pr: &magistrala.ListSubjectsReq{
+			listSubjectsReq: &magistrala.ListSubjectsReq{
 				Domain:      domainID,
 				SubjectType: usersType,
 				Relation:    memberRelation,
 				Permission:  adminpermission,
 			},
-			ar:  &magistrala.ListSubjectsRes{},
-			err: svcerr.ErrAuthorization,
+			listSubjectsRes: &magistrala.ListSubjectsRes{},
+			err:             svcerr.ErrAuthorization,
 		},
 	}
 	for _, tc := range cases {
-		repoCall := svc.On("ListAllSubjects", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(auth.PolicyPage{Policies: tc.ar.Policies}, tc.err)
-		apr, err := client.ListAllSubjects(context.Background(), tc.pr)
+		repoCall := svc.On("ListAllSubjects", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(auth.PolicyPage{Policies: tc.listSubjectsRes.Policies}, tc.err)
+		apr, err := client.ListAllSubjects(context.Background(), tc.listSubjectsReq)
 		if apr != nil {
-			assert.Equal(t, tc.ar, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.ar, apr))
+			assert.Equal(t, tc.listSubjectsRes, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.listSubjectsRes, apr))
 		}
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
@@ -832,28 +826,28 @@ func TestListAllSubjects(t *testing.T) {
 }
 
 func TestCountSubjects(t *testing.T) {
-	authAddr := fmt.Sprintf("localhost:%d", port)
-	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-
+	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
 	client := grpcapi.NewClient(conn, time.Second)
+
 	cases := []struct {
-		desc  string
-		token string
-		pr    *magistrala.CountSubjectsReq
-		ar    *magistrala.CountSubjectsRes
-		err   error
-		code  codes.Code
+		desc             string
+		token            string
+		countSubjectsReq *magistrala.CountSubjectsReq
+		countSubjectsRes *magistrala.CountSubjectsRes
+		err              error
+		code             codes.Code
 	}{
 		{
 			desc:  "count subjects with valid token",
 			token: validToken,
-			pr: &magistrala.CountSubjectsReq{
+			countSubjectsReq: &magistrala.CountSubjectsReq{
 				Domain:      domainID,
 				SubjectType: usersType,
 				Relation:    memberRelation,
 				Permission:  adminpermission,
 			},
-			ar: &magistrala.CountSubjectsRes{
+			countSubjectsRes: &magistrala.CountSubjectsRes{
 				Count: 1,
 			},
 			code: codes.OK,
@@ -862,22 +856,22 @@ func TestCountSubjects(t *testing.T) {
 		{
 			desc:  "count subjects with invalid token",
 			token: inValidToken,
-			pr: &magistrala.CountSubjectsReq{
+			countSubjectsReq: &magistrala.CountSubjectsReq{
 				Domain:      domainID,
 				SubjectType: usersType,
 				Relation:    memberRelation,
 				Permission:  adminpermission,
 			},
-			ar:   &magistrala.CountSubjectsRes{},
-			err:  svcerr.ErrAuthentication,
-			code: codes.Unauthenticated,
+			countSubjectsRes: &magistrala.CountSubjectsRes{},
+			err:              svcerr.ErrAuthentication,
+			code:             codes.Unauthenticated,
 		},
 	}
 	for _, tc := range cases {
-		repoCall := svc.On("CountSubjects", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(int(tc.ar.Count), tc.err)
-		apr, err := client.CountSubjects(context.Background(), tc.pr)
+		repoCall := svc.On("CountSubjects", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(int(tc.countSubjectsRes.Count), tc.err)
+		apr, err := client.CountSubjects(context.Background(), tc.countSubjectsReq)
 		if apr != nil {
-			assert.Equal(t, tc.ar, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.ar, apr))
+			assert.Equal(t, tc.countSubjectsRes, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.countSubjectsRes, apr))
 		}
 		e, ok := status.FromError(err)
 		assert.True(t, ok, "gRPC status can't be extracted from the error")
@@ -887,22 +881,21 @@ func TestCountSubjects(t *testing.T) {
 }
 
 func TestListPermissions(t *testing.T) {
-	authAddr := fmt.Sprintf("localhost:%d", port)
-	conn, _ := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-
+	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
 	client := grpcapi.NewClient(conn, time.Second)
+
 	cases := []struct {
-		desc  string
-		token string
-		pr    *magistrala.ListPermissionsReq
-		ar    *magistrala.ListPermissionsRes
-		err   error
-		code  codes.Code
+		desc               string
+		token              string
+		listPermissionsReq *magistrala.ListPermissionsReq
+		listPermissionsRes *magistrala.ListPermissionsRes
+		err                error
 	}{
 		{
 			desc:  "list permissions of thing type with valid token",
 			token: validToken,
-			pr: &magistrala.ListPermissionsReq{
+			listPermissionsReq: &magistrala.ListPermissionsReq{
 				Domain:            domainID,
 				SubjectType:       auth.UserType,
 				Subject:           id,
@@ -910,7 +903,7 @@ func TestListPermissions(t *testing.T) {
 				Object:            validID,
 				FilterPermissions: []string{"view"},
 			},
-			ar: &magistrala.ListPermissionsRes{
+			listPermissionsRes: &magistrala.ListPermissionsRes{
 				SubjectType: auth.UserType,
 				Subject:     id,
 				ObjectType:  auth.ThingType,
@@ -920,9 +913,9 @@ func TestListPermissions(t *testing.T) {
 			err: nil,
 		},
 		{
-			desc:  "list permissions of thing type with valid token",
+			desc:  "list permissions of group type with valid token",
 			token: validToken,
-			pr: &magistrala.ListPermissionsReq{
+			listPermissionsReq: &magistrala.ListPermissionsReq{
 				Domain:            domainID,
 				SubjectType:       auth.UserType,
 				Subject:           id,
@@ -930,7 +923,7 @@ func TestListPermissions(t *testing.T) {
 				Object:            validID,
 				FilterPermissions: []string{"view"},
 			},
-			ar: &magistrala.ListPermissionsRes{
+			listPermissionsRes: &magistrala.ListPermissionsRes{
 				SubjectType: auth.UserType,
 				Subject:     id,
 				ObjectType:  auth.GroupType,
@@ -942,7 +935,7 @@ func TestListPermissions(t *testing.T) {
 		{
 			desc:  "list permissions of platform type with valid token",
 			token: validToken,
-			pr: &magistrala.ListPermissionsReq{
+			listPermissionsReq: &magistrala.ListPermissionsReq{
 				Domain:            domainID,
 				SubjectType:       auth.UserType,
 				Subject:           id,
@@ -950,7 +943,7 @@ func TestListPermissions(t *testing.T) {
 				Object:            validID,
 				FilterPermissions: []string{"view"},
 			},
-			ar: &magistrala.ListPermissionsRes{
+			listPermissionsRes: &magistrala.ListPermissionsRes{
 				SubjectType: auth.UserType,
 				Subject:     id,
 				ObjectType:  auth.PlatformType,
@@ -960,9 +953,9 @@ func TestListPermissions(t *testing.T) {
 			err: nil,
 		},
 		{
-			desc:  "list permissions of thing type with valid token",
+			desc:  "list permissions of domain type with valid token",
 			token: validToken,
-			pr: &magistrala.ListPermissionsReq{
+			listPermissionsReq: &magistrala.ListPermissionsReq{
 				Domain:            domainID,
 				SubjectType:       auth.UserType,
 				Subject:           id,
@@ -970,7 +963,7 @@ func TestListPermissions(t *testing.T) {
 				Object:            validID,
 				FilterPermissions: []string{"view"},
 			},
-			ar: &magistrala.ListPermissionsRes{
+			listPermissionsRes: &magistrala.ListPermissionsRes{
 				SubjectType: auth.UserType,
 				Subject:     id,
 				ObjectType:  auth.DomainType,
@@ -982,7 +975,7 @@ func TestListPermissions(t *testing.T) {
 		{
 			desc:  "list permissions of thing type with invalid token",
 			token: inValidToken,
-			pr: &magistrala.ListPermissionsReq{
+			listPermissionsReq: &magistrala.ListPermissionsReq{
 				Domain:            domainID,
 				SubjectType:       auth.UserType,
 				Subject:           id,
@@ -990,13 +983,13 @@ func TestListPermissions(t *testing.T) {
 				Object:            validID,
 				FilterPermissions: []string{"view"},
 			},
-			ar:  &magistrala.ListPermissionsRes{},
-			err: svcerr.ErrAuthentication,
+			listPermissionsRes: &magistrala.ListPermissionsRes{},
+			err:                svcerr.ErrAuthentication,
 		},
 		{
 			desc:  "list permissions with invalid object type",
 			token: validToken,
-			pr: &magistrala.ListPermissionsReq{
+			listPermissionsReq: &magistrala.ListPermissionsReq{
 				Domain:            domainID,
 				SubjectType:       auth.UserType,
 				Subject:           id,
@@ -1004,15 +997,15 @@ func TestListPermissions(t *testing.T) {
 				Object:            validID,
 				FilterPermissions: []string{"view"},
 			},
-			ar:  &magistrala.ListPermissionsRes{},
-			err: apiutil.ErrMalformedPolicy,
+			listPermissionsRes: &magistrala.ListPermissionsRes{},
+			err:                apiutil.ErrMalformedPolicy,
 		},
 	}
 	for _, tc := range cases {
 		repoCall := svc.On("ListPermissions", mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(auth.Permissions{"view"}, tc.err)
-		apr, err := client.ListPermissions(context.Background(), tc.pr)
+		apr, err := client.ListPermissions(context.Background(), tc.listPermissionsReq)
 		if apr != nil {
-			assert.Equal(t, tc.ar, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.ar, apr))
+			assert.Equal(t, tc.listPermissionsRes, apr, fmt.Sprintf("%s: expected %v got %v", tc.desc, tc.listPermissionsRes, apr))
 		}
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()

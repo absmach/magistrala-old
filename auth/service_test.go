@@ -666,7 +666,7 @@ func TestIdentify(t *testing.T) {
 			desc: "identify expired API key",
 			key:  expSecret.AccessToken,
 			idt:  "",
-			err:  svcerr.ErrAuthentication,
+			err:  auth.ErrKeyExpired,
 		},
 		{
 			desc: "identify API key with failed to retrieve",
@@ -690,10 +690,12 @@ func TestIdentify(t *testing.T) {
 
 	for _, tc := range cases {
 		repocall := krepo.On("Retrieve", mock.Anything, mock.Anything, mock.Anything).Return(auth.Key{}, tc.err)
+		repocall1 := krepo.On("Remove", mock.Anything, mock.Anything, mock.Anything).Return(tc.err)
 		idt, err := svc.Identify(context.Background(), tc.key)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s expected %s got %s\n", tc.desc, tc.err, err))
 		assert.Equal(t, tc.idt, idt.Subject, fmt.Sprintf("%s expected %s got %s\n", tc.desc, tc.idt, idt))
 		repocall.Unset()
+		repocall1.Unset()
 	}
 }
 
@@ -1048,11 +1050,13 @@ func TestAuthorize(t *testing.T) {
 		repoCall := prepo.On("CheckPolicy", mock.Anything, tc.checkPolicyReq).Return(tc.checkPolicyErr)
 		repoCall1 := drepo.On("RetrieveByID", mock.Anything, mock.Anything).Return(tc.retrieveDomainRes, nil)
 		repoCall2 := prepo.On("CheckPolicy", mock.Anything, tc.checkPolicyReq1).Return(tc.checkPolicyErr1)
+		repoCall3 := krepo.On("Remove", mock.Anything, mock.Anything, mock.Anything).Return(nil)
 		err := svc.Authorize(context.Background(), tc.policyReq)
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
 		repoCall1.Unset()
 		repoCall2.Unset()
+		repoCall3.Unset()
 	}
 
 	cases2 := []struct {
