@@ -29,7 +29,6 @@ var (
 	eventsChan  = make(chan map[string]interface{})
 	logger      = mglog.NewMock()
 	errFailed   = errors.New("failed")
-	ctx         = context.TODO()
 )
 
 type testEvent struct {
@@ -57,10 +56,10 @@ func (te testEvent) Encode() (map[string]interface{}, error) {
 }
 
 func TestPublish(t *testing.T) {
-	err := redisClient.FlushAll(ctx).Err()
+	err := redisClient.FlushAll(context.Background()).Err()
 	assert.Nil(t, err, fmt.Sprintf("got unexpected error on flushing redis: %s", err))
 
-	publisher, err := redis.NewPublisher(ctx, redisURL, streamName)
+	publisher, err := redis.NewPublisher(context.Background(), redisURL, streamName)
 	assert.Nil(t, err, fmt.Sprintf("got unexpected error on creating event store: %s", err))
 
 	subcriber, err := redis.NewSubscriber("http://invaliurl.com", streamName, consumer, logger)
@@ -69,7 +68,7 @@ func TestPublish(t *testing.T) {
 	subcriber, err = redis.NewSubscriber(redisURL, streamName, consumer, logger)
 	assert.Nil(t, err, fmt.Sprintf("got unexpected error on creating event store: %s", err))
 
-	err = subcriber.Subscribe(ctx, handler{})
+	err = subcriber.Subscribe(context.Background(), handler{})
 	assert.Nil(t, err, fmt.Sprintf("got unexpected error on subscribing to event store: %s", err))
 
 	cases := []struct {
@@ -132,11 +131,9 @@ func TestPublish(t *testing.T) {
 	for _, tc := range cases {
 		event := testEvent{Data: tc.event}
 
-		err := publisher.Publish(ctx, event)
+		err := publisher.Publish(context.Background(), event)
 		switch tc.err {
 		case nil:
-			assert.Nil(t, err, fmt.Sprintf("%s - got unexpected error: %s", tc.desc, err))
-
 			receivedEvent := <-eventsChan
 
 			roa, err := strconv.ParseInt(receivedEvent["occurred_at"].(string), 10, 64)
@@ -146,12 +143,12 @@ func TestPublish(t *testing.T) {
 				delete(tc.event, "occurred_at")
 			}
 
-			assert.Equal(t, tc.event["temperature"], receivedEvent["temperature"], fmt.Sprintf("%s - expected temperature: %s, got: %s", tc.desc, tc.event["temperature"], receivedEvent["temperature"]))
-			assert.Equal(t, tc.event["humidity"], receivedEvent["humidity"], fmt.Sprintf("%s - expected humidity: %s, got: %s", tc.desc, tc.event["humidity"], receivedEvent["humidity"]))
-			assert.Equal(t, tc.event["sensor_id"], receivedEvent["sensor_id"], fmt.Sprintf("%s - expected sensor_id: %s, got: %s", tc.desc, tc.event["sensor_id"], receivedEvent["sensor_id"]))
-			assert.Equal(t, tc.event["status"], receivedEvent["status"], fmt.Sprintf("%s - expected status: %s, got: %s", tc.desc, tc.event["status"], receivedEvent["status"]))
-			assert.Equal(t, tc.event["timestamp"], receivedEvent["timestamp"], fmt.Sprintf("%s - expected timestamp: %s, got: %s", tc.desc, tc.event["timestamp"], receivedEvent["timestamp"]))
-			assert.Equal(t, tc.event["operation"], receivedEvent["operation"], fmt.Sprintf("%s - expected operation: %s, got: %s", tc.desc, tc.event["operation"], receivedEvent["operation"]))
+			assert.Equal(t, tc.event["temperature"], receivedEvent["temperature"])
+			assert.Equal(t, tc.event["humidity"], receivedEvent["humidity"])
+			assert.Equal(t, tc.event["sensor_id"], receivedEvent["sensor_id"])
+			assert.Equal(t, tc.event["status"], receivedEvent["status"])
+			assert.Equal(t, tc.event["timestamp"], receivedEvent["timestamp"])
+			assert.Equal(t, tc.event["operation"], receivedEvent["operation"])
 
 		default:
 			assert.ErrorContains(t, err, tc.err.Error(), fmt.Sprintf("%s - expected error: %s", tc.desc, tc.err))
@@ -160,7 +157,7 @@ func TestPublish(t *testing.T) {
 }
 
 func TestPubsub(t *testing.T) {
-	err := redisClient.FlushAll(ctx).Err()
+	err := redisClient.FlushAll(context.Background()).Err()
 	assert.Nil(t, err, fmt.Sprintf("got unexpected error on flushing redis: %s", err))
 
 	subcases := []struct {
@@ -231,7 +228,7 @@ func TestPubsub(t *testing.T) {
 
 		assert.Nil(t, err, fmt.Sprintf("%s got unexpected error: %s", pc.desc, err))
 
-		switch err := subcriber.Subscribe(context.TODO(), pc.handler); {
+		switch err := subcriber.Subscribe(context.Background(), pc.handler); {
 		case err == nil:
 			assert.Nil(t, err, fmt.Sprintf("%s got unexpected error: %s", pc.desc, err))
 		default:

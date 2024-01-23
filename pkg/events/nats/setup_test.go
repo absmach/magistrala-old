@@ -17,23 +17,18 @@ import (
 )
 
 var (
-	natsURL   string
-	stream    = "tests.events"
-	consumer  = "tests-consumer"
-	ctx       = context.Background()
-	pool      *dockertest.Pool
-	container *dockertest.Resource
+	natsURL  string
+	stream   = "tests.events"
+	consumer = "tests-consumer"
 )
 
 func TestMain(m *testing.M) {
-	var err error
-	pool, err = dockertest.NewPool("")
+	pool, err := dockertest.NewPool("")
 	if err != nil {
 		log.Fatalf("Could not connect to docker: %s", err)
 	}
 
-	container, err = pool.RunWithOptions(&dockertest.RunOptions{
-		Name:       "test-nats-events",
+	container, err := pool.RunWithOptions(&dockertest.RunOptions{
 		Repository: "nats",
 		Tag:        "2.10.9-alpine",
 		Cmd:        []string{"-DVV", "-js"},
@@ -47,14 +42,14 @@ func TestMain(m *testing.M) {
 	natsURL = fmt.Sprintf("nats://%s:%s", "localhost", container.GetPort("4222/tcp"))
 
 	if err := pool.Retry(func() error {
-		_, err = nats.NewPublisher(ctx, natsURL, stream)
+		_, err = nats.NewPublisher(context.Background(), natsURL, stream)
 		return err
 	}); err != nil {
 		log.Fatalf("Could not connect to docker: %s", err)
 	}
 
 	if err := pool.Retry(func() error {
-		_, err = nats.NewSubscriber(ctx, natsURL, stream, consumer, logger)
+		_, err = nats.NewSubscriber(context.Background(), natsURL, stream, consumer, logger)
 		return err
 	}); err != nil {
 		log.Fatalf("Could not connect to docker: %s", err)
