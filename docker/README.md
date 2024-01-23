@@ -27,7 +27,7 @@ To pull docker images from a specific release you need to change the value of `M
 Magistrala supports configurable MQTT broker and Message broker, which also acts as events store. Magistrala uses two types of brokers:
 
 1. MQTT_BROKER: Handles MQTT communication between MQTT adapters and message broker. This can either be 'vernemq' or 'nats'.
-2. MESSAGE_BROKER: Manages communication between adapters and Magistrala writer services. This can either be 'nats' or 'rabbitmq' or 'redis'. This is used to store messages for distributed processing.
+2. MESSAGE_BROKER: Manages communication between adapters and Magistrala writer services. This can either be 'nats' or 'rabbitmq. This is used to store messages for distributed processing.
 
 Events store: This is the same as MESSAGE_BROKER. This can either be 'nats' or 'rabbitmq' or 'redis'. This is used by Magistrala services to store events for distributed processing. If redis is used as an events store, then rabbitmq or nats is used as a message broker since redis cannot be used as a message broker.
 
