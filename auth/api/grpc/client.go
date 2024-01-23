@@ -712,11 +712,12 @@ func decodeListPermissionsResponse(_ context.Context, grpcRes interface{}) (inte
 func encodeListPermissionsRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
 	req := grpcReq.(listPermissionsReq)
 	return &magistrala.ListPermissionsReq{
-		Domain:      req.Domain,
-		SubjectType: req.SubjectType,
-		Subject:     req.Subject,
-		ObjectType:  req.ObjectType,
-		Object:      req.Object,
+		Domain:            req.Domain,
+		SubjectType:       req.SubjectType,
+		Subject:           req.Subject,
+		ObjectType:        req.ObjectType,
+		Object:            req.Object,
+		FilterPermissions: req.FilterPermissions,
 	}, nil
 }
 
