@@ -269,13 +269,11 @@ func (lm *loggingMiddleware) Authorize(ctx context.Context, pr auth.PolicyReq) (
 			slog.Group(
 				"object",
 				slog.String("id", pr.Object),
-				slog.String("kind", pr.ObjectKind),
 				slog.String("type", pr.ObjectType),
 			),
 			slog.Group(
 				"subject",
 				slog.String("id", pr.Subject),
-				slog.String("kind", pr.SubjectKind),
 				slog.String("type", pr.SubjectType),
 			),
 			slog.String("permission", pr.Permission),

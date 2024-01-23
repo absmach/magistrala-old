@@ -51,7 +51,7 @@ func (lm *loggingMiddleware) Cert(token, thingID, duration string) (cert, key st
 			lm.logger.Warn("Thing certificate failed to create successfully", args...)
 			return
 		}
-		lm.logger.Info("Thing certificate completed successfully", args...)
+		lm.logger.Info("Thing certificate created successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Cert(token, thingID, duration)

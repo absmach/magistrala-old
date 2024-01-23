@@ -39,10 +39,10 @@ func (lm *loggingMiddleware) Publish(ctx context.Context, key string, msg *messa
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Publish failed to complete successfully", args...)
+			lm.logger.Warn("Publish message failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Publish completed successfully", args...)
+		lm.logger.Info("Publish message completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Publish(ctx, key, msg)

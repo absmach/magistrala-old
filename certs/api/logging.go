@@ -36,10 +36,10 @@ func (lm *loggingMiddleware) IssueCert(ctx context.Context, token, thingID, ttl 
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Issue cert failed to complete successfully", args...)
+			lm.logger.Warn("Issue certificate failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Issue cert completed successfully", args...)
+		lm.logger.Info("Issue certificate completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.IssueCert(ctx, token, thingID, ttl)
@@ -59,10 +59,10 @@ func (lm *loggingMiddleware) ListCerts(ctx context.Context, token, thingID strin
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("List certs failed to complete successfully", args...)
+			lm.logger.Warn("List certificates failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("List certs completed successfully", args...)
+		lm.logger.Info("List certificates completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.ListCerts(ctx, token, thingID, offset, limit)
@@ -102,10 +102,10 @@ func (lm *loggingMiddleware) ViewCert(ctx context.Context, token, serialID strin
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("View cert failed to complete successfully", args...)
+			lm.logger.Warn("View certificate failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("View cert completed successfully", args...)
+		lm.logger.Info("View certificate completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.ViewCert(ctx, token, serialID)
@@ -121,10 +121,10 @@ func (lm *loggingMiddleware) RevokeCert(ctx context.Context, token, thingID stri
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Revoke cert failed to complete successfully", args...)
+			lm.logger.Warn("Revoke certificate failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Revoke cert completed successfully", args...)
+		lm.logger.Info("Revoke certificate completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.RevokeCert(ctx, token, thingID)

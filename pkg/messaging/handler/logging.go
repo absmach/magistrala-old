@@ -79,7 +79,7 @@ func (lm *loggingMiddleware) logAction(ctx context.Context, action string, topic
 			lm.logger.Warn(action+"() failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Action completed successfully", args...)
+		lm.logger.Info(action+"() completed successfully", args...)
 	}(time.Now())
 
 	return nil

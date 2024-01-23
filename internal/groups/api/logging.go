@@ -31,8 +31,8 @@ func (lm *loggingMiddleware) CreateGroup(ctx context.Context, token, kind string
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"group",
-				slog.String("name", g.Name),
 				slog.String("id", g.ID),
+				slog.String("name", g.Name),
 			),
 		}
 		if err != nil {
@@ -53,8 +53,8 @@ func (lm *loggingMiddleware) UpdateGroup(ctx context.Context, token string, grou
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"group",
-				slog.String("name", g.Name),
 				slog.String("id", g.ID),
+				slog.String("name", g.Name),
 				slog.Any("metadata", g.Metadata),
 			),
 		}
@@ -208,10 +208,10 @@ func (lm *loggingMiddleware) Assign(ctx context.Context, token, groupID, relatio
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Assign failed to complete successfully", args...)
+			lm.logger.Warn("Assign member failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Assign completed successfully", args...)
+		lm.logger.Info("Assign member completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Assign(ctx, token, groupID, relation, memberKind, memberIDs...)
@@ -228,10 +228,10 @@ func (lm *loggingMiddleware) Unassign(ctx context.Context, token, groupID, relat
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Unassign failed to complete successfully", args...)
+			lm.logger.Warn("Unassign member failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Unassign completed successfully", args...)
+		lm.logger.Info("Unassign member completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Unassign(ctx, token, groupID, relation, memberKind, memberIDs...)

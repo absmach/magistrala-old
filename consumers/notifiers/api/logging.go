@@ -56,7 +56,7 @@ func (lm *loggingMiddleware) ViewSubscription(ctx context.Context, token, topic 
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"subscription",
-				slog.String("topic", sub.Topic),
+				slog.String("topic", topic),
 				slog.String("id", sub.ID),
 			),
 		}
