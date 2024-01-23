@@ -97,6 +97,8 @@ services:
 services:
   rabbitmq:
     image: rabbitmq:3.12.12-management-alpine
+    container_name: magistrala-rabbitmq
+    restart: on-failure
     environment:
       RABBITMQ_ERLANG_COOKIE: ${MG_RABBITMQ_COOKIE}
       RABBITMQ_DEFAULT_USER: ${MG_RABBITMQ_USER}
