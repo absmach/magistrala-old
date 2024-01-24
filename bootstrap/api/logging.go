@@ -35,10 +35,10 @@ func (lm *loggingMiddleware) Add(ctx context.Context, token string, cfg bootstra
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Add new Thing config failed to complete successfully", args...)
+			lm.logger.Warn("Add new bootstrap failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Add new Thing config completed successfully", args...)
+		lm.logger.Info("Add new bootstrap completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Add(ctx, token, cfg)
@@ -69,14 +69,17 @@ func (lm *loggingMiddleware) Update(ctx context.Context, token string, cfg boots
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("thing_id", cfg.ThingID),
+			slog.Group("config",
+				slog.String("thing_id", cfg.ThingID),
+				slog.String("name", cfg.Name),
+			),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Update config failed to complete successfully", args...)
+			lm.logger.Warn("Update boostrap config failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Update config completed successfully", args...)
+		lm.logger.Info("Update boostrap config completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Update(ctx, token, cfg)
@@ -92,10 +95,10 @@ func (lm *loggingMiddleware) UpdateCert(ctx context.Context, token, thingID, cli
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Update cert failed to complete successfully", args...)
+			lm.logger.Warn("Update bootstrap config certificate failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Update cert completed successfully", args...)
+		lm.logger.Info("Update bootstrap config certificate completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.UpdateCert(ctx, token, thingID, clientCert, clientKey, caCert)
@@ -108,13 +111,14 @@ func (lm *loggingMiddleware) UpdateConnections(ctx context.Context, token, id st
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("thing_id", id),
+			slog.Any("connections", connections),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Update connections failed to complete successfully", args...)
+			lm.logger.Warn("Update config connections failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Update connections completed successfully", args...)
+		lm.logger.Info("Update config connections completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.UpdateConnections(ctx, token, id, connections)
@@ -126,10 +130,11 @@ func (lm *loggingMiddleware) List(ctx context.Context, token string, filter boot
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"filter",
+			slog.Group("page",
+				slog.Any("filter", filter),
 				slog.Uint64("offset", offset),
 				slog.Uint64("limit", limit),
+				slog.Uint64("total", res.Total),
 			),
 		}
 		if err != nil {
@@ -149,14 +154,14 @@ func (lm *loggingMiddleware) Remove(ctx context.Context, token, id string) (err 
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("id", id),
+			slog.String("thing_id", id),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Remove config failed to complete successfully", args...)
+			lm.logger.Warn("Remove bootstrap config failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Remove config completed successfully", args...)
+		lm.logger.Info("Remove bootstrap config completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Remove(ctx, token, id)
@@ -166,17 +171,14 @@ func (lm *loggingMiddleware) Bootstrap(ctx context.Context, externalKey, externa
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"config",
-				slog.String("external_id", externalID),
-			),
+			slog.String("external_id", externalID),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Bootstrap failed to complete successfully", args...)
+			lm.logger.Warn("View bootstrap config failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Bootstrap completed successfully", args...)
+		lm.logger.Info("View bootstrap completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Bootstrap(ctx, externalKey, externalID, secure)
@@ -191,10 +193,10 @@ func (lm *loggingMiddleware) ChangeState(ctx context.Context, token, id string, 
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Change state failed to complete successfully", args...)
+			lm.logger.Warn("Change thing state failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Change state completed successfully", args...)
+		lm.logger.Info("Change thing state completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.ChangeState(ctx, token, id, state)
@@ -204,8 +206,7 @@ func (lm *loggingMiddleware) UpdateChannelHandler(ctx context.Context, channel b
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"channel",
+			slog.Group("channel",
 				slog.String("id", channel.ID),
 				slog.String("name", channel.Name),
 				slog.Any("metadata", channel.Metadata),

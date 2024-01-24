@@ -51,8 +51,7 @@ func (lm *loggingMiddleware) ListCerts(ctx context.Context, token, thingID strin
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("thing_id", thingID),
-			slog.Group(
-				"page",
+			slog.Group("page",
 				slog.Uint64("offset", cp.Offset),
 				slog.Uint64("limit", cp.Limit),
 				slog.Uint64("total", cp.Total),
@@ -76,8 +75,7 @@ func (lm *loggingMiddleware) ListSerials(ctx context.Context, token, thingID str
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("thing_id", thingID),
-			slog.Group(
-				"page",
+			slog.Group("page",
 				slog.Uint64("offset", cp.Offset),
 				slog.Uint64("limit", cp.Limit),
 				slog.Uint64("total", cp.Total),

@@ -30,8 +30,7 @@ func (lm *loggingMiddleware) AddTwin(ctx context.Context, token string, twin twi
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"twin",
+			slog.Group("twin",
 				slog.String("id", tw.ID),
 				slog.String("name", tw.Name),
 				slog.Any("definitions", tw.Definitions),
@@ -52,8 +51,7 @@ func (lm *loggingMiddleware) UpdateTwin(ctx context.Context, token string, twin 
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"twin",
+			slog.Group("twin",
 				slog.String("id", twin.ID),
 				slog.String("name", twin.Name),
 				slog.Any("definitions", def),
@@ -91,8 +89,7 @@ func (lm *loggingMiddleware) ListTwins(ctx context.Context, token string, offset
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"page",
+			slog.Group("page",
 				slog.String("name", name),
 				slog.Uint64("offset", offset),
 				slog.Uint64("limit", limit),
@@ -114,10 +111,9 @@ func (lm *loggingMiddleware) SaveStates(ctx context.Context, msg *messaging.Mess
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"message",
-				slog.String("subtopic", msg.GetSubtopic()),
+			slog.Group("message",
 				slog.String("channel", msg.GetChannel()),
+				slog.String("subtopic", msg.GetSubtopic()),
 				slog.String("publisher", msg.GetPublisher()),
 			),
 		}
@@ -137,8 +133,7 @@ func (lm *loggingMiddleware) ListStates(ctx context.Context, token string, offse
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("twin_id", twinID),
-			slog.Group(
-				"page",
+			slog.Group("page",
 				slog.Uint64("offset", offset),
 				slog.Uint64("limit", limit),
 				slog.Uint64("total", page.Total),

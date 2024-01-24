@@ -5,6 +5,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
 	"time"
 
@@ -28,14 +29,13 @@ func (lm *loggingMiddleware) CreateThings(ctx context.Context, token string, cli
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Any("no_of_things", len(clients)),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Create thing failed to complete successfully", args...)
+			lm.logger.Warn(fmt.Sprintf("Create %d things failed to complete successfully", len(clients)), args...)
 			return
 		}
-		lm.logger.Info("Create thing completed successfully", args...)
+		lm.logger.Info(fmt.Sprintf("Create %d things completed successfully", len(clients)), args...)
 	}(time.Now())
 	return lm.svc.CreateThings(ctx, token, clients...)
 }
@@ -44,7 +44,10 @@ func (lm *loggingMiddleware) ViewClient(ctx context.Context, token, id string) (
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group("thing", slog.String("id", c.ID), slog.String("name", c.Name)),
+			slog.Group("thing",
+				slog.String("id", c.ID),
+				slog.String("name", c.Name),
+			),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -77,8 +80,7 @@ func (lm *loggingMiddleware) ListClients(ctx context.Context, token, reqUserID s
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("user_id", reqUserID),
-			slog.Group(
-				"page",
+			slog.Group("page",
 				slog.Uint64("limit", pm.Limit),
 				slog.Uint64("offset", pm.Offset),
 				slog.Uint64("total", cp.Total),
@@ -98,8 +100,7 @@ func (lm *loggingMiddleware) UpdateClient(ctx context.Context, token string, cli
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"thing",
+			slog.Group("thing",
 				slog.String("id", client.ID),
 				slog.String("name", client.Name),
 				slog.Any("metadata", client.Metadata),
@@ -119,10 +120,10 @@ func (lm *loggingMiddleware) UpdateClientTags(ctx context.Context, token string,
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"thing",
-				slog.String("id", client.ID),
-				slog.Any("tags", client.Tags),
+			slog.Group("thing",
+				slog.String("id", c.ID),
+				slog.String("name", c.Name),
+				slog.Any("tags", c.Tags),
 			),
 		}
 		if err != nil {
@@ -139,8 +140,7 @@ func (lm *loggingMiddleware) UpdateClientSecret(ctx context.Context, token, oldS
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"thing",
+			slog.Group("thing",
 				slog.String("id", c.ID),
 				slog.String("name", c.Name),
 			),
@@ -159,8 +159,7 @@ func (lm *loggingMiddleware) EnableClient(ctx context.Context, token, id string)
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"thing",
+			slog.Group("thing",
 				slog.String("id", id),
 				slog.String("name", c.Name),
 			),
@@ -179,9 +178,8 @@ func (lm *loggingMiddleware) DisableClient(ctx context.Context, token, id string
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"thing",
-				slog.String("thing_id", id),
+			slog.Group("thing",
+				slog.String("id", id),
 				slog.String("name", c.Name),
 			),
 		}
@@ -200,8 +198,7 @@ func (lm *loggingMiddleware) ListClientsByGroup(ctx context.Context, token, chan
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("channel_id", channelID),
-			slog.Group(
-				"page",
+			slog.Group("page",
 				slog.Uint64("offset", cp.Offset),
 				slog.Uint64("limit", cp.Limit),
 				slog.Uint64("total", mp.Total),
@@ -239,7 +236,6 @@ func (lm *loggingMiddleware) Authorize(ctx context.Context, req *magistrala.Auth
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("object", req.GetObject()),
 			slog.String("object_type", req.GetObjectType()),
-			slog.String("subject", req.GetSubject()),
 			slog.String("subject_type", req.GetSubjectType()),
 			slog.String("permission", req.GetPermission()),
 		}

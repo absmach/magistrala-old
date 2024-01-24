@@ -29,8 +29,7 @@ func (lm *loggingMiddleware) CreateGroup(ctx context.Context, token, kind string
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"group",
+			slog.Group("group",
 				slog.String("id", g.ID),
 				slog.String("name", g.Name),
 			),
@@ -51,11 +50,10 @@ func (lm *loggingMiddleware) UpdateGroup(ctx context.Context, token string, grou
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"group",
-				slog.String("id", g.ID),
-				slog.String("name", g.Name),
-				slog.Any("metadata", g.Metadata),
+			slog.Group("group",
+				slog.String("id", group.ID),
+				slog.String("name", group.Name),
+				slog.Any("metadata", group.Metadata),
 			),
 		}
 		if err != nil {
@@ -74,8 +72,7 @@ func (lm *loggingMiddleware) ViewGroup(ctx context.Context, token, id string) (g
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"group",
+			slog.Group("group",
 				slog.String("id", g.ID),
 				slog.String("name", g.Name),
 			),
@@ -114,13 +111,11 @@ func (lm *loggingMiddleware) ListGroups(ctx context.Context, token, memberKind, 
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"member",
+			slog.Group("member",
 				slog.String("id", memberID),
 				slog.String("kind", memberKind),
 			),
-			slog.Group(
-				"page",
+			slog.Group("page",
 				slog.Uint64("limit", gp.Limit),
 				slog.Uint64("offset", gp.Offset),
 				slog.Uint64("total", cg.Total),
@@ -142,8 +137,7 @@ func (lm *loggingMiddleware) EnableGroup(ctx context.Context, token, id string) 
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"group",
+			slog.Group("group",
 				slog.String("id", id),
 				slog.String("name", g.Name),
 			),
@@ -164,8 +158,7 @@ func (lm *loggingMiddleware) DisableGroup(ctx context.Context, token, id string)
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"group",
+			slog.Group("group",
 				slog.String("id", id),
 				slog.String("name", g.Name),
 			),
@@ -211,10 +204,10 @@ func (lm *loggingMiddleware) Assign(ctx context.Context, token, groupID, relatio
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Assign member failed to complete successfully", args...)
+			lm.logger.Warn("Assign member to group failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Assign member completed successfully", args...)
+		lm.logger.Info("Assign member to group completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Assign(ctx, token, groupID, relation, memberKind, memberIDs...)
@@ -231,10 +224,10 @@ func (lm *loggingMiddleware) Unassign(ctx context.Context, token, groupID, relat
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Unassign member failed to complete successfully", args...)
+			lm.logger.Warn("Unassign member to group failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Unassign member completed successfully", args...)
+		lm.logger.Info("Unassign member to group completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.Unassign(ctx, token, groupID, relation, memberKind, memberIDs...)

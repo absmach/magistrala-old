@@ -31,8 +31,7 @@ func (lm *loggingMiddleware) CreateSubscription(ctx context.Context, token strin
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"subscription",
+			slog.Group("subscription",
 				slog.String("topic", sub.Topic),
 				slog.String("id", id),
 			),
@@ -54,8 +53,7 @@ func (lm *loggingMiddleware) ViewSubscription(ctx context.Context, token, topic 
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"subscription",
+			slog.Group("subscription",
 				slog.String("topic", topic),
 				slog.String("id", sub.ID),
 			),
@@ -77,8 +75,7 @@ func (lm *loggingMiddleware) ListSubscriptions(ctx context.Context, token string
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"page",
+			slog.Group("page",
 				slog.String("topic", pm.Topic),
 				slog.Int("limit", pm.Limit),
 				slog.Uint64("offset", uint64(pm.Offset)),
@@ -102,7 +99,7 @@ func (lm *loggingMiddleware) RemoveSubscription(ctx context.Context, token, id s
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("id", id),
+			slog.String("subscription_id", id),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -124,10 +121,10 @@ func (lm *loggingMiddleware) ConsumeBlocking(ctx context.Context, msg interface{
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Consume blocking failed to complete successfully", args...)
+			lm.logger.Warn("Blocking consumer failed to consume messages successfully", args...)
 			return
 		}
-		lm.logger.Info("Consume blocking completed successfully", args...)
+		lm.logger.Info("Blocking consumer consumed messages successfully", args...)
 	}(time.Now())
 
 	return lm.svc.ConsumeBlocking(ctx, msg)

@@ -32,8 +32,7 @@ func (lm *loggingMiddleware) ReadAll(chanID string, rpm readers.PageMetadata) (p
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("channel_id", chanID),
-			slog.Group(
-				"page",
+			slog.Group("page",
 				slog.Uint64("offset", rpm.Offset),
 				slog.Uint64("limit", rpm.Limit),
 				slog.Uint64("total", page.Total),
