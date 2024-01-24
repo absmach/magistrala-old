@@ -293,13 +293,13 @@ func (repo domainRepo) Update(ctx context.Context, id, userID string, dr auth.Do
 
 // Delete delete domain from database.
 func (repo domainRepo) Delete(ctx context.Context, id string) error {
-	q := "DELETE FROM domains WHERE id = $1 ;"
+	q := "DELETE FROM domains WHERE id = $1;"
 
-	result, err := repo.db.ExecContext(ctx, q, id)
+	res, err := repo.db.ExecContext(ctx, q, id)
 	if err != nil {
 		return postgres.HandleError(repoerr.ErrRemoveEntity, err)
 	}
-	if rows, _ := result.RowsAffected(); rows == 0 {
+	if rows, _ := res.RowsAffected(); rows == 0 {
 		return repoerr.ErrNotFound
 	}
 
