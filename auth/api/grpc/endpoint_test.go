@@ -70,7 +70,7 @@ func TestIssue(t *testing.T) {
 	cases := []struct {
 		desc          string
 		userId        string
-		domainId      string
+		domainID      string
 		kind          auth.KeyType
 		issueResponse auth.Token
 		err           error
@@ -78,7 +78,7 @@ func TestIssue(t *testing.T) {
 		{
 			desc:     "issue for user with valid token",
 			userId:   validID,
-			domainId: domainID,
+			domainID: domainID,
 			kind:     auth.AccessKey,
 			issueResponse: auth.Token{
 				AccessToken:  validToken,
@@ -89,7 +89,7 @@ func TestIssue(t *testing.T) {
 		{
 			desc:     "issue recovery key",
 			userId:   validID,
-			domainId: domainID,
+			domainID: domainID,
 			kind:     auth.RecoveryKey,
 			issueResponse: auth.Token{
 				AccessToken:  validToken,
@@ -100,7 +100,7 @@ func TestIssue(t *testing.T) {
 		{
 			desc:          "issue API key unauthenticated",
 			userId:        validID,
-			domainId:      domainID,
+			domainID:      domainID,
 			kind:          auth.APIKey,
 			issueResponse: auth.Token{},
 			err:           errors.ErrAuthentication,
@@ -108,7 +108,7 @@ func TestIssue(t *testing.T) {
 		{
 			desc:          "issue for invalid key type",
 			userId:        validID,
-			domainId:      domainID,
+			domainID:      domainID,
 			kind:          32,
 			issueResponse: auth.Token{},
 			err:           errors.ErrMalformedEntity,
@@ -116,7 +116,7 @@ func TestIssue(t *testing.T) {
 		{
 			desc:          "issue for user that does notexist",
 			userId:        "",
-			domainId:      "",
+			domainID:      "",
 			kind:          auth.APIKey,
 			issueResponse: auth.Token{},
 			err:           errors.ErrAuthentication,
@@ -125,7 +125,7 @@ func TestIssue(t *testing.T) {
 
 	for _, tc := range cases {
 		repoCall := svc.On("Issue", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.issueResponse, tc.err)
-		_, err := client.Issue(context.Background(), &magistrala.IssueReq{UserId: tc.userId, DomainId: &tc.domainId, Type: uint32(tc.kind)})
+		_, err := client.Issue(context.Background(), &magistrala.IssueReq{UserId: tc.userId, DomainId: &tc.domainID, Type: uint32(tc.kind)})
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
 	}
@@ -139,14 +139,14 @@ func TestRefresh(t *testing.T) {
 	cases := []struct {
 		desc          string
 		token         string
-		domainId      string
+		domainID      string
 		issueResponse auth.Token
 		err           error
 	}{
 		{
 			desc:     "refresh token with valid token",
 			token:    validToken,
-			domainId: domainID,
+			domainID: domainID,
 			issueResponse: auth.Token{
 				AccessToken:  validToken,
 				RefreshToken: validToken,
@@ -156,14 +156,14 @@ func TestRefresh(t *testing.T) {
 		{
 			desc:          "refresh token with invalid token",
 			token:         inValidToken,
-			domainId:      domainID,
+			domainID:      domainID,
 			issueResponse: auth.Token{},
 			err:           errors.ErrAuthentication,
 		},
 		{
 			desc:          "refresh token with empty token",
 			token:         "",
-			domainId:      domainID,
+			domainID:      domainID,
 			issueResponse: auth.Token{},
 			err:           apiutil.ErrMissingSecret,
 		},
@@ -171,7 +171,7 @@ func TestRefresh(t *testing.T) {
 
 	for _, tc := range cases {
 		repoCall := svc.On("Issue", mock.Anything, mock.Anything, mock.Anything, mock.Anything).Return(tc.issueResponse, tc.err)
-		_, err := client.Refresh(context.Background(), &magistrala.RefreshReq{DomainId: &tc.domainId, RefreshToken: tc.token})
+		_, err := client.Refresh(context.Background(), &magistrala.RefreshReq{DomainId: &tc.domainID, RefreshToken: tc.token})
 		assert.True(t, errors.Contains(err, tc.err), fmt.Sprintf("%s: expected %s got %s\n", tc.desc, tc.err, err))
 		repoCall.Unset()
 	}
