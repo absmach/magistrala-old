@@ -292,12 +292,12 @@ func (client grpcClient) AddPolicy(ctx context.Context, in *magistrala.AddPolicy
 	}
 
 	apr := res.(addPolicyRes)
-	return &magistrala.AddPolicyRes{Authorized: apr.authorized}, nil
+	return &magistrala.AddPolicyRes{Added: apr.added}, nil
 }
 
 func decodeAddPolicyResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(*magistrala.AddPolicyRes)
-	return addPolicyRes{authorized: res.Authorized}, nil
+	return addPolicyRes{added: res.Added}, nil
 }
 
 func encodeAddPolicyRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {
@@ -341,12 +341,12 @@ func (client grpcClient) AddPolicies(ctx context.Context, in *magistrala.AddPoli
 	}
 
 	apr := res.(addPoliciesRes)
-	return &magistrala.AddPoliciesRes{Authorized: apr.authorized}, nil
+	return &magistrala.AddPoliciesRes{Added: apr.added}, nil
 }
 
 func decodeAddPoliciesResponse(_ context.Context, grpcRes interface{}) (interface{}, error) {
 	res := grpcRes.(*magistrala.AddPoliciesRes)
-	return addPoliciesRes{authorized: res.Authorized}, nil
+	return addPoliciesRes{added: res.Added}, nil
 }
 
 func encodeAddPoliciesRequest(_ context.Context, grpcReq interface{}) (interface{}, error) {

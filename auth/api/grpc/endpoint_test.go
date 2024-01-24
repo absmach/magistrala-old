@@ -64,7 +64,7 @@ func startGRPCServer(svc auth.Service, port int) {
 
 func TestIssue(t *testing.T) {
 	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
+	assert.Nil(t, err, fmt.Sprintf("Unexpected error creating client connection %s", err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
@@ -133,7 +133,7 @@ func TestIssue(t *testing.T) {
 
 func TestRefresh(t *testing.T) {
 	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
+	assert.Nil(t, err, fmt.Sprintf("Unexpected error creating client connection %s", err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
@@ -179,7 +179,7 @@ func TestRefresh(t *testing.T) {
 
 func TestIdentify(t *testing.T) {
 	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
+	assert.Nil(t, err, fmt.Sprintf("Unexpected error creating client connection %s", err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
@@ -223,7 +223,7 @@ func TestIdentify(t *testing.T) {
 
 func TestAuthorize(t *testing.T) {
 	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
+	assert.Nil(t, err, fmt.Sprintf("Unexpected error creating client connection %s", err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
@@ -345,7 +345,7 @@ func TestAuthorize(t *testing.T) {
 
 func TestAddPolicy(t *testing.T) {
 	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
+	assert.Nil(t, err, fmt.Sprintf("Unexpected error creating client connection %s", err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	groupAdminObj := "groupadmin"
@@ -368,7 +368,7 @@ func TestAddPolicy(t *testing.T) {
 				Relation:    memberRelation,
 				Permission:  adminpermission,
 			},
-			addPolicyRes: &magistrala.AddPolicyRes{Authorized: true},
+			addPolicyRes: &magistrala.AddPolicyRes{Added: true},
 			err:          nil,
 		},
 		{
@@ -382,7 +382,7 @@ func TestAddPolicy(t *testing.T) {
 				Relation:    memberRelation,
 				Permission:  adminpermission,
 			},
-			addPolicyRes: &magistrala.AddPolicyRes{Authorized: false},
+			addPolicyRes: &magistrala.AddPolicyRes{Added: false},
 			err:          svcerr.ErrAuthorization,
 		},
 	}
@@ -399,7 +399,7 @@ func TestAddPolicy(t *testing.T) {
 
 func TestAddPolicies(t *testing.T) {
 	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
+	assert.Nil(t, err, fmt.Sprintf("Unexpected error creating client connection %s", err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	groupAdminObj := "groupadmin"
@@ -426,7 +426,7 @@ func TestAddPolicies(t *testing.T) {
 					},
 				},
 			},
-			ar:  &magistrala.AddPoliciesRes{Authorized: true},
+			ar:  &magistrala.AddPoliciesRes{Added: true},
 			err: nil,
 		},
 		{
@@ -444,7 +444,7 @@ func TestAddPolicies(t *testing.T) {
 					},
 				},
 			},
-			ar:  &magistrala.AddPoliciesRes{Authorized: false},
+			ar:  &magistrala.AddPoliciesRes{Added: false},
 			err: svcerr.ErrAuthorization,
 		},
 	}
@@ -461,7 +461,7 @@ func TestAddPolicies(t *testing.T) {
 
 func TestDeletePolicy(t *testing.T) {
 	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
+	assert.Nil(t, err, fmt.Sprintf("Unexpected error creating client connection %s", err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	readRelation := "read"
@@ -514,7 +514,7 @@ func TestDeletePolicy(t *testing.T) {
 
 func TestDeletePolicies(t *testing.T) {
 	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
+	assert.Nil(t, err, fmt.Sprintf("Unexpected error creating client connection %s", err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	readRelation := "read"
@@ -577,7 +577,7 @@ func TestDeletePolicies(t *testing.T) {
 
 func TestListObjects(t *testing.T) {
 	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
+	assert.Nil(t, err, fmt.Sprintf("Unexpected error creating client connection %s", err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
@@ -627,7 +627,7 @@ func TestListObjects(t *testing.T) {
 
 func TestListAllObjects(t *testing.T) {
 	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
+	assert.Nil(t, err, fmt.Sprintf("Unexpected error creating client connection %s", err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
@@ -677,7 +677,7 @@ func TestListAllObjects(t *testing.T) {
 
 func TestCountObects(t *testing.T) {
 	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
+	assert.Nil(t, err, fmt.Sprintf("Unexpected error creating client connection %s", err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
@@ -727,7 +727,7 @@ func TestCountObects(t *testing.T) {
 
 func TestListSubjects(t *testing.T) {
 	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
+	assert.Nil(t, err, fmt.Sprintf("Unexpected error creating client connection %s", err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
@@ -827,7 +827,7 @@ func TestListAllSubjects(t *testing.T) {
 
 func TestCountSubjects(t *testing.T) {
 	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
+	assert.Nil(t, err, fmt.Sprintf("Unexpected error creating client connection %s", err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {
@@ -882,7 +882,7 @@ func TestCountSubjects(t *testing.T) {
 
 func TestListPermissions(t *testing.T) {
 	conn, err := grpc.Dial(authAddr, grpc.WithTransportCredentials(insecure.NewCredentials()))
-	assert.Nil(t, err, fmt.Sprintf(`"Unexpected error creating client connection %s"`, err))
+	assert.Nil(t, err, fmt.Sprintf("Unexpected error creating client connection %s", err))
 	client := grpcapi.NewClient(conn, time.Second)
 
 	cases := []struct {

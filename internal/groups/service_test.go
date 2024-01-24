@@ -88,7 +88,7 @@ func TestCreateGroup(t *testing.T) {
 				Owner:     testsutil.GenerateUUID(t),
 			},
 			addPolResp: &magistrala.AddPoliciesRes{
-				Authorized: true,
+				Added: true,
 			},
 		},
 		{
@@ -183,7 +183,7 @@ func TestCreateGroup(t *testing.T) {
 				Parent:    testsutil.GenerateUUID(t),
 			},
 			addPolResp: &magistrala.AddPoliciesRes{
-				Authorized: true,
+				Added: true,
 			},
 		},
 		{
@@ -210,7 +210,7 @@ func TestCreateGroup(t *testing.T) {
 				Parent: testsutil.GenerateUUID(t),
 			},
 			addPolResp: &magistrala.AddPoliciesRes{
-				Authorized: true,
+				Added: true,
 			},
 			err: errors.ErrAuthorization,
 		},
@@ -1656,7 +1656,7 @@ func TestAssign(t *testing.T) {
 				Authorized: true,
 			},
 			addPoliciesRes: &magistrala.AddPoliciesRes{
-				Authorized: true,
+				Added: true,
 			},
 		},
 		{
@@ -1674,7 +1674,7 @@ func TestAssign(t *testing.T) {
 				Authorized: true,
 			},
 			addPoliciesRes: &magistrala.AddPoliciesRes{
-				Authorized: true,
+				Added: true,
 			},
 		},
 		{
@@ -1699,7 +1699,7 @@ func TestAssign(t *testing.T) {
 				},
 			},
 			addPoliciesRes: &magistrala.AddPoliciesRes{
-				Authorized: true,
+				Added: true,
 			},
 			repoParentGroupErr: nil,
 		},
@@ -1718,7 +1718,7 @@ func TestAssign(t *testing.T) {
 				Authorized: true,
 			},
 			addPoliciesRes: &magistrala.AddPoliciesRes{
-				Authorized: true,
+				Added: true,
 			},
 		},
 		{
@@ -1804,7 +1804,7 @@ func TestAssign(t *testing.T) {
 				},
 			},
 			addPoliciesRes: &magistrala.AddPoliciesRes{
-				Authorized: false,
+				Added: false,
 			},
 			addPoliciesErr: errors.ErrAuthorization,
 			err:            errors.ErrAuthorization,
@@ -1831,7 +1831,7 @@ func TestAssign(t *testing.T) {
 				},
 			},
 			addPoliciesRes: &magistrala.AddPoliciesRes{
-				Authorized: true,
+				Added: true,
 			},
 			repoParentGroupErr: errors.ErrConflict,
 			err:                errors.ErrConflict,
@@ -1858,7 +1858,7 @@ func TestAssign(t *testing.T) {
 				},
 			},
 			addPoliciesRes: &magistrala.AddPoliciesRes{
-				Authorized: true,
+				Added: true,
 			},
 			deleteParentPoliciesRes: &magistrala.DeletePoliciesRes{
 				Deleted: false,
@@ -1926,7 +1926,7 @@ func TestAssign(t *testing.T) {
 				Authorized: true,
 			},
 			addPoliciesRes: &magistrala.AddPoliciesRes{
-				Authorized: false,
+				Added: false,
 			},
 			addPoliciesErr: errors.ErrAuthorization,
 			err:            errors.ErrAuthorization,
@@ -2271,7 +2271,7 @@ func TestUnassign(t *testing.T) {
 			},
 			repoParentGroupErr: errors.ErrConflict,
 			addParentPoliciesRes: &magistrala.AddPoliciesRes{
-				Authorized: false,
+				Added: false,
 			},
 			addParentPoliciesErr: errors.ErrAuthorization,
 			err:                  errors.ErrConflict,
