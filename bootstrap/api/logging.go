@@ -107,7 +107,7 @@ func (lm *loggingMiddleware) UpdateConnections(ctx context.Context, token, id st
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("id", id),
+			slog.String("thing_id", id),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -243,7 +243,7 @@ func (lm *loggingMiddleware) RemoveChannelHandler(ctx context.Context, id string
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("id", id),
+			slog.String("channel_id", id),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))

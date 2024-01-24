@@ -115,13 +115,15 @@ func (lm *loggingMiddleware) ListGroups(ctx context.Context, token, memberKind, 
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
-				"group",
-				slog.String("member_kind", memberKind),
-				slog.String("member_id", memberID),
-				slog.Group(
-					"page",
-					slog.Uint64("limit", gp.Limit),
-					slog.Uint64("offset", gp.Offset)),
+				"member",
+				slog.String("id", memberID),
+				slog.String("kind", memberKind),
+			),
+			slog.Group(
+				"page",
+				slog.Uint64("limit", gp.Limit),
+				slog.Uint64("offset", gp.Offset),
+				slog.Uint64("total", cg.Total),
 			),
 		}
 		if err != nil {
@@ -162,7 +164,11 @@ func (lm *loggingMiddleware) DisableGroup(ctx context.Context, token, id string)
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("group_id", id),
+			slog.Group(
+				"group",
+				slog.String("id", id),
+				slog.String("name", g.Name),
+			),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -180,12 +186,9 @@ func (lm *loggingMiddleware) ListMembers(ctx context.Context, token, groupID, pe
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"group",
-				slog.String("id", groupID),
-				slog.String("permission", permission),
-				slog.String("member_kind", memberKind),
-			),
+			slog.String("group_id", groupID),
+			slog.String("permission", permission),
+			slog.String("member_kind", memberKind),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))

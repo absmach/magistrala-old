@@ -55,6 +55,7 @@ func (lm *loggingMiddleware) ListCerts(ctx context.Context, token, thingID strin
 				"page",
 				slog.Uint64("offset", cp.Offset),
 				slog.Uint64("limit", cp.Limit),
+				slog.Uint64("total", cp.Total),
 			),
 		}
 		if err != nil {
@@ -79,14 +80,15 @@ func (lm *loggingMiddleware) ListSerials(ctx context.Context, token, thingID str
 				"page",
 				slog.Uint64("offset", cp.Offset),
 				slog.Uint64("limit", cp.Limit),
+				slog.Uint64("total", cp.Total),
 			),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("List certifcates failed to complete successfully", args...)
+			lm.logger.Warn("List certifcates serials failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("List certificates completed successfully", args...)
+		lm.logger.Info("List certificates serials completed successfully", args...)
 	}(time.Now())
 
 	return lm.svc.ListSerials(ctx, token, thingID, offset, limit)

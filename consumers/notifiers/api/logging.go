@@ -82,6 +82,7 @@ func (lm *loggingMiddleware) ListSubscriptions(ctx context.Context, token string
 				slog.String("topic", pm.Topic),
 				slog.Int("limit", pm.Limit),
 				slog.Uint64("offset", uint64(pm.Offset)),
+				slog.Uint64("total", uint64(res.Total)),
 			),
 		}
 		if err != nil {

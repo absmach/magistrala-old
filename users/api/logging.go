@@ -5,7 +5,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"log/slog"
 	"time"
 
@@ -169,7 +168,7 @@ func (lm *loggingMiddleware) UpdateClientTags(ctx context.Context, token string,
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group("user", slog.String("id", c.ID), slog.Any("tags", fmt.Sprintf("%v", c.Tags))),
+			slog.Group("user", slog.String("id", c.ID), slog.Any("tags", c.Tags)),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -294,7 +293,11 @@ func (lm *loggingMiddleware) EnableClient(ctx context.Context, token, id string)
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("id", c.ID),
+			slog.Group(
+				"user",
+				slog.String("id", c.ID),
+				slog.String("name", c.Name),
+			),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -312,7 +315,11 @@ func (lm *loggingMiddleware) DisableClient(ctx context.Context, token, id string
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("id", c.ID),
+			slog.Group(
+				"user",
+				slog.String("id", c.ID),
+				slog.String("name", c.Name),
+			),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -330,7 +337,10 @@ func (lm *loggingMiddleware) ListMembers(ctx context.Context, token, objectKind,
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group("object", slog.String("kind", objectKind), slog.String("id", objectID)),
+			slog.Group("object",
+				slog.String("kind", objectKind),
+				slog.String("id", objectID),
+			),
 			slog.Group(
 				"page",
 				slog.Uint64("limit", cp.Limit),
@@ -356,10 +366,10 @@ func (lm *loggingMiddleware) Identify(ctx context.Context, token string) (id str
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Identify failed to complete successfully", args...)
+			lm.logger.Warn("Identify user failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Identify completed successfully", args...)
+		lm.logger.Info("Identify user completed successfully", args...)
 	}(time.Now())
 	return lm.svc.Identify(ctx, token)
 }

@@ -44,7 +44,7 @@ func (lm *loggingMiddleware) ViewClient(ctx context.Context, token, id string) (
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("id", id),
+			slog.Group("thing", slog.String("id", c.ID), slog.String("name", c.Name)),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -60,7 +60,7 @@ func (lm *loggingMiddleware) ViewClientPerms(ctx context.Context, token, id stri
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("id", id),
+			slog.String("thing_id", id),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -99,7 +99,7 @@ func (lm *loggingMiddleware) UpdateClient(ctx context.Context, token string, cli
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
-				"client",
+				"thing",
 				slog.String("id", client.ID),
 				slog.String("name", client.Name),
 				slog.Any("metadata", client.Metadata),
@@ -120,7 +120,7 @@ func (lm *loggingMiddleware) UpdateClientTags(ctx context.Context, token string,
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
-				"client",
+				"thing",
 				slog.String("id", client.ID),
 				slog.Any("tags", client.Tags),
 			),
@@ -140,8 +140,9 @@ func (lm *loggingMiddleware) UpdateClientSecret(ctx context.Context, token, oldS
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
-				"things",
+				"thing",
 				slog.String("id", c.ID),
+				slog.String("name", c.Name),
 			),
 		}
 		if err != nil {
@@ -158,7 +159,11 @@ func (lm *loggingMiddleware) EnableClient(ctx context.Context, token, id string)
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("id", id),
+			slog.Group(
+				"thing",
+				slog.String("id", id),
+				slog.String("name", c.Name),
+			),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -174,7 +179,11 @@ func (lm *loggingMiddleware) DisableClient(ctx context.Context, token, id string
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("id", id),
+			slog.Group(
+				"thing",
+				slog.String("thing_id", id),
+				slog.String("name", c.Name),
+			),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -212,10 +221,7 @@ func (lm *loggingMiddleware) Identify(ctx context.Context, key string) (id strin
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.Group(
-				"thing",
-				slog.String("id", id),
-			),
+			slog.String("thing_id", id),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -231,8 +237,11 @@ func (lm *loggingMiddleware) Authorize(ctx context.Context, req *magistrala.Auth
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
-			slog.String("thing_key", req.GetSubject()),
-			slog.String("channel_id", req.GetObject()),
+			slog.String("object", req.GetObject()),
+			slog.String("object_type", req.GetObjectType()),
+			slog.String("subject", req.GetSubject()),
+			slog.String("subject_type", req.GetSubjectType()),
+			slog.String("permission", req.GetPermission()),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -254,10 +263,10 @@ func (lm *loggingMiddleware) Share(ctx context.Context, token, id, relation stri
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Share failed to complete successfully", args...)
+			lm.logger.Warn("Share thing failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Share completed successfully", args...)
+		lm.logger.Info("Share thing completed successfully", args...)
 	}(time.Now())
 	return lm.svc.Share(ctx, token, id, relation, userids...)
 }
@@ -272,10 +281,10 @@ func (lm *loggingMiddleware) Unshare(ctx context.Context, token, id, relation st
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
-			lm.logger.Warn("Unshare failed to complete successfully", args...)
+			lm.logger.Warn("Unshare thing failed to complete successfully", args...)
 			return
 		}
-		lm.logger.Info("Unshare completed successfully", args...)
+		lm.logger.Info("Unshare thing completed successfully", args...)
 	}(time.Now())
 	return lm.svc.Unshare(ctx, token, id, relation, userids...)
 }

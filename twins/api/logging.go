@@ -34,7 +34,7 @@ func (lm *loggingMiddleware) AddTwin(ctx context.Context, token string, twin twi
 				"twin",
 				slog.String("id", tw.ID),
 				slog.String("name", tw.Name),
-				slog.Group("definition", slog.Any("def_id", def.ID)),
+				slog.Any("definitions", tw.Definitions),
 			),
 		}
 		if err != nil {
@@ -56,7 +56,7 @@ func (lm *loggingMiddleware) UpdateTwin(ctx context.Context, token string, twin 
 				"twin",
 				slog.String("id", twin.ID),
 				slog.String("name", twin.Name),
-				slog.Group("definition", slog.Any("def_id", def.ID)),
+				slog.Any("definitions", def),
 			),
 		}
 		if err != nil {
@@ -96,6 +96,7 @@ func (lm *loggingMiddleware) ListTwins(ctx context.Context, token string, offset
 				slog.String("name", name),
 				slog.Uint64("offset", offset),
 				slog.Uint64("limit", limit),
+				slog.Uint64("total", page.Total),
 			),
 		}
 		if err != nil {
@@ -115,9 +116,9 @@ func (lm *loggingMiddleware) SaveStates(ctx context.Context, msg *messaging.Mess
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"message",
-				slog.String("subtopic", msg.Subtopic),
-				slog.String("channel", msg.Channel),
-				slog.String("publisher", msg.Publisher),
+				slog.String("subtopic", msg.GetSubtopic()),
+				slog.String("channel", msg.GetChannel()),
+				slog.String("publisher", msg.GetPublisher()),
 			),
 		}
 		if err != nil {
@@ -140,6 +141,7 @@ func (lm *loggingMiddleware) ListStates(ctx context.Context, token string, offse
 				"page",
 				slog.Uint64("offset", offset),
 				slog.Uint64("limit", limit),
+				slog.Uint64("total", page.Total),
 			),
 		}
 		if err != nil {

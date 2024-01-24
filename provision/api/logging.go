@@ -28,6 +28,7 @@ func (lm *loggingMiddleware) Provision(token, name, externalID, externalKey stri
 	defer func(begin time.Time) {
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
+			slog.String("external_id", externalID),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
@@ -45,6 +46,7 @@ func (lm *loggingMiddleware) Cert(token, thingID, duration string) (cert, key st
 		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("thing_id", thingID),
+			slog.String("ttl", duration),
 		}
 		if err != nil {
 			args = append(args, slog.Any("error", err))
