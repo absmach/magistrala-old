@@ -30,11 +30,11 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func setupGroups() (*httptest.Server, *mocks.Repository, *authmocks.AuthService) {
+func setupGroups() (*httptest.Server, *mocks.Repository, *authmocks.AuthClient) {
 	crepo := new(umocks.Repository)
 	grepo := new(mocks.Repository)
 
-	auth := new(authmocks.AuthService)
+	auth := new(authmocks.AuthClient)
 	csvc := users.NewService(crepo, auth, emailer, phasher, idProvider, passRegex, true)
 	gsvc := groups.NewService(grepo, idProvider, auth)
 

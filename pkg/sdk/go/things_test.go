@@ -30,12 +30,12 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func setupThings() (*httptest.Server, *mocks.Repository, *gmocks.Repository, *authmocks.AuthService, *mocks.Cache) {
+func setupThings() (*httptest.Server, *mocks.Repository, *gmocks.Repository, *authmocks.AuthClient, *mocks.Cache) {
 	cRepo := new(mocks.Repository)
 	gRepo := new(gmocks.Repository)
 	thingCache := new(mocks.Cache)
 
-	auth := new(authmocks.AuthService)
+	auth := new(authmocks.AuthClient)
 	csvc := things.NewService(auth, cRepo, gRepo, thingCache, idProvider)
 	gsvc := groups.NewService(gRepo, idProvider, auth)
 
@@ -46,12 +46,12 @@ func setupThings() (*httptest.Server, *mocks.Repository, *gmocks.Repository, *au
 	return httptest.NewServer(mux), cRepo, gRepo, auth, thingCache
 }
 
-func setupThingsMinimal() (*httptest.Server, *authmocks.AuthService) {
+func setupThingsMinimal() (*httptest.Server, *authmocks.AuthClient) {
 	cRepo := new(mocks.Repository)
 	gRepo := new(gmocks.Repository)
 	thingCache := new(mocks.Cache)
 
-	auth := new(authmocks.AuthService)
+	auth := new(authmocks.AuthClient)
 	csvc := things.NewService(auth, cRepo, gRepo, thingCache, idProvider)
 	gsvc := groups.NewService(gRepo, idProvider, auth)
 

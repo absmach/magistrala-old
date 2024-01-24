@@ -21,8 +21,8 @@ const publisher = "twins"
 var id = 0
 
 // NewService use mock dependencies to create real twins service.
-func NewService() (twins.Service, *authmocks.AuthService) {
-	auth := new(authmocks.AuthService)
+func NewService() (twins.Service, *authmocks.AuthClient) {
+	auth := new(authmocks.AuthClient)
 	twinsRepo := NewTwinRepository()
 	twinCache := NewTwinCache()
 	statesRepo := NewStateRepository()

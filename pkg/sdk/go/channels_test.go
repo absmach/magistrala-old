@@ -32,12 +32,12 @@ import (
 	"github.com/stretchr/testify/mock"
 )
 
-func setupChannels() (*httptest.Server, *mocks.Repository, *authmocks.AuthService) {
+func setupChannels() (*httptest.Server, *mocks.Repository, *authmocks.AuthClient) {
 	cRepo := new(thmocks.Repository)
 	grepo := new(mocks.Repository)
 	thingCache := new(thmocks.Cache)
 
-	auth := new(authmocks.AuthService)
+	auth := new(authmocks.AuthClient)
 	csvc := things.NewService(auth, cRepo, grepo, thingCache, idProvider)
 	gsvc := groups.NewService(grepo, idProvider, auth)
 

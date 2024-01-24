@@ -50,9 +50,9 @@ var (
 	errDeletePolicies = errors.New("failed to delete policies")
 )
 
-func newService(selfRegister bool) (users.Service, *mocks.Repository, *authmocks.AuthService, users.Emailer) {
+func newService(selfRegister bool) (users.Service, *mocks.Repository, *authmocks.AuthClient, users.Emailer) {
 	cRepo := new(mocks.Repository)
-	auth := new(authmocks.AuthService)
+	auth := new(authmocks.AuthClient)
 	e := mocks.NewEmailer()
 	return users.NewService(cRepo, auth, e, phasher, idProvider, passRegex, selfRegister), cRepo, auth, e
 }
