@@ -27,7 +27,7 @@ func LoggingMiddleware(svc groups.Service, logger *slog.Logger) groups.Service {
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) CreateGroup(ctx context.Context, token, kind string, group groups.Group) (g groups.Group, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"group",
@@ -49,7 +49,7 @@ func (lm *loggingMiddleware) CreateGroup(ctx context.Context, token, kind string
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) UpdateGroup(ctx context.Context, token string, group groups.Group) (g groups.Group, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"group",
@@ -72,7 +72,7 @@ func (lm *loggingMiddleware) UpdateGroup(ctx context.Context, token string, grou
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ViewGroup(ctx context.Context, token, id string) (g groups.Group, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"group",
@@ -94,7 +94,7 @@ func (lm *loggingMiddleware) ViewGroup(ctx context.Context, token, id string) (g
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ViewGroupPerms(ctx context.Context, token, id string) (p []string, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("group_id", id),
 		}
@@ -112,7 +112,7 @@ func (lm *loggingMiddleware) ViewGroupPerms(ctx context.Context, token, id strin
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ListGroups(ctx context.Context, token, memberKind, memberID string, gp groups.Page) (cg groups.Page, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"group",
@@ -138,7 +138,7 @@ func (lm *loggingMiddleware) ListGroups(ctx context.Context, token, memberKind, 
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) EnableGroup(ctx context.Context, token, id string) (g groups.Group, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"group",
@@ -160,7 +160,7 @@ func (lm *loggingMiddleware) EnableGroup(ctx context.Context, token, id string) 
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) DisableGroup(ctx context.Context, token, id string) (g groups.Group, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("group_id", id),
 		}
@@ -178,7 +178,7 @@ func (lm *loggingMiddleware) DisableGroup(ctx context.Context, token, id string)
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ListMembers(ctx context.Context, token, groupID, permission, memberKind string) (mp groups.MembersPage, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"group",
@@ -199,7 +199,7 @@ func (lm *loggingMiddleware) ListMembers(ctx context.Context, token, groupID, pe
 
 func (lm *loggingMiddleware) Assign(ctx context.Context, token, groupID, relation, memberKind string, memberIDs ...string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("group_id", groupID),
 			slog.String("relation", relation),
@@ -219,7 +219,7 @@ func (lm *loggingMiddleware) Assign(ctx context.Context, token, groupID, relatio
 
 func (lm *loggingMiddleware) Unassign(ctx context.Context, token, groupID, relation, memberKind string, memberIDs ...string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("group_id", groupID),
 			slog.String("relation", relation),
@@ -239,7 +239,7 @@ func (lm *loggingMiddleware) Unassign(ctx context.Context, token, groupID, relat
 
 func (lm *loggingMiddleware) DeleteGroup(ctx context.Context, token, id string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("group_id", id),
 		}

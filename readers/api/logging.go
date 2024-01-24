@@ -29,7 +29,7 @@ func LoggingMiddleware(svc readers.MessageRepository, logger *slog.Logger) reade
 
 func (lm *loggingMiddleware) ReadAll(chanID string, rpm readers.PageMetadata) (page readers.MessagesPage, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("channel_id", chanID),
 			slog.Group(

@@ -27,7 +27,7 @@ func LoggingMiddleware(svc auth.Service, logger *slog.Logger) auth.Service {
 
 func (lm *loggingMiddleware) ListObjects(ctx context.Context, pr auth.PolicyReq, nextPageToken string, limit int32) (p auth.PolicyPage, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Int64("limit", int64(limit)),
 		}
@@ -44,16 +44,13 @@ func (lm *loggingMiddleware) ListObjects(ctx context.Context, pr auth.PolicyReq,
 
 func (lm *loggingMiddleware) ListAllObjects(ctx context.Context, pr auth.PolicyReq) (p auth.PolicyPage, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
-				"object",
-				slog.String("type", pr.ObjectType),
-			),
-			slog.Group(
-				"subject",
-				slog.String("id", pr.Subject),
-				slog.String("type", pr.SubjectType),
+				"policy_request",
+				slog.String("object_type", pr.ObjectType),
+				slog.String("subject_id", pr.Subject),
+				slog.String("subject_type", pr.SubjectType),
 			),
 			slog.String("permission", pr.Permission),
 		}
@@ -70,7 +67,7 @@ func (lm *loggingMiddleware) ListAllObjects(ctx context.Context, pr auth.PolicyR
 
 func (lm *loggingMiddleware) CountObjects(ctx context.Context, pr auth.PolicyReq) (count int, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"object",
@@ -91,16 +88,13 @@ func (lm *loggingMiddleware) CountObjects(ctx context.Context, pr auth.PolicyReq
 
 func (lm *loggingMiddleware) ListSubjects(ctx context.Context, pr auth.PolicyReq, nextPageToken string, limit int32) (p auth.PolicyPage, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
-				"subject",
-				slog.String("type", pr.SubjectType),
-			),
-			slog.Group(
-				"object",
-				slog.String("id", pr.Object),
-				slog.String("type", pr.ObjectType),
+				"policy_request",
+				slog.String("subject_type", pr.SubjectType),
+				slog.String("object_id", pr.Object),
+				slog.String("object_type", pr.ObjectType),
 			),
 			slog.String("permission", pr.Permission),
 		}
@@ -117,16 +111,13 @@ func (lm *loggingMiddleware) ListSubjects(ctx context.Context, pr auth.PolicyReq
 
 func (lm *loggingMiddleware) ListAllSubjects(ctx context.Context, pr auth.PolicyReq) (p auth.PolicyPage, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
-				"subject",
-				slog.String("type", pr.SubjectType),
-			),
-			slog.Group(
-				"object",
-				slog.String("id", pr.Object),
-				slog.String("type", pr.ObjectType),
+				"policy_request",
+				slog.String("sybject_type", pr.SubjectType),
+				slog.String("object_id", pr.Object),
+				slog.String("object_type", pr.ObjectType),
 			),
 			slog.String("permission", pr.Permission),
 		}
@@ -143,7 +134,7 @@ func (lm *loggingMiddleware) ListAllSubjects(ctx context.Context, pr auth.Policy
 
 func (lm *loggingMiddleware) CountSubjects(ctx context.Context, pr auth.PolicyReq) (count int, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"subject",
@@ -163,18 +154,15 @@ func (lm *loggingMiddleware) CountSubjects(ctx context.Context, pr auth.PolicyRe
 
 func (lm *loggingMiddleware) ListPermissions(ctx context.Context, pr auth.PolicyReq, filterPermissions []string) (p auth.Permissions, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Any("filter_permissions", filterPermissions),
 			slog.Group(
-				"object",
-				slog.String("id", pr.Object),
-				slog.String("type", pr.ObjectType),
-			),
-			slog.Group(
-				"subject",
-				slog.String("id", pr.Subject),
-				slog.String("type", pr.SubjectType),
+				"policy_request",
+				slog.String("object_id", pr.Object),
+				slog.String("object_type", pr.ObjectType),
+				slog.String("subject_id", pr.Subject),
+				slog.String("subject_type", pr.SubjectType),
 			),
 		}
 		if err != nil {
@@ -190,7 +178,7 @@ func (lm *loggingMiddleware) ListPermissions(ctx context.Context, pr auth.Policy
 
 func (lm *loggingMiddleware) Issue(ctx context.Context, token string, key auth.Key) (tkn auth.Token, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"key",
@@ -214,7 +202,7 @@ func (lm *loggingMiddleware) Issue(ctx context.Context, token string, key auth.K
 
 func (lm *loggingMiddleware) Revoke(ctx context.Context, token, id string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("id", id),
 		}
@@ -231,7 +219,7 @@ func (lm *loggingMiddleware) Revoke(ctx context.Context, token, id string) (err 
 
 func (lm *loggingMiddleware) RetrieveKey(ctx context.Context, token, id string) (key auth.Key, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("id", id),
 		}
@@ -248,7 +236,7 @@ func (lm *loggingMiddleware) RetrieveKey(ctx context.Context, token, id string) 
 
 func (lm *loggingMiddleware) Identify(ctx context.Context, token string) (id auth.Key, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
@@ -264,7 +252,7 @@ func (lm *loggingMiddleware) Identify(ctx context.Context, token string) (id aut
 
 func (lm *loggingMiddleware) Authorize(ctx context.Context, pr auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"object",
@@ -290,17 +278,14 @@ func (lm *loggingMiddleware) Authorize(ctx context.Context, pr auth.PolicyReq) (
 
 func (lm *loggingMiddleware) AddPolicy(ctx context.Context, pr auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
-				"object",
-				slog.String("id", pr.Object),
-				slog.String("type", pr.ObjectType),
-			),
-			slog.Group(
-				"subject",
-				slog.String("id", pr.Subject),
-				slog.String("type", pr.SubjectType),
+				"policy_request",
+				slog.String("object_id", pr.Object),
+				slog.String("object_type", pr.ObjectType),
+				slog.String("subject_id", pr.Subject),
+				slog.String("subject_type", pr.SubjectType),
 			),
 			slog.String("permission", pr.Permission),
 		}
@@ -316,17 +301,14 @@ func (lm *loggingMiddleware) AddPolicy(ctx context.Context, pr auth.PolicyReq) (
 
 func (lm *loggingMiddleware) AddPolicies(ctx context.Context, prs []auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
-				"subject",
-				slog.String("id", prs[0].Subject),
-				slog.String("type", prs[0].SubjectType),
-			),
-			slog.Group(
-				"object",
-				slog.String("id", prs[0].Object),
-				slog.String("type", prs[0].ObjectType),
+				"policy_request",
+				slog.String("subject_id", prs[0].Subject),
+				slog.String("subject_type", prs[0].SubjectType),
+				slog.String("object_id", prs[0].Object),
+				slog.String("object_type", prs[0].ObjectType),
 			),
 			slog.String("permission", prs[0].Permission),
 		}
@@ -343,17 +325,14 @@ func (lm *loggingMiddleware) AddPolicies(ctx context.Context, prs []auth.PolicyR
 
 func (lm *loggingMiddleware) DeletePolicy(ctx context.Context, pr auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
-				"object",
-				slog.String("id", pr.Object),
-				slog.String("type", pr.ObjectType),
-			),
-			slog.Group(
-				"subject",
-				slog.String("id", pr.Subject),
-				slog.String("type", pr.SubjectType),
+				"policy_request",
+				slog.String("object_id", pr.Object),
+				slog.String("object_type", pr.ObjectType),
+				slog.String("subject_id", pr.Subject),
+				slog.String("subject_type", pr.SubjectType),
 			),
 			slog.String("permission", pr.Permission),
 		}
@@ -369,17 +348,14 @@ func (lm *loggingMiddleware) DeletePolicy(ctx context.Context, pr auth.PolicyReq
 
 func (lm *loggingMiddleware) DeletePolicies(ctx context.Context, prs []auth.PolicyReq) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
-				"subject",
-				slog.String("id", prs[0].Subject),
-				slog.String("type", prs[0].SubjectType),
-			),
-			slog.Group(
-				"object",
-				slog.String("id", prs[0].Object),
-				slog.String("type", prs[0].ObjectType),
+				"policy_request",
+				slog.String("subject_id", prs[0].Subject),
+				slog.String("subject_type", prs[0].SubjectType),
+				slog.String("object_id", prs[0].Object),
+				slog.String("object_type", prs[0].ObjectType),
 			),
 			slog.String("permission", prs[0].Permission),
 		}
@@ -395,7 +371,7 @@ func (lm *loggingMiddleware) DeletePolicies(ctx context.Context, prs []auth.Poli
 
 func (lm *loggingMiddleware) CreateDomain(ctx context.Context, token string, d auth.Domain) (do auth.Domain, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"domain",
@@ -415,7 +391,7 @@ func (lm *loggingMiddleware) CreateDomain(ctx context.Context, token string, d a
 
 func (lm *loggingMiddleware) RetrieveDomain(ctx context.Context, token, id string) (do auth.Domain, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("domain_id", id),
 		}
@@ -431,7 +407,7 @@ func (lm *loggingMiddleware) RetrieveDomain(ctx context.Context, token, id strin
 
 func (lm *loggingMiddleware) RetrieveDomainPermissions(ctx context.Context, token, id string) (permissions auth.Permissions, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("domain_id", id),
 		}
@@ -447,7 +423,7 @@ func (lm *loggingMiddleware) RetrieveDomainPermissions(ctx context.Context, toke
 
 func (lm *loggingMiddleware) UpdateDomain(ctx context.Context, token, id string, d auth.DomainReq) (do auth.Domain, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"domain",
@@ -467,7 +443,7 @@ func (lm *loggingMiddleware) UpdateDomain(ctx context.Context, token, id string,
 
 func (lm *loggingMiddleware) ChangeDomainStatus(ctx context.Context, token, id string, d auth.DomainReq) (do auth.Domain, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"domain",
@@ -487,7 +463,7 @@ func (lm *loggingMiddleware) ChangeDomainStatus(ctx context.Context, token, id s
 
 func (lm *loggingMiddleware) ListDomains(ctx context.Context, token string, page auth.Page) (do auth.DomainsPage, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"page",
@@ -508,7 +484,7 @@ func (lm *loggingMiddleware) ListDomains(ctx context.Context, token string, page
 
 func (lm *loggingMiddleware) AssignUsers(ctx context.Context, token, id string, userIds []string, relation string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("id", id),
 			slog.String("relation", relation),
@@ -526,7 +502,7 @@ func (lm *loggingMiddleware) AssignUsers(ctx context.Context, token, id string, 
 
 func (lm *loggingMiddleware) UnassignUsers(ctx context.Context, token, id string, userIds []string, relation string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("id", id),
 			slog.String("relation", relation),
@@ -544,7 +520,7 @@ func (lm *loggingMiddleware) UnassignUsers(ctx context.Context, token, id string
 
 func (lm *loggingMiddleware) ListUserDomains(ctx context.Context, token, userID string, page auth.Page) (do auth.DomainsPage, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("user_id", userID),
 		}

@@ -28,7 +28,7 @@ func LoggingMiddleware(svc twins.Service, logger *slog.Logger) twins.Service {
 
 func (lm *loggingMiddleware) AddTwin(ctx context.Context, token string, twin twins.Twin, def twins.Definition) (tw twins.Twin, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"twin",
@@ -50,7 +50,7 @@ func (lm *loggingMiddleware) AddTwin(ctx context.Context, token string, twin twi
 
 func (lm *loggingMiddleware) UpdateTwin(ctx context.Context, token string, twin twins.Twin, def twins.Definition) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"twin",
@@ -72,7 +72,7 @@ func (lm *loggingMiddleware) UpdateTwin(ctx context.Context, token string, twin 
 
 func (lm *loggingMiddleware) ViewTwin(ctx context.Context, token, twinID string) (tw twins.Twin, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("twin_id", twinID),
 		}
@@ -89,7 +89,7 @@ func (lm *loggingMiddleware) ViewTwin(ctx context.Context, token, twinID string)
 
 func (lm *loggingMiddleware) ListTwins(ctx context.Context, token string, offset, limit uint64, name string, metadata twins.Metadata) (page twins.Page, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"page",
@@ -111,7 +111,7 @@ func (lm *loggingMiddleware) ListTwins(ctx context.Context, token string, offset
 
 func (lm *loggingMiddleware) SaveStates(ctx context.Context, msg *messaging.Message) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"message",
@@ -133,7 +133,7 @@ func (lm *loggingMiddleware) SaveStates(ctx context.Context, msg *messaging.Mess
 
 func (lm *loggingMiddleware) ListStates(ctx context.Context, token string, offset, limit uint64, twinID string) (page twins.StatesPage, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("twin_id", twinID),
 			slog.Group(
@@ -155,7 +155,7 @@ func (lm *loggingMiddleware) ListStates(ctx context.Context, token string, offse
 
 func (lm *loggingMiddleware) RemoveTwin(ctx context.Context, token, twinID string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("twin_id", twinID),
 		}

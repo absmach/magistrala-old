@@ -30,7 +30,7 @@ func LoggingMiddleware(svc opcua.Service, logger *slog.Logger) opcua.Service {
 
 func (lm loggingMiddleware) CreateThing(ctx context.Context, mgxThing, opcuaNodeID string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"thing",
@@ -51,7 +51,7 @@ func (lm loggingMiddleware) CreateThing(ctx context.Context, mgxThing, opcuaNode
 
 func (lm loggingMiddleware) UpdateThing(ctx context.Context, mgxThing, opcuaNodeID string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"thing",
@@ -72,7 +72,7 @@ func (lm loggingMiddleware) UpdateThing(ctx context.Context, mgxThing, opcuaNode
 
 func (lm loggingMiddleware) RemoveThing(ctx context.Context, mgxThing string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("thing_id", mgxThing),
 		}
@@ -89,7 +89,7 @@ func (lm loggingMiddleware) RemoveThing(ctx context.Context, mgxThing string) (e
 
 func (lm loggingMiddleware) CreateChannel(ctx context.Context, mgxChan, opcuaServerURI string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"channel",
@@ -110,7 +110,7 @@ func (lm loggingMiddleware) CreateChannel(ctx context.Context, mgxChan, opcuaSer
 
 func (lm loggingMiddleware) UpdateChannel(ctx context.Context, mgxChanID, opcuaServerURI string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"channel",
@@ -131,7 +131,7 @@ func (lm loggingMiddleware) UpdateChannel(ctx context.Context, mgxChanID, opcuaS
 
 func (lm loggingMiddleware) RemoveChannel(ctx context.Context, mgxChanID string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("channel_id", mgxChanID),
 		}
@@ -148,7 +148,7 @@ func (lm loggingMiddleware) RemoveChannel(ctx context.Context, mgxChanID string)
 
 func (lm loggingMiddleware) ConnectThing(ctx context.Context, mgxChanID, mgxThingID string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("channel_id", mgxChanID),
 			slog.String("thing_id", mgxThingID),
@@ -166,7 +166,7 @@ func (lm loggingMiddleware) ConnectThing(ctx context.Context, mgxChanID, mgxThin
 
 func (lm loggingMiddleware) DisconnectThing(ctx context.Context, mgxChanID, mgxThingID string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("channel_id", mgxChanID),
 			slog.String("thing_id", mgxThingID),
@@ -184,7 +184,7 @@ func (lm loggingMiddleware) DisconnectThing(ctx context.Context, mgxChanID, mgxT
 
 func (lm loggingMiddleware) Browse(ctx context.Context, serverURI, namespace, identifier string) (nodes []opcua.BrowsedNode, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("server_uri", serverURI),
 			slog.String("namespace", namespace),

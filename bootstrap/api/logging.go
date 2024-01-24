@@ -29,7 +29,7 @@ func LoggingMiddleware(svc bootstrap.Service, logger *slog.Logger) bootstrap.Ser
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) Add(ctx context.Context, token string, cfg bootstrap.Config) (saved bootstrap.Config, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("thing_id", saved.ThingID),
 		}
@@ -48,7 +48,7 @@ func (lm *loggingMiddleware) Add(ctx context.Context, token string, cfg bootstra
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) View(ctx context.Context, token, id string) (saved bootstrap.Config, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("thing_id", id),
 		}
@@ -67,7 +67,7 @@ func (lm *loggingMiddleware) View(ctx context.Context, token, id string) (saved 
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) Update(ctx context.Context, token string, cfg bootstrap.Config) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("thing_id", cfg.ThingID),
 		}
@@ -86,7 +86,7 @@ func (lm *loggingMiddleware) Update(ctx context.Context, token string, cfg boots
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) UpdateCert(ctx context.Context, token, thingID, clientCert, clientKey, caCert string) (cfg bootstrap.Config, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("thing_id", cfg.ThingID),
 		}
@@ -105,7 +105,7 @@ func (lm *loggingMiddleware) UpdateCert(ctx context.Context, token, thingID, cli
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) UpdateConnections(ctx context.Context, token, id string, connections []string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("id", id),
 		}
@@ -124,7 +124,7 @@ func (lm *loggingMiddleware) UpdateConnections(ctx context.Context, token, id st
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) List(ctx context.Context, token string, filter bootstrap.Filter, offset, limit uint64) (res bootstrap.ConfigsPage, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"filter",
@@ -147,7 +147,7 @@ func (lm *loggingMiddleware) List(ctx context.Context, token string, filter boot
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) Remove(ctx context.Context, token, id string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("id", id),
 		}
@@ -164,7 +164,7 @@ func (lm *loggingMiddleware) Remove(ctx context.Context, token, id string) (err 
 
 func (lm *loggingMiddleware) Bootstrap(ctx context.Context, externalKey, externalID string, secure bool) (cfg bootstrap.Config, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"config",
@@ -184,7 +184,7 @@ func (lm *loggingMiddleware) Bootstrap(ctx context.Context, externalKey, externa
 
 func (lm *loggingMiddleware) ChangeState(ctx context.Context, token, id string, state bootstrap.State) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("id", id),
 			slog.Any("state", state),
@@ -202,7 +202,7 @@ func (lm *loggingMiddleware) ChangeState(ctx context.Context, token, id string, 
 
 func (lm *loggingMiddleware) UpdateChannelHandler(ctx context.Context, channel bootstrap.Channel) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"channel",
@@ -224,7 +224,7 @@ func (lm *loggingMiddleware) UpdateChannelHandler(ctx context.Context, channel b
 
 func (lm *loggingMiddleware) RemoveConfigHandler(ctx context.Context, id string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("config_id", id),
 		}
@@ -241,7 +241,7 @@ func (lm *loggingMiddleware) RemoveConfigHandler(ctx context.Context, id string)
 
 func (lm *loggingMiddleware) RemoveChannelHandler(ctx context.Context, id string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("id", id),
 		}
@@ -258,7 +258,7 @@ func (lm *loggingMiddleware) RemoveChannelHandler(ctx context.Context, id string
 
 func (lm *loggingMiddleware) DisconnectThingHandler(ctx context.Context, channelID, thingID string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("channel_id", channelID),
 			slog.String("thing_id", thingID),

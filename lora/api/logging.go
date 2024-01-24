@@ -30,7 +30,7 @@ func LoggingMiddleware(svc lora.Service, logger *slog.Logger) lora.Service {
 
 func (lm loggingMiddleware) CreateThing(ctx context.Context, thingID, loraDevEUI string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"thing",
@@ -51,7 +51,7 @@ func (lm loggingMiddleware) CreateThing(ctx context.Context, thingID, loraDevEUI
 
 func (lm loggingMiddleware) UpdateThing(ctx context.Context, thingID, loraDevEUI string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"thing",
@@ -72,7 +72,7 @@ func (lm loggingMiddleware) UpdateThing(ctx context.Context, thingID, loraDevEUI
 
 func (lm loggingMiddleware) RemoveThing(ctx context.Context, thingID string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("thing_id", thingID),
 		}
@@ -89,7 +89,7 @@ func (lm loggingMiddleware) RemoveThing(ctx context.Context, thingID string) (er
 
 func (lm loggingMiddleware) CreateChannel(ctx context.Context, chanID, loraApp string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"channel",
@@ -110,7 +110,7 @@ func (lm loggingMiddleware) CreateChannel(ctx context.Context, chanID, loraApp s
 
 func (lm loggingMiddleware) UpdateChannel(ctx context.Context, chanID, loraApp string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"channel",
@@ -130,7 +130,7 @@ func (lm loggingMiddleware) UpdateChannel(ctx context.Context, chanID, loraApp s
 
 func (lm loggingMiddleware) RemoveChannel(ctx context.Context, chanID string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("channel_id", chanID),
 		}
@@ -146,7 +146,7 @@ func (lm loggingMiddleware) RemoveChannel(ctx context.Context, chanID string) (e
 
 func (lm loggingMiddleware) ConnectThing(ctx context.Context, chanID, thingID string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("channel_id", chanID),
 			slog.String("thing_id", thingID),
@@ -164,7 +164,7 @@ func (lm loggingMiddleware) ConnectThing(ctx context.Context, chanID, thingID st
 
 func (lm loggingMiddleware) DisconnectThing(ctx context.Context, chanID, thingID string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("channel_id", chanID),
 			slog.String("thing_id", thingID),
@@ -182,7 +182,7 @@ func (lm loggingMiddleware) DisconnectThing(ctx context.Context, chanID, thingID
 
 func (lm loggingMiddleware) Publish(ctx context.Context, msg *lora.Message) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"message",

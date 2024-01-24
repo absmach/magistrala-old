@@ -26,7 +26,7 @@ func NewLoggingMiddleware(svc provision.Service, logger *slog.Logger) provision.
 
 func (lm *loggingMiddleware) Provision(token, name, externalID, externalKey string) (res provision.Result, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
@@ -42,7 +42,7 @@ func (lm *loggingMiddleware) Provision(token, name, externalID, externalKey stri
 
 func (lm *loggingMiddleware) Cert(token, thingID, duration string) (cert, key string, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("thing_id", thingID),
 		}
@@ -59,7 +59,7 @@ func (lm *loggingMiddleware) Cert(token, thingID, duration string) (cert, key st
 
 func (lm *loggingMiddleware) Mapping(token string) (res map[string]interface{}, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {

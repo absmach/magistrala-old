@@ -68,7 +68,7 @@ func LoggingMiddleware(svc session.Handler, logger *slog.Logger) session.Handler
 
 func (lm *loggingMiddleware) logAction(ctx context.Context, action string, topics *[]string, payload *[]byte) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if topics != nil {

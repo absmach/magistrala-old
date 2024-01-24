@@ -30,7 +30,7 @@ func LoggingMiddleware(svc coap.Service, logger *slog.Logger) coap.Service {
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) Publish(ctx context.Context, key string, msg *messaging.Message) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("channel_id", msg.GetChannel()),
 		}
@@ -52,7 +52,7 @@ func (lm *loggingMiddleware) Publish(ctx context.Context, key string, msg *messa
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) Subscribe(ctx context.Context, key, chanID, subtopic string, c coap.Client) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("channel_id", chanID),
 		}
@@ -74,7 +74,7 @@ func (lm *loggingMiddleware) Subscribe(ctx context.Context, key, chanID, subtopi
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) Unsubscribe(ctx context.Context, key, chanID, subtopic, token string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("channel_id", chanID),
 		}

@@ -27,7 +27,7 @@ func LoggingMiddleware(svc ws.Service, logger *slog.Logger) ws.Service {
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) Subscribe(ctx context.Context, thingKey, chanID, subtopic string, c *ws.Client) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("channel_id", chanID),
 		}

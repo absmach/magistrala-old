@@ -29,7 +29,7 @@ func LoggingMiddleware(svc notifiers.Service, logger *slog.Logger) notifiers.Ser
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) CreateSubscription(ctx context.Context, token string, sub notifiers.Subscription) (id string, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"subscription",
@@ -52,7 +52,7 @@ func (lm *loggingMiddleware) CreateSubscription(ctx context.Context, token strin
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ViewSubscription(ctx context.Context, token, topic string) (sub notifiers.Subscription, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"subscription",
@@ -75,7 +75,7 @@ func (lm *loggingMiddleware) ViewSubscription(ctx context.Context, token, topic 
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ListSubscriptions(ctx context.Context, token string, pm notifiers.PageMetadata) (res notifiers.Page, err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.Group(
 				"page",
@@ -99,7 +99,7 @@ func (lm *loggingMiddleware) ListSubscriptions(ctx context.Context, token string
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) RemoveSubscription(ctx context.Context, token, id string) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 			slog.String("id", id),
 		}
@@ -118,7 +118,7 @@ func (lm *loggingMiddleware) RemoveSubscription(ctx context.Context, token, id s
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ConsumeBlocking(ctx context.Context, msg interface{}) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {

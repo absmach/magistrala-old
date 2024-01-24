@@ -32,7 +32,7 @@ func LoggingMiddleware(consumer consumers.BlockingConsumer, logger *slog.Logger)
 // If the request fails, it logs the error.
 func (lm *loggingMiddleware) ConsumeBlocking(ctx context.Context, msgs interface{}) (err error) {
 	defer func(begin time.Time) {
-		args := []interface{}{
+		args := []any{
 			slog.String("duration", time.Since(begin).String()),
 		}
 		if err != nil {
