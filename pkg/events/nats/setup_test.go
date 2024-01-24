@@ -17,18 +17,21 @@ import (
 )
 
 var (
-	natsURL  string
-	stream   = "tests.events"
-	consumer = "tests-consumer"
+	natsURL   string
+	stream    = "tests.events"
+	consumer  = "tests-consumer"
+	pool      *dockertest.Pool
+	container *dockertest.Resource
 )
 
 func TestMain(m *testing.M) {
-	pool, err := dockertest.NewPool("")
+	var err error
+	pool, err = dockertest.NewPool("")
 	if err != nil {
 		log.Fatalf("Could not connect to docker: %s", err)
 	}
 
-	container, err := pool.RunWithOptions(&dockertest.RunOptions{
+	container, err = pool.RunWithOptions(&dockertest.RunOptions{
 		Repository: "nats",
 		Tag:        "2.10.9-alpine",
 		Cmd:        []string{"-DVV", "-js"},

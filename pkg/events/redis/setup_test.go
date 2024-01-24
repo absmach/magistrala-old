@@ -22,15 +22,18 @@ import (
 var (
 	redisClient *redis.Client
 	redisURL    string
+	pool        *dockertest.Pool
+	container   *dockertest.Resource
 )
 
 func TestMain(m *testing.M) {
-	pool, err := dockertest.NewPool("")
+	var err error
+	pool, err = dockertest.NewPool("")
 	if err != nil {
 		log.Fatalf("Could not connect to docker: %s", err)
 	}
 
-	container, err := pool.RunWithOptions(&dockertest.RunOptions{
+	container, err = pool.RunWithOptions(&dockertest.RunOptions{
 		Repository: "redis",
 		Tag:        "7.2.4-alpine",
 	})

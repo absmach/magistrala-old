@@ -16,22 +16,24 @@ import (
 )
 
 type pubEventStore struct {
-	client            *redis.Client
-	unpublishedEvents chan *redis.XAddArgs
-	stream            string
-	mu                sync.Mutex
+	client                         *redis.Client
+	unpublishedEvents              chan *redis.XAddArgs
+	stream                         string
+	mu                             sync.Mutex
+	unpublishedEventsCheckInterval time.Duration
 }
 
-func NewPublisher(ctx context.Context, url, stream string) (events.Publisher, error) {
+func NewPublisher(ctx context.Context, url, stream string, unpublishedEventsCheckInterval time.Duration) (events.Publisher, error) {
 	opts, err := redis.ParseURL(url)
 	if err != nil {
 		return nil, err
 	}
 
 	es := &pubEventStore{
-		client:            redis.NewClient(opts),
-		unpublishedEvents: make(chan *redis.XAddArgs, events.MaxUnpublishedEvents),
-		stream:            stream,
+		client:                         redis.NewClient(opts),
+		unpublishedEvents:              make(chan *redis.XAddArgs, events.MaxUnpublishedEvents),
+		stream:                         stream,
+		unpublishedEventsCheckInterval: unpublishedEventsCheckInterval,
 	}
 
 	go es.startPublishingRoutine(ctx)
@@ -53,7 +55,7 @@ func (es *pubEventStore) Publish(ctx context.Context, event events.Event) error 
 		Values: values,
 	}
 
-	switch err := es.checkRedisConnection(ctx); err {
+	switch err := es.checkConnection(ctx); err {
 	case nil:
 		return es.client.XAdd(ctx, record).Err()
 	default:
@@ -71,16 +73,18 @@ func (es *pubEventStore) Publish(ctx context.Context, event events.Event) error 
 	}
 }
 
+// startPublishingRoutine periodically checks the Redis connection and publishes
+// the events that were not published due to a connection error.
 func (es *pubEventStore) startPublishingRoutine(ctx context.Context) {
 	defer close(es.unpublishedEvents)
 
-	ticker := time.NewTicker(events.UnpublishedEventsCheckInterval)
+	ticker := time.NewTicker(es.unpublishedEventsCheckInterval)
 	defer ticker.Stop()
 
 	for {
 		select {
 		case <-ticker.C:
-			if err := es.checkRedisConnection(ctx); err == nil {
+			if err := es.checkConnection(ctx); err == nil {
 				es.mu.Lock()
 				for i := len(es.unpublishedEvents) - 1; i >= 0; i-- {
 					record := <-es.unpublishedEvents
@@ -102,7 +106,7 @@ func (es *pubEventStore) Close() error {
 	return es.client.Close()
 }
 
-func (es *pubEventStore) checkRedisConnection(ctx context.Context) error {
+func (es *pubEventStore) checkConnection(ctx context.Context) error {
 	// A timeout is used to avoid blocking the main thread
 	ctx, cancel := context.WithTimeout(ctx, events.ConnCheckInterval)
 	defer cancel()

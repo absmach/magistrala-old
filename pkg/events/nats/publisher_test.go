@@ -23,6 +23,7 @@ var (
 	eventsChan  = make(chan map[string]interface{})
 	logger      = mglog.NewMock()
 	errFailed   = errors.New("failed")
+	numEvents   = 100
 )
 
 type testEvent struct {
@@ -50,6 +51,9 @@ func (te testEvent) Encode() (map[string]interface{}, error) {
 }
 
 func TestPublish(t *testing.T) {
+	_, err := nats.NewPublisher(context.Background(), "http://invaliurl.com", stream)
+	assert.NotNilf(t, err, fmt.Sprintf("got unexpected error on creating event store: %s", err), err)
+
 	publisher, err := nats.NewPublisher(context.Background(), natsURL, stream)
 	assert.Nil(t, err, fmt.Sprintf("got unexpected error on creating event store: %s", err))
 
@@ -221,6 +225,64 @@ func TestPubsub(t *testing.T) {
 
 		err = subcriber.Close()
 		assert.Nil(t, err, fmt.Sprintf("%s got unexpected error: %s", pc.desc, err))
+	}
+}
+
+func TestUnavailablePublish(t *testing.T) {
+	publisher, err := nats.NewPublisher(context.Background(), natsURL, stream)
+	assert.Nil(t, err, fmt.Sprintf("got unexpected error on creating event store: %s", err))
+
+	subcriber, err := nats.NewSubscriber(context.Background(), natsURL, stream, consumer, logger)
+	assert.Nil(t, err, fmt.Sprintf("got unexpected error on creating event store: %s", err))
+
+	err = subcriber.Subscribe(context.Background(), handler{})
+	assert.Nil(t, err, fmt.Sprintf("got unexpected error on subscribing to event store: %s", err))
+
+	err = pool.Client.PauseContainer(container.Container.ID)
+	assert.Nil(t, err, fmt.Sprintf("got unexpected error on pausing container: %s", err))
+
+	spawnGoroutines(publisher, t)
+
+	time.Sleep(1 * time.Second)
+
+	err = pool.Client.UnpauseContainer(container.Container.ID)
+	assert.Nil(t, err, fmt.Sprintf("got unexpected error on unpausing container: %s", err))
+
+	// Wait for the events to be published.
+	time.Sleep(1 * time.Second)
+
+	err = publisher.Close()
+	assert.Nil(t, err, fmt.Sprintf("got unexpected error on closing publisher: %s", err))
+
+	// read all the events from the channel and assert that they are 10.
+	var receivedEvents []map[string]interface{}
+	for i := 0; i < numEvents; i++ {
+		event := <-eventsChan
+		receivedEvents = append(receivedEvents, event)
+	}
+	assert.Len(t, receivedEvents, numEvents, "got unexpected number of events")
+}
+
+func generateRandomEvent() testEvent {
+	return testEvent{
+		Data: map[string]interface{}{
+			"temperature": fmt.Sprintf("%f", rand.Float64()),
+			"humidity":    fmt.Sprintf("%f", rand.Float64()),
+			"sensor_id":   fmt.Sprintf("%d", rand.Intn(1000)),
+			"location":    fmt.Sprintf("%f", rand.Float64()),
+			"status":      fmt.Sprintf("%d", rand.Intn(1000)),
+			"timestamp":   fmt.Sprintf("%d", time.Now().UnixNano()),
+			"operation":   "create",
+		},
+	}
+}
+
+func spawnGoroutines(publisher events.Publisher, t *testing.T) {
+	for i := 0; i < numEvents; i++ {
+		go func() {
+			err := publisher.Publish(context.Background(), generateRandomEvent())
+			assert.Nil(t, err, fmt.Sprintf("got unexpected error: %s", err))
+		}()
 	}
 }
 
