@@ -16,27 +16,27 @@ import (
 )
 
 type pubEventStore struct {
-	client                         *redis.Client
-	unpublishedEvents              chan *redis.XAddArgs
-	stream                         string
-	mu                             sync.Mutex
-	unpublishedEventsCheckInterval time.Duration
+	client            *redis.Client
+	unpublishedEvents chan *redis.XAddArgs
+	stream            string
+	mu                sync.Mutex
+	flushPeriod       time.Duration
 }
 
-func NewPublisher(ctx context.Context, url, stream string, unpublishedEventsCheckInterval time.Duration) (events.Publisher, error) {
+func NewPublisher(ctx context.Context, url, stream string, flushPeriod time.Duration) (events.Publisher, error) {
 	opts, err := redis.ParseURL(url)
 	if err != nil {
 		return nil, err
 	}
 
 	es := &pubEventStore{
-		client:                         redis.NewClient(opts),
-		unpublishedEvents:              make(chan *redis.XAddArgs, events.MaxUnpublishedEvents),
-		stream:                         stream,
-		unpublishedEventsCheckInterval: unpublishedEventsCheckInterval,
+		client:            redis.NewClient(opts),
+		unpublishedEvents: make(chan *redis.XAddArgs, events.MaxUnpublishedEvents),
+		stream:            stream,
+		flushPeriod:       flushPeriod,
 	}
 
-	go es.startPublishingRoutine(ctx)
+	go es.flushUnpublished(ctx)
 
 	return es, nil
 }
@@ -73,12 +73,12 @@ func (es *pubEventStore) Publish(ctx context.Context, event events.Event) error 
 	}
 }
 
-// startPublishingRoutine periodically checks the Redis connection and publishes
+// flushUnpublished periodically checks the Redis connection and publishes
 // the events that were not published due to a connection error.
-func (es *pubEventStore) startPublishingRoutine(ctx context.Context) {
+func (es *pubEventStore) flushUnpublished(ctx context.Context) {
 	defer close(es.unpublishedEvents)
 
-	ticker := time.NewTicker(es.unpublishedEventsCheckInterval)
+	ticker := time.NewTicker(es.flushPeriod)
 	defer ticker.Stop()
 
 	for {
