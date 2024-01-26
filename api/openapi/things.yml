@@ -381,7 +381,7 @@ paths:
         - Channels
       summary: Creates new channel
       description: |
-        Creates new channel. Domain identified by the provided access token will.
+        Creates new channel in domain.
       requestBody:
         $ref: "#/components/requestBodies/ChannelCreateReq"
       security:
