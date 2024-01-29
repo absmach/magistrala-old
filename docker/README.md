@@ -27,9 +27,9 @@ To pull docker images from a specific release you need to change the value of `M
 Magistrala supports configurable MQTT broker and Message broker, which also acts as an events store. Magistrala uses two types of brokers:
 
 1. MQTT_BROKER: Handles MQTT communication between MQTT adapters and message broker. This can either be 'VerneMQ' or 'NATS'.
-2. MESSAGE_BROKER: Manages communication between adapters and Magistrala writer services. This can either be 'NATS' or 'RabbitMQ. This is used to store messages for distributed processing.
+2. MESSAGE_BROKER: Manages message exchange between Magistrala core, optional, and external services. This can either be 'NATS' or 'RabbitMQ'. This is used to store messages for distributed processing.
 
-Events store: This is the same as MESSAGE_BROKER. This can either be 'NATS' or 'RabbitMQ' or 'Redis'. This is used by Magistrala services to store events for distributed processing. If Redis is used as an events store, then RabbitMQ or NATS is used as a message broker since Redis cannot be used as a message broker.
+Events store: This is the same as MESSAGE_BROKER. This can either be 'NATS' or 'RabbitMQ' or 'Redis'. This is used by Magistrala services to store events for distributed processing. If Redis is used as an events store, then RabbitMQ or NATS is used as a message broker.
 
 The current deployment strategy for Magistrala in `docker/docker-compose.yml` is to use VerneMQ as a MQTT_BROKER and NATS as a MESSAGE_BROKER and EVENTS_STORE.
 
@@ -68,18 +68,18 @@ MG_ES_TYPE=redis
 MG_ES_URL=${MG_REDIS_URL}
 ```
 
-For MQTT broker other than NATS, you would need to change the `docker/.env`. For example, to use VerneMQ as a MQTT broker:
+For MQTT broker other than VerneMQ, you would need to change the `docker/.env`. For example, to use NATS as a MQTT broker:
 
 ```env
-MG_MQTT_BROKER_TYPE=vernemq
-MG_MQTT_BROKER_HEALTH_CHECK=${MG_VERNEMQ_HEALTH_CHECK}
-MG_MQTT_ADAPTER_MQTT_QOS=${MG_VERNEMQ_MQTT_QOS}
+MG_MQTT_BROKER_TYPE=nats
+MG_MQTT_BROKER_HEALTH_CHECK=${MG_NATS_HEALTH_CHECK}
+MG_MQTT_ADAPTER_MQTT_QOS=${MG_NATS_MQTT_QOS}
 MG_MQTT_ADAPTER_MQTT_TARGET_HOST=${MG_MQTT_BROKER_TYPE}
 MG_MQTT_ADAPTER_MQTT_TARGET_PORT=1883
 MG_MQTT_ADAPTER_MQTT_TARGET_HEALTH_CHECK=${MG_MQTT_BROKER_HEALTH_CHECK}
 MG_MQTT_ADAPTER_WS_TARGET_HOST=${MG_MQTT_BROKER_TYPE}
 MG_MQTT_ADAPTER_WS_TARGET_PORT=8080
-MG_MQTT_ADAPTER_WS_TARGET_PATH=${MG_VERNEMQ_WS_TARGET_PATH}
+MG_MQTT_ADAPTER_WS_TARGET_PATH=${MG_NATS_WS_TARGET_PATH}
 ```
 
 ### RabbitMQ configuration
