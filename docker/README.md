@@ -29,7 +29,9 @@ Magistrala supports configurable MQTT broker and Message broker, which also acts
 1. MQTT_BROKER: Handles MQTT communication between MQTT adapters and message broker. This can either be 'VerneMQ' or 'NATS'.
 2. MESSAGE_BROKER: Manages message exchange between Magistrala core, optional, and external services. This can either be 'NATS' or 'RabbitMQ'. This is used to store messages for distributed processing.
 
-Events store: This is the same as MESSAGE_BROKER. This can either be 'NATS' or 'RabbitMQ' or 'Redis'. This is used by Magistrala services to store events for distributed processing. If Redis is used as an events store, then RabbitMQ or NATS is used as a message broker.
+Events store: This is used by Magistrala services to store events for distributed processing. Magistrala uses a single service to be the message broker and events store. This can either be 'NATS' or 'RabbitMQ'. Redis can also be used as an events store, but it requires a message broker to be deployed along with it for message exchange.
+
+This is the same as MESSAGE_BROKER. This can either be 'NATS' or 'RabbitMQ' or 'Redis'.  If Redis is used as an events store, then RabbitMQ or NATS is used as a message broker.
 
 The current deployment strategy for Magistrala in `docker/docker-compose.yml` is to use VerneMQ as a MQTT_BROKER and NATS as a MESSAGE_BROKER and EVENTS_STORE.
 
