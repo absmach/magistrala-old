@@ -10,7 +10,7 @@ Follow the [official documentation](https://docs.docker.com/compose/install/).
 
 ## Usage
 
-Run following commands from project root directory.
+Run the following commands from the project root directory.
 
 ```bash
 docker-compose -f docker/docker-compose.yml up
@@ -24,7 +24,7 @@ To pull docker images from a specific release you need to change the value of `M
 
 ## Broker Configuration
 
-Magistrala supports configurable MQTT broker and Message broker, which also acts as events store. Magistrala uses two types of brokers:
+Magistrala supports configurable MQTT broker and Message broker, which also acts as an events store. Magistrala uses two types of brokers:
 
 1. MQTT_BROKER: Handles MQTT communication between MQTT adapters and message broker. This can either be 'VerneMQ' or 'NATS'.
 2. MESSAGE_BROKER: Manages communication between adapters and Magistrala writer services. This can either be 'NATS' or 'RabbitMQ. This is used to store messages for distributed processing.
@@ -46,7 +46,7 @@ Therefore, the following combinations are possible:
 
 For Message brokers other than NATS, you would need to build the docker images with RabbitMQ as the build tag and change the `docker/.env`. For example, to use RabbitMQ as a message broker:
 
-```env
+```bash
 MG_MESSAGE_BROKER_TYPE=rabbitmq make dockers
 ```
 
@@ -57,7 +57,7 @@ MG_MESSAGE_BROKER_URL=${MG_RABBITMQ_URL}
 
 For Redis as an events store, you would need to run RabbitMQ or NATS as a message broker. For example, to use Redis as an events store with rabbitmq as a message broker:
 
-```env
+```bash
 MG_ES_TYPE=redis MG_MESSAGE_BROKER_TYPE=rabbitmq make dockers
 ```
 
