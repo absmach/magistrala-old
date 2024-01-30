@@ -94,7 +94,7 @@ func TestCreateGroup(t *testing.T) {
 				ParentID: wrongID,
 				Status:   clients.EnabledStatus.String(),
 			},
-			err: errors.NewSDKErrorWithStatus(svcerr.ErrCreateEntity, http.StatusInternalServerError),
+			err: errors.NewSDKErrorWithStatus(svcerr.ErrCreateEntity, http.StatusUnprocessableEntity),
 		},
 		{
 			desc:  "create group with missing name",
@@ -717,7 +717,7 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			response: sdk.Group{},
 			token:    invalidToken,
-			err:      errors.NewSDKErrorWithStatus(svcerr.ErrAuthorization, http.StatusForbidden),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(svcerr.ErrAuthorization, svcerr.ErrAuthorization), http.StatusForbidden),
 		},
 		{
 			desc: "update group description with invalid token",
@@ -727,7 +727,7 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			response: sdk.Group{},
 			token:    invalidToken,
-			err:      errors.NewSDKErrorWithStatus(svcerr.ErrAuthorization, http.StatusForbidden),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(svcerr.ErrAuthorization, svcerr.ErrAuthorization), http.StatusForbidden),
 		},
 		{
 			desc: "update group metadata with invalid token",
@@ -739,7 +739,7 @@ func TestUpdateGroup(t *testing.T) {
 			},
 			response: sdk.Group{},
 			token:    invalidToken,
-			err:      errors.NewSDKErrorWithStatus(svcerr.ErrAuthorization, http.StatusForbidden),
+			err:      errors.NewSDKErrorWithStatus(errors.Wrap(svcerr.ErrAuthorization, svcerr.ErrAuthorization), http.StatusForbidden),
 		},
 		{
 			desc: "update a group that can't be marshalled",
