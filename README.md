@@ -16,6 +16,10 @@ It accepts user and thing (sensor, actuator, application) connections over vario
 
 For more details, check out the [official documentation][docs].
 
+## Repository status
+
+This repository contains an outdated version of Magistrala and has been archived. For the latest version of the Magistrala Platform, please visit the [official Magistrala repository](https://github.com/absmach/magistrala).
+
 ## Features
 
 - Multi-protocol connectivity and bridging (HTTP, MQTT, WebSocket and CoAP)
